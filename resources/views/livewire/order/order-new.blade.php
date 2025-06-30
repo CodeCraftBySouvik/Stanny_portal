@@ -639,12 +639,12 @@
 
                         <!-- Product -->
                         @if(isset($items[$index]['collection']) && $items[$index]['collection'] == 1)
-                        
+
                         <div class="mb-3 col-md-2">
                             @else
                             <div class="col-md-2 col-12 mb-3">
                                 @endif
-                                <label class="form-label"><strong>Product</strong></label>
+                                <label class="form-label"><strong>Product1</strong></label>
                                 <input type="text" wire:keyup="FindProduct($event.target.value, {{ $index }})"
                                     wire:model="items.{{ $index }}.searchproduct"
                                     class="form-control form-control-sm border border-1 customer_input @error('items.'.$index.'.searchproduct') border-danger @enderror"
@@ -669,7 +669,7 @@
                                 @enderror
                             </div>
                             <div class="col-md-2 col-12 mb-3">
-                                <label class="form-label"><strong>Quantity</strong><span class="text-danger">*</span></label>
+                                <label class="form-label"><strong>Quantity1</strong><span class="text-danger">*</span></label>
                                 <input type="number"
                                     wire:model="items.{{ $index }}.quantity"
                                     class="form-control form-control-sm border border-1 customer_input
@@ -770,7 +770,7 @@
                             </div>
                             @endif
                         </div>
-                        
+
                         {{-- Append Measurements data --}}
                         @if(isset($this->items[$index]['product_id']) && $items[$index]['collection'] == 1)
                         <div class="row">
@@ -1007,12 +1007,34 @@
                                             @endif
 
                                             {{-- Upload Button on Right --}}
-                                            <div class="ms-auto text-end">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <!-- Upload Voice Button -->
                                                 <button type="button" class="btn btn-cta btn-sm"
                                                     onclick="document.getElementById('voice-upload-{{ $index }}').click()">
                                                     <i class="material-icons text-white" style="font-size: 15px;">mic</i>
                                                     Upload Voice
                                                 </button>
+
+                                                <!-- OR separator -->
+                                                <span class="fw-bold text-muted">OR</span>
+
+                                                <!-- Start / Stop Buttons -->
+                                                <div class="ms-auto text-end d-flex gap-2">
+                                                    <button type="button" class="btn btn-cta btn-sm"
+                                                        onclick="startRecording({{ $index }});" id="startBtn_{{ $index }}">
+                                                        Start Recording
+                                                        <i class="material-icons text-white" style="font-size: 15px;">record_voice_over</i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-cta btn-sm"
+                                                        onclick="stopRecording({{ $index }});" id="stopBtn_{{ $index }}" disabled>
+                                                        Stop Recording
+                                                        <i class="material-icons text-white" style="font-size: 15px;">stop_circle</i>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="ms-auto text-end">
+
                                                 <input type="file" id="voice-upload-{{ $index }}" multiple
                                                     wire:model="voiceUploads.{{ $index }}" accept="audio/*" class="d-none" />
                                                 @error('voiceUploads.*')
@@ -1158,7 +1180,73 @@
     </div>
 
 </div>
+<script>
+    const mediaRecorders = {};
+    const audioChunksMap = {};
 
+    // ✅ Assigns a file to a hidden file input so Livewire can pick it up
+    function assignFileToInput(index, file) {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+
+        const input = document.getElementById(`voice-upload-${index}`);
+        input.files = dt.files;
+
+        // Trigger Livewire to pick it up
+        const event = new Event('change', { bubbles: true });
+        input.dispatchEvent(event);
+
+        console.log(`✅ File assigned to input #voice-upload-${index}`);
+    }
+
+    // Start recording
+    async function startRecording(index) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mediaRecorder = new MediaRecorder(stream);
+        const chunks = [];
+
+        mediaRecorder.ondataavailable = (e) => {
+            chunks.push(e.data);
+        };
+
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'audio/webm' });
+            const file = new File([blob], `recording_${index}.webm`, { type: 'audio/webm' });
+
+            assignFileToInput(index, file); // ✅ assign file to Livewire input
+        };
+
+        mediaRecorders[index] = mediaRecorder;
+        audioChunksMap[index] = chunks;
+
+        mediaRecorder.start();
+
+        // Optional UI state
+        document.getElementById(`startBtn_${index}`).disabled = true;
+        document.getElementById(`stopBtn_${index}`).disabled = false;
+    }
+
+    // Stop recording
+    function stopRecording(index) {
+        if (mediaRecorders[index]) {
+            mediaRecorders[index].stop();
+        }
+
+        // Optional UI state
+        document.getElementById(`startBtn_${index}`).disabled = false;
+        document.getElementById(`stopBtn_${index}`).disabled = true;
+    }
+    function assignFileToInput(index, file) {
+    const dt = new DataTransfer();
+    dt.items.add(file);
+
+    const input = document.getElementById(`voice-upload-${index}`);
+    input.files = dt.files;
+
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+</script>
 <script>
     window.addEventListener('error_message', event => {
         setTimeout(() => {

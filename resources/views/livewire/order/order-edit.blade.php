@@ -497,8 +497,8 @@
                                         <label class="form-label"><strong>Price</strong></label>
                                         <input type="text"
                                             wire:keyup="checkproductPrice($event.target.value, {{ $index }})"
-                                            wire:model="items.{{ $index }}.price" class="form-control form-control-sm border border-1 customer_input 
-                                            @if(session()->has('errorPrice.' . $index)) border-danger @endif 
+                                            wire:model="items.{{ $index }}.price" class="form-control form-control-sm border border-1 customer_input
+                                            @if(session()->has('errorPrice.' . $index)) border-danger @endif
                                             @error('items.' . $index . '.price') border-danger  @enderror"
                                             placeholder="Enter Price">
                                     </div>
@@ -560,22 +560,22 @@
                             <div class="col-12 col-md-6 mb-2 mb-md-0">
                                 <div class="measurement_div">
                                     <h6 class="badge bg-danger custom_success_badge">Measurements</h6>
-    
+
                                     @if($index > 0)
                                     <!-- Show checkbox only for second item onwards -->
                                     <div class="form-check mb-2">
-    
-    
+
+
                                         <input type="checkbox" class="form-check-input"
                                             wire:model="items.{{ $index }}.copy_previous_measurements"
                                             wire:change="copyMeasurements({{ $index }})"
                                             id="copy_measurements_{{ $index }}">
-    
+
                                         <label class="form-check-label" for="copy_measurements_{{ $index }}">
                                             Use previous measurements
                                         </label>
                                     </div>
-    
+
                                     <!-- Display error if copying measurements failed due to product mismatch -->
                                     @if (session()->has('measurements_error.' . $index))
                                     <div class="alert alert-danger">
@@ -583,7 +583,7 @@
                                     </div>
                                     @endif
                                     @endif
-    
+
                                     <div class="row">
                                         @if(isset($items[$index]['measurements']) && count($items[$index]['measurements']) >
                                         0)
@@ -597,7 +597,7 @@
                                                 </label>
                                                 <input type="number" required
                                                     class="form-control form-control-sm border border-1 customer_input measurement_input"
-                                                    wire:model="items.{{ $index }}.measurements.{{ $key }}.value" 
+                                                    wire:model="items.{{ $index }}.measurements.{{ $key }}.value"
                                                      wire:keyup="validateMeasurement({{ $index }}, {{ $key }})">
                                                 @error("items.{$index}.measurements.{$key}.value")
                                                 <div class="text-danger">{{ $message }}</div>
@@ -751,17 +751,38 @@
                                         </div>
                                         <div class="d-flex flex-column align-items-end gap-2">
                                             {{-- Upload Image --}}
+
                                             <button type="button" class="btn btn-cta btn-sm"
                                                 onclick="document.getElementById('catalog-upload-{{ $index }}').click()">
                                                 <i class="material-icons text-white" style="font-size: 15px;">add</i>
                                                 Upload Images
                                             </button>
                                              {{-- Upload Voice --}}
-                                            <button type="button" class="btn btn-cta btn-sm"
-                                                onclick="document.getElementById('voice-upload-{{ $index }}').click()">
-                                                <i class="material-icons text-white" style="font-size: 15px;">mic</i>
-                                                Upload Voice
-                                            </button>
+                                             <div class="d-flex align-items-center gap-3">
+                                                <!-- Upload Voice Button -->
+                                                <button type="button" class="btn btn-cta btn-sm"
+                                                    onclick="document.getElementById('voice-upload-{{ $index }}').click()">
+                                                    <i class="material-icons text-white" style="font-size: 15px;">mic</i>
+                                                    Upload Voice
+                                                </button>
+
+                                                <!-- OR separator -->
+                                                <span class="fw-bold text-muted">OR</span>
+
+                                                <!-- Start / Stop Buttons -->
+                                                <div class="ms-auto text-end d-flex gap-2">
+                                                    <button type="button" class="btn btn-cta btn-sm"
+                                                        onclick="startRecording({{ $index }});" id="startBtn_{{ $index }}">
+                                                        Start Recording
+                                                        <i class="material-icons text-white" style="font-size: 15px;">record_voice_over</i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-cta btn-sm"
+                                                        onclick="stopRecording({{ $index }});" id="stopBtn_{{ $index }}" disabled>
+                                                        Stop Recording
+                                                        <i class="material-icons text-white" style="font-size: 15px;">stop_circle</i>
+                                                    </button>
+                                                </div>
+                                            </div>
 
                                             @error('imageUploads.*')
                                             <div class="text-danger">{{ $message }}</div>
@@ -770,7 +791,7 @@
                                             <div class="text-danger">{{ $message }}</div>
                                             @enderror
                                         </div>
-                                       
+
                                         {{-- Hidden File Input --}}
                                         <input type="file" id="catalog-upload-{{ $index }}" multiple
                                             wire:model="imageUploads.{{ $index }}" accept="image/*" class="d-none" />
@@ -868,3 +889,70 @@
         </div>
     </div>
 </div>
+<script>
+    const mediaRecorders = {};
+    const audioChunksMap = {};
+
+    // ✅ Assigns a file to a hidden file input so Livewire can pick it up
+    function assignFileToInput(index, file) {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+
+        const input = document.getElementById(`voice-upload-${index}`);
+        input.files = dt.files;
+
+        // Trigger Livewire to pick it up
+        const event = new Event('change', { bubbles: true });
+        input.dispatchEvent(event);
+
+        console.log(`✅ File assigned to input #voice-upload-${index}`);
+    }
+
+    // Start recording
+    async function startRecording(index) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mediaRecorder = new MediaRecorder(stream);
+        const chunks = [];
+
+        mediaRecorder.ondataavailable = (e) => {
+            chunks.push(e.data);
+        };
+
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'audio/webm' });
+            const file = new File([blob], `recording_${index}.webm`, { type: 'audio/webm' });
+
+            assignFileToInput(index, file); // ✅ assign file to Livewire input
+        };
+
+        mediaRecorders[index] = mediaRecorder;
+        audioChunksMap[index] = chunks;
+
+        mediaRecorder.start();
+
+        // Optional UI state
+        document.getElementById(`startBtn_${index}`).disabled = true;
+        document.getElementById(`stopBtn_${index}`).disabled = false;
+    }
+
+    // Stop recording
+    function stopRecording(index) {
+        if (mediaRecorders[index]) {
+            mediaRecorders[index].stop();
+        }
+
+        // Optional UI state
+        document.getElementById(`startBtn_${index}`).disabled = false;
+        document.getElementById(`stopBtn_${index}`).disabled = true;
+    }
+    function assignFileToInput(index, file) {
+    const dt = new DataTransfer();
+    dt.items.add(file);
+
+    const input = document.getElementById(`voice-upload-${index}`);
+    input.files = dt.files;
+
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+</script>
