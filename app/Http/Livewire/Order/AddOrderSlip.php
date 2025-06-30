@@ -38,7 +38,7 @@ class AddOrderSlip extends Component
     }
     public function mount($id){
 
-        $this->order = Order::with('items.measurements','customer','createdBy')->where('id', $id)->first();
+        $this->order = Order::with('items.measurements','items.fabric','customer','createdBy')->where('id', $id)->first();
         if($this->order){
             foreach($this->order->items as $key=>$order_item){
                $product =  $order_item->product ?? null;
@@ -59,7 +59,7 @@ class AddOrderSlip extends Component
                 'catalogue' => $order_item->catalogue_id ? $order_item->catalogue : '',
                 'catalogue_id' => $order_item->catalogue_id,
                 'cat_page_number' => $order_item->cat_page_number,
-                'price' => (int) $order_item->piece_price,
+                'piece_price' => (int) $order_item->piece_price,
                 'quantity' => $order_item->quantity,
                 'remarks' => $order_item->remarks,
                 'catlogue_image' => $order_item->catlogue_image,
