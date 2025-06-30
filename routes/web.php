@@ -23,9 +23,9 @@ use App\Http\Livewire\Order\{OrderIndex, OrderNew, OrderInvoice,OrderEdit,OrderV
 use App\Http\Livewire\Product\{MasterProduct,AddProduct,UpdateProduct,MasterCategory,MasterSubCategory,FabricIndex,CollectionIndex,GalleryIndex,MasterCatalogue,CataloguePages};
 use App\Http\Livewire\Staff\{DesignationIndex,StaffIndex,StaffAdd,StaffUpdate,StaffView,StaffTask,StaffTaskAdd,StaffCities,SalesmanBillingIndex,MasterBranch};
 use App\Http\Livewire\Expense\{ExpenseIndex,DepotExpanse,DailyExpenses,DailyCollection};
-use App\Http\Livewire\UserAddressForm; 
-use App\Http\Livewire\CustomerEdit; 
-use App\Http\Livewire\CustomerDetails; 
+use App\Http\Livewire\UserAddressForm;
+use App\Http\Livewire\CustomerEdit;
+use App\Http\Livewire\CustomerDetails;
 use App\Http\Livewire\Supplier\SupplierIndex;
 use App\Http\Livewire\Supplier\SupplierAdd;
 use App\Http\Livewire\Supplier\SupplierEdit;
@@ -95,7 +95,7 @@ Route::group(['prefix' => 'admin','middleware' => 'admin'], function () {
         }
         return redirect()->route('admin.login'); // Redirect to login if not authenticated
     });
-    
+
     Route::get('dashboard', Dashboard::class)->name('admin.dashboard');
     Route::get('billing', Billing::class)->name('billing');
     Route::get('profile', Profile::class)->name('admin.profile');
@@ -106,8 +106,8 @@ Route::group(['prefix' => 'admin','middleware' => 'admin'], function () {
     Route::get('static-sign-up', StaticSignUp::class)->name('static-sign-up');
     Route::get('rtl', RTL::class)->name('rtl');
 
-    
-    
+
+
     Route::group(['prefix' => 'products'], function () {
         Route::get('/', MasterProduct::class)->name('product.view')->middleware('check.permission');
         Route::get('/products/import', MasterProduct::class)->name('product.import');
@@ -160,7 +160,7 @@ Route::group(['prefix' => 'admin','middleware' => 'admin'], function () {
     Route::get('/branch',MasterBranch::class)->name('branch.index')->middleware('check.permission');
     Route::get('/designation',DesignationIndex::class)->name('staff.designation')->middleware('check.permission');
     Route::get('/designation-wise-permission/{id}',DesignationWisePermissions::class)->name('admin.staff.designation_wise_permission');
-    
+
     // Staff
     Route::prefix('staff')->group(function() {
         Route::get('/',StaffIndex::class)->name('staff.index')->middleware('check.permission');
@@ -171,12 +171,12 @@ Route::group(['prefix' => 'admin','middleware' => 'admin'], function () {
         Route::get('/task/add/{staff_id}',StaffTaskAdd::class)->name('staff.task.add');
         Route::get('cities/add/{salesman_id}',StaffCities::class)->name('staff.cities.add');
     });
-    
+
      // Salesman
     Route::prefix('staff/bill-books')->group(function() {
         Route::get('/',SalesmanBillingIndex::class)->name('salesman.index')->middleware('check.permission');
     });
-    
+
     Route::group(['prefix' => 'customers'], function () {
         Route::get('/', CustomerIndex::class)->name('customers.index')->middleware('check.permission');
         Route::get('/add', UserAddressForm::class)->name('admin.user-address-form')->middleware('check.permission');
@@ -218,7 +218,7 @@ Route::group(['prefix' => 'admin','middleware' => 'admin'], function () {
 
     });
 
-    
+
     // Route::get('/measurements/add', MeasurementAdd::class)->name('measurements.add');
     // Route::get('/measurements/edit/{id}', MeasurementEdit::class)->name('measurements.edit');
     // Route::get('/measurements/details/{id}', MeasurementDetails::class)->name('measurements.details');
@@ -239,7 +239,7 @@ Route::group(['prefix' => 'admin','middleware' => 'admin'], function () {
         // order invoice and bill
         Route::get('{order}/invoice', [OrderIndex::class, 'downloadOrderInvoice'])->name('admin.order.download_invoice');
         Route::get('{order}/bill', [OrderIndex::class, 'downloadOrderBill']) ->name('admin.order.download_bill');
-        
+
     });
 
     // Production

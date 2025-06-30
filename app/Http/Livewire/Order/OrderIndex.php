@@ -41,7 +41,7 @@ class OrderIndex extends Component
         $this->resetPage();
     }
     public function resetForm(){
-        $this->reset(['search', 'start_date','end_date','created_by']);
+        $this->reset(['search', 'start_date','end_date','created_by','status']);
     }
 
     public function updatingSearch()
@@ -67,6 +67,9 @@ class OrderIndex extends Component
     }
     public function CollectedBy($staff_id){
         $this->created_by = $staff_id;
+    }
+    public function setStatus($status){
+        $this->status = $status;
     }
 
     public function export()
@@ -125,6 +128,8 @@ class OrderIndex extends Component
         ->when($this->start_date, fn($query) => $query->whereDate('created_at', '>=', $this->start_date)) // Start date filter
         ->when($this->end_date, fn($query) => $query->whereDate('created_at', '<=', $this->end_date)) // End date filter
         // ->when(!$auth->is_super_admin, fn($query) => $query->where('created_by', $auth->id)) // Restrict non-admins
+        ->when($this->status, fn($query) => $query->where('status', $this->status)) // Filter by creator
+
         ->when(!$auth->is_super_admin, function ($query) use ($auth) {
             $query->where(function ($subQuery) use ($auth) {
                 $subQuery->where('created_by', $auth->id)
@@ -221,5 +226,6 @@ class OrderIndex extends Component
 
         session()->flash('message', 'Order has been Delivered successfully.');
     }
+
 
 }

@@ -12,6 +12,7 @@
             </li>
         </ul>
     </section>
+    <div id="export-area">
     <div class="card shadow-sm mb-2">
         <div class="card-body">
             <div class="row">
@@ -348,6 +349,7 @@
                 </table>
             </div>
         </div>
+    </div>
     </div>
 {{-- Modal Content  --}}
 

@@ -17,6 +17,23 @@
                             <input type="date" wire:model="end_date" wire:change="AddEndDate($event.target.value)"
                                 class="form-control select-md bg-white" placeholder="End Date">
                         </div>
+                        <div class="col-auto" style="margin-top: -27px;">
+                            <label for="" class="date_lable">Status</label>
+                            <select class="form-control select-md bg-white" wire:change="setStatus($event.target.value)">
+                                <option value="">Status</option>
+                                <option value="Approval Pending">Approval Pending</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Ready for Delivery">Ready for Delivery</option>
+                                <option value="Partial Delivered By Production">Partial Delivered By Production</option>
+                                <option value="Fully Delivered By Production">Fully Delivered By Production</option>
+                                <option value="Cancelled">Cancelled</option>
+                                <option value="Returned">Returned</option>
+                                <option value="Delivered to Customer">Delivered to Customer</option>
+                                <option value="Partial Delivered to Customer">Partial Delivered to Customer</option>
+
+
+                            </select>
+                        </div>
                         <div class="col-md-auto mt-3">
                             <a href="{{route('admin.order.new')}}" class="btn btn-outline-success select-md">Place New
                                 Order</a>
