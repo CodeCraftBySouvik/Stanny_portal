@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire\Order;
 
+use App\Repositories\OrderRepository;
 use Livewire\Component;
 use App\Models\User;
 use App\Models\Category;
@@ -778,7 +779,7 @@ class OrderNew extends Component
     }
 
 
-    public function save()
+    public function save(OrderRepository $orderRepo)
     {   
         // dd($this->all());
         DB::beginTransaction(); // Begin transaction
@@ -931,6 +932,8 @@ class OrderNew extends Component
             $order->team_lead_id = $loggedInAdmin->parent_id ?? null;
             // dd($order);
             $order->save();
+
+           
 
             $update_bill_book = SalesmanBilling::where('id',$this->bill_id)->first();
             if($update_bill_book){
@@ -1100,8 +1103,14 @@ class OrderNew extends Component
                     }
                 }
 
+                 $staff = User::find($this->salesman);
+                if ($staff && $staff->designation == 12) {
+                    $orderRepo->approveOrder($order->id, $staff->id);
+                }
+
 
             DB::commit();
+            
 
             session()->flash('success', 'Order has been generated successfully.');
             return redirect()->route('admin.order.index');

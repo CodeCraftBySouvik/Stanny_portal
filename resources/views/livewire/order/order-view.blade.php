@@ -7,7 +7,7 @@
             <li><a href="{{route('admin.order.index')}}">Orders</a></li>
             <li>Order detail :- <span>#{{$order->order_number}}</span></li>
             <li class="back-button">
-                <a href="{{route('admin.order.index',$order->customer_id)}}"
+                <a href="{{ url()->previous()}}"
                     class="btn btn-sm btn-danger select-md text-light font-weight-bold mb-0">Back </a>
             </li>
         </ul>

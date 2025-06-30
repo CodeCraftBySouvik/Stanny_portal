@@ -116,6 +116,9 @@ class ProductionOrderIndex extends Component
                 'price' => $item->piece_price,
                 'quantity' => $item->quantity,
                 'product_image' => $product ? $product->product_image : null,
+                'remarks' => $item->remarks,
+                'catlogue_image' => $item->catlogue_image,
+                'voice_remark' => $item->voice_remark,
             ];
         });
 
@@ -128,7 +131,7 @@ class ProductionOrderIndex extends Component
     public function render()
     {
          $placed_by = User::where('user_type', 0)->get();
-        $auth = Auth::guard('admin')->user();
+         $auth = Auth::guard('admin')->user();
 
         if($auth->is_super_admin){
             $wonOrders = order::get()->pluck('created_by')->toArray();

@@ -38,12 +38,37 @@ class AddOrderSlip extends Component
     }
     public function mount($id){
 
-        $this->order = Order::with('items','customer','createdBy')->where('id', $id)->first();
+        $this->order = Order::with('items.measurements','customer','createdBy')->where('id', $id)->first();
         if($this->order){
             foreach($this->order->items as $key=>$order_item){
-                $this->order_item[$key]['id']= $order_item->id;
-                $this->order_item[$key]['piece_price']= (int)$order_item->piece_price;
-                $this->order_item[$key]['quantity']= $order_item->quantity;
+               $product =  $order_item->product ?? null;
+
+               $this->order_item[$key] = [
+                'id' => $order_item->id,
+                'product_name' => $order_item->product_name ?? $product?->name,
+                'collection_id' => $order_item->collection,
+                'collection_title' => $order_item->collectionType?->title ?? '',
+                'fabrics' => $order_item->fabric,
+               'measurements' => $order_item->measurements->map(function ($m) {
+                    return [
+                        'measurement_name' => $m->name,
+                        'measurement_title_prefix' => $m->title_prefix,
+                        'measurement_value' => $m->value,
+                    ];
+                })->toArray(),
+                'catalogue' => $order_item->catalogue_id ? $order_item->catalogue : '',
+                'catalogue_id' => $order_item->catalogue_id,
+                'cat_page_number' => $order_item->cat_page_number,
+                'price' => (int) $order_item->piece_price,
+                'quantity' => $order_item->quantity,
+                'remarks' => $order_item->remarks,
+                'catlogue_image' => $order_item->catlogue_image,
+                'voice_remark' => $order_item->voice_remark,
+             ];
+                // $this->order_item[$key]['id']= $order_item->id;
+                // $this->order_item[$key]['piece_price']= (int)$order_item->piece_price;
+                // $this->order_item[$key]['quantity']= $order_item->quantity;
+                // $this->order_item[$key]['measurements']= $order_item->measurements->toArray();
                 
             }
             $this->total_amount = $this->order->total_amount;
