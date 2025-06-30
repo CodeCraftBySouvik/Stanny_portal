@@ -114,7 +114,7 @@ class OrderView extends Component
         else{
             if($this->status=='Delivered')
             {
-                Order::where('id', operator: $this->orderId)->update(['status' => 'Delivered to Customer Partial']);
+                Order::where('id', operator: $this->orderId)->update(['status' => 'Partial Delivered to Customer']);
 
             }
 
