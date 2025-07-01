@@ -117,7 +117,7 @@
                                 </table>
                                 </div>
                                 <div class="col-sm-5">
-                                    <p><strong>Fabric:</strong> {{ $order_item['fabrics']->title ?? 'N/A' }}</p>
+                                    <p><strong>Fabric:</strong> {{ $order_item['fabric']->title ?? 'N/A' }}</p>
                                     <p><strong>Catalogue:</strong>
                                         {{ optional(optional($order_item['catalogue'])->catalogueTitle)->title ?? 'N/A' }}
                                         (Page: {{ $order_item['cat_page_number'] ?? 'N/A' }})

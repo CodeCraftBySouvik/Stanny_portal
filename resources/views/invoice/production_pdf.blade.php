@@ -82,6 +82,7 @@
                 <h3 style="margin-top: 0;">Order Information</h3>
                 <table cellpadding="4">
                     <tr><td><strong>Order Id:</strong></td><td>{{ $order->order_number }}</td></tr>
+                    <tr><td><strong>Previous Order Id:</strong></td><td>{{ $previousOrder->order_number}}</td></tr>
                     <tr><td><strong>Order Time:</strong></td><td>{{ $order->created_at->format('d M Y h:i A') }}</td></tr>
                 </table>
             </td>
@@ -91,14 +92,13 @@
     {{-- Order Items --}}
     <h3>Order Items</h3>
     <div class="no-break">
-        <table class="table">
+        <table class="table" width="100%">
             <thead>
                 <tr>
-                    <th>Collection</th>
-                    <th>Order Items</th>
-                    <th>Price</th>
-                    <th>Qty</th>
-                    <th>Total</th>
+                    <th width="20%">Collection</th>
+                    <th width="60%">Order Items</th>
+                    <th width="20%">Qty</th>
+                    <th width="20%">Expected Delivery Date</th>
                 </tr>
             </thead>
             <tbody>
@@ -111,9 +111,8 @@
                                 <div>{{ $item['product_name'] }}</div>
                             </div>
                         </td>
-                        <td>{{ number_format($item['price'], 2) }}</td>
                         <td>{{ $item['quantity'] }}</td>
-                        <td>{{ number_format($item['price'] * $item['quantity'], 2) }}</td>
+                        <td>{{ $item['expected_delivery_date'] ?? null }}</td>
                     </tr>
 
                     @if ($item['collection_id'] == 1)

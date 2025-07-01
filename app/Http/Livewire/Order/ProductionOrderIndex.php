@@ -100,7 +100,9 @@ class ProductionOrderIndex extends Component
 
     public function downloadOrderPdf($orderid){
        $order = Order::with('items','customer')->findOrFail($orderid);
-
+       $previousOrder = Order::where('id','<',$orderid)
+                                ->orderBy('id','desc')
+                                ->first();
         $orderItems = $order->items->map(function ($item) use($order) {
 
             $product = Product::find($item->product_id);
@@ -119,10 +121,11 @@ class ProductionOrderIndex extends Component
                 'remarks' => $item->remarks,
                 'catlogue_image' => $item->catlogue_image,
                 'voice_remark' => $item->voice_remark,
+                'expected_delivery_date' => $item->expected_delivery_date,
             ];
         });
 
-        $pdf = PDF::loadView('invoice.production_pdf', compact('orderItems','order'));
+        $pdf = PDF::loadView('invoice.production_pdf', compact('orderItems','order','previousOrder'));
          return response($pdf->output(), 200)
         ->header('Content-Type', 'application/pdf')
         ->header('Content-Disposition', 'inline; filename="bill_' . $order->order_number . '.pdf"');

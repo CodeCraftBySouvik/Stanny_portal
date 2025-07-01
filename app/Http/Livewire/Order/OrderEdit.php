@@ -183,6 +183,10 @@ class OrderEdit extends Component
                     'page_number' => $item->cat_page_number,
                     'pageItems' => $pageItems,
                     'page_item' => $item->cat_page_item,
+                    'expected_delivery_date' => $item->expected_delivery_date,
+                    'fitting' => $item->collection == 1 ? $item->fittings : '',
+                    'priority' => $item->priority_level
+
 
                 ];
             })->toArray();
@@ -243,6 +247,16 @@ class OrderEdit extends Component
             $this->items[$index]['copy_previous_measurements'] = false; // Ensure checkbox is not selected
         }
     }
+
+    public function updatedItems($value, $key)
+    {
+        [$index, $field] = explode('.', $key);
+
+        if ($field === 'selected_collection' && $this->items[$index]['selected_collection'] == 1) {
+            $this->items[$index]['quantity'] = 1;
+        }
+    }
+
     public function GetCountryDetails($mobileLength, $field)
     {
         switch($field){
@@ -982,6 +996,10 @@ class OrderEdit extends Component
                     $orderItem->catalogue_id = !empty($item['selectedCatalogue'])
                                                 ? $item['selectedCatalogue']
                                                 : null;
+                    $orderItem->quantity = ($item['selected_collection'] == 1) ? 1 : $item['quantity'];
+                    $orderItem->fittings  = ($item['selected_collection'] == 1) ? $item['fitting'] : null;
+                    $orderItem->priority_level  = $item['priority'];
+                    $orderItem->expected_delivery_date  = $item['expected_delivery_date'];
                     $orderItem->cat_page_number  = $item['page_number'] ?? null;
                     $orderItem->cat_page_item  = $item['page_item'] ?? null;
                     $orderItem->save();

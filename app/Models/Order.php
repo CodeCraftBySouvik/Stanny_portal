@@ -18,6 +18,7 @@ class Order extends Model
         'order_number',
         'customer_name',
         'customer_email',
+        'customer_image',
         'billing_address',
         'shipping_address',
         'total_amount',
