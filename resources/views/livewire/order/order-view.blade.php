@@ -309,7 +309,11 @@
 
                                     </p>
                                     @endif
+                                    <p>
+                                        <a class="btn btn-outline-success select-md" href="{{ route('orders.generatePdf', $order->id) }}">Download</a>
 
+
+                            </p>
 
                                 </td>
                             </tr>

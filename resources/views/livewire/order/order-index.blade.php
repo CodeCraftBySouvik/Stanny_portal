@@ -30,6 +30,7 @@
                                 <option value="Returned">Returned</option>
                                 <option value="Delivered to Customer">Delivered to Customer</option>
                                 <option value="Partial Delivered to Customer">Partial Delivered to Customer</option>
+                                <option value="Approved By TL">Approved By TL</option>
 
 
                             </select>
@@ -170,7 +171,14 @@
                                     @if(empty($order->packingslip))
                                         @if($order->status!="Cancelled")
                                         @if (in_array($userDesignationId,[1,4]))
-                                          <a href="{{route('admin.order.add_order_slip', $order->id)}}" class="btn btn-outline-primary select-md btn_action btn_outline">Approve Order</a>
+                                        @if($userDesignationId==4 and $order->status=='Approval Pending')
+                                        <a href="{{route('admin.order.add_order_slip', $order->id)}}" class="btn btn-outline-primary select-md btn_action btn_outline">Approve Order</a>
+
+                                        @endif
+                                        @if($userDesignationId==1 and $order->status=='Approved By TL')
+                                        <a href="{{route('admin.order.add_order_slip', $order->id)}}" class="btn btn-outline-primary select-md btn_action btn_outline">Approve Order</a>
+
+                                        @endif
                                         @endif
                                             <a href="{{route('admin.order.edit', $order->id)}}" class="btn btn-outline-success select-md btn_outline" data-toggle="tooltip">Edit</a>
 

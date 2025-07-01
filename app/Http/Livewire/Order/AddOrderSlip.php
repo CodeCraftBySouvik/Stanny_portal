@@ -69,7 +69,7 @@ class AddOrderSlip extends Component
                 // $this->order_item[$key]['piece_price']= (int)$order_item->piece_price;
                 // $this->order_item[$key]['quantity']= $order_item->quantity;
                 // $this->order_item[$key]['measurements']= $order_item->measurements->toArray();
-                
+
             }
             $this->total_amount = $this->order->total_amount;
             $this->actual_amount = $this->order->total_amount;
@@ -82,7 +82,7 @@ class AddOrderSlip extends Component
         }else{
             abort(404);
         }
-        
+
         $this->voucher_no = 'PAYRECEIPT'.time();
         $this->staffs = User::where('user_type', 0)->where('designation', 2)->select('name', 'id')->orderBy('name', 'ASC')->get();
     }
@@ -97,7 +97,7 @@ class AddOrderSlip extends Component
             foreach ($this->order_item as $item) {
                 $subtotal += $item['price'];
             }
-    
+
             // Add the air_mail from the Order, not items
            $this->actual_amount = $subtotal + $this->air_mail;
         }
@@ -119,13 +119,13 @@ class AddOrderSlip extends Component
         if (empty($this->customer_id)) {
            $this->errorMessage['customer_id'] = 'Please select a customer.';
         }
-        
+
         // Validate collected by
         if (empty($this->staff_id)) {
            $this->errorMessage['staff_id'] = 'Please select a staff member.';
         }
 
-     
+
         if(count($this->errorMessage)>0){
             return $this->errorMessage;
         }else{
@@ -138,7 +138,7 @@ class AddOrderSlip extends Component
                 $this->createPackingSlip();
 
                 // $this->accountingRepository->StorePaymentReceipt($this->all());
-              
+
 
                 DB::commit();
 
@@ -149,7 +149,7 @@ class AddOrderSlip extends Component
                 session()->flash('error', $e->getMessage());
             }
         }
-       
+
     }
     public function updateOrder()
     {
@@ -159,13 +159,21 @@ class AddOrderSlip extends Component
             'staff_id' => 'required|exists:users,id',
         ]);
 
-        $order = Order::find($this->order->id); 
+        $order = Order::find($this->order->id);
+        $userDesignationId = auth()->guard('admin')->user()->designation;
+        if($userDesignationId==4)
+        {
+            $status="Approved By TL";
+        }
+        else{
 
+            $status="Approved";
+        }
         if ($order) {
             $order->update([
                 'customer_id' => $this->customer_id,
                 'created_by' => $this->staff_id,
-                'status' => "Approved",
+                'status' => $status,
                 'last_payment_date' => $this->payment_date,
             ]);
         }
@@ -198,13 +206,13 @@ class AddOrderSlip extends Component
     public function createPackingSlip()
     {
         $order = Order::find($this->order->id);
-       
+
         if ($order) {
             // Calculate the remaining amount
             $packingSlip=PackingSlip::create([
                 'order_id' => $this->order->id,
                 'customer_id' => $this->customer_id,
-                'slipno' => $this->order->order_number, 
+                'slipno' => $this->order->order_number,
                 // 'is_disbursed' => ($remaining_amount == 0) ? 1 : 0,
                 'is_disbursed' => 0,
                 'created_by' => $this->staff_id,
@@ -214,12 +222,12 @@ class AddOrderSlip extends Component
                 // 'updated_at' => now(),
             ]);
 
-            
+
             do {
                 $lastInvoice = Invoice::orderBy('id', 'DESC')->first();
                 $invoice_no = str_pad(optional($lastInvoice)->id + 1, 6, '0', STR_PAD_LEFT);
             } while (Invoice::where('invoice_no', $invoice_no)->exists()); // Ensure unique invoice_no
-            
+
 
             $order->invoice_type = $this->document_type;
             $invoice = Invoice::create([
@@ -267,7 +275,7 @@ class AddOrderSlip extends Component
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s'),
             ]);
-        }  
+        }
     }
 
 

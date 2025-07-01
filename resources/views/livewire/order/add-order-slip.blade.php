@@ -1,5 +1,5 @@
 <div class="container">
-    <section class="admin__title">                
+    <section class="admin__title">
         <h5>Confirm Order</h5>
     </section>
     <section>
@@ -41,7 +41,7 @@
                                         <td>
                                             <span class="text-sm badge bg-primary sale_grn_sl" style="{{$magrin}}">{{$key+1}}</span>
                                         </td>
-                                        <td class="w-100"> 
+                                        <td class="w-100">
                                             <div class="form-group mb-3">
                                             @if($key==0)
                                                 <label>Product</label>
@@ -56,7 +56,7 @@
                                     </td>
                                     </tr>
                                 </table>
-                               
+
                             </div>
                             <div class="col-sm-3">
                                 <div class="form-group mb-3">
@@ -124,12 +124,12 @@
                                     </p>
                                 </div>
                             </div>
-                            
+
                         @endif
 
                             @endforeach
-                           
-                            
+
+
                             {{-- Air mail --}}
                             @if($order->air_mail > 0)
                             @php
@@ -152,14 +152,14 @@
                                     </tr>
                                 </table>
                             </div>
-                           
+
                             <div class="col-sm-3">
                                 <div class="form-group mb-3">
                                     <label>Quantity</label>
                                     <input type="text" class="form-control form-control-sm" value="1" readonly>
                                 </div>
                             </div>
-                            
+
                             <div class="col-sm-3">
                                 <div class="form-group mb-3">
                                     <label>Price</label>
@@ -170,7 +170,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="row">
                     <div class="form-group text-end">
                         <span>ORDER AMOUNT <span class="text-danger">({{$actual_amount}})</span></span>
@@ -187,8 +187,8 @@
                         <div class="form-group mb-3">
                             <label for="" id="">Customer <span class="text-danger">*</span></label>
                             <div class="position-relative">
-                                <input type="text" wire:model="customer" 
-                                    class="form-control form-control-sm border border-1 customer_input" 
+                                <input type="text" wire:model="customer"
+                                    class="form-control form-control-sm border border-1 customer_input"
                                     placeholder="Search customer by name, mobile, order ID" {{$readonly}}>
                                     <input type="hidden" wire:model="customer_id" value="">
                                     <input type="hidden" wire:model="staff_id" value="">
@@ -295,7 +295,7 @@
         function validateNumber(input) {
         // Remove any characters that are not digits or a single decimal point
         input.value = input.value.replace(/[^0-9.]/g, '');
-        
+
         // Ensure only one decimal point is allowed
         const parts = input.value.split('.');
         if (parts.length > 2) {

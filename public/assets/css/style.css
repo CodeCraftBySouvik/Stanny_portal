@@ -1239,3 +1239,8 @@ label.form-check-label {
     font-weight: bold;
 
 }
+.bg-approved_by_tl{
+    color:#000000 !important;
+    background-color:#D0CE55 !important;
+    font-weight: bold;
+}

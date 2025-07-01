@@ -90,6 +90,8 @@ class Order extends Model
         "Received at Production"           => ["Received at Production", "received_at_production"],
         "Partial Delivered By Production"  => ["Partial Delivered By Production", "partial_delivered_by_production"],
         "Fully Delivered By Production"    => ["Fully Delivered By Production", "fully_delivered_by_production"],
+        "Approved By TL"    => ["Approved By TL", "approved_by_tl"],
+
     ];
 
     // Accessor to get status label

@@ -229,7 +229,7 @@ Route::group(['prefix' => 'admin','middleware' => 'admin'], function () {
         Route::get('/invoice/{id}', OrderInvoice::class)->name('admin.order.invoice');
         Route::get('/new', OrderNew::class)->name('admin.order.new')->middleware('check.permission');
         Route::get('/edit/{id}', OrderEdit::class)->name('admin.order.edit')->middleware('check.permission');
-        Route::get('/view/{id}', OrderView::class)->name('admin.order.view')->middleware('check.permission');
+        Route::get('/view/{id}', action: OrderView::class)->name('admin.order.view')->middleware('check.permission');
         Route::get('/ledger/{id}', LedgerView::class)->name('admin.order.ledger.view');
         Route::get('/invoice', InvoiceList::class)->name('admin.order.invoice.index')->middleware('check.permission');
         Route::get('/add-invoice', AddInvoice::class)->name('admin.order.invoice.add');
@@ -239,6 +239,7 @@ Route::group(['prefix' => 'admin','middleware' => 'admin'], function () {
         // order invoice and bill
         Route::get('{order}/invoice', [OrderIndex::class, 'downloadOrderInvoice'])->name('admin.order.download_invoice');
         Route::get('{order}/bill', [OrderIndex::class, 'downloadOrderBill']) ->name('admin.order.download_bill');
+        Route::get('/generate-order-pdf/{id}', [OrderView::class, 'generatePdf'])->name('orders.generatePdf');;
 
     });
 
