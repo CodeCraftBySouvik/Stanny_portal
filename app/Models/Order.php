@@ -78,17 +78,19 @@ class Order extends Model
 
 
     protected $status_classes = [
-        "Approved"                => ["Approved", "approved_order"],
-        "Ready for Delivery" => ["Ready for Delivery", "ready_for_delivery"],
-        "Cancelled"          => ["Cancelled", "order_cancelled"],
-        "Returned"           => ["Returned", "order_returned"],
-        "Received by Sales Team"=> ["Received by Sales Team", "received_by_sales_team"],
-        "Delivered to Customer"=>["Delivered to Customer","delivered_to_customer"],
-        "Partial Delivered to Customer"=>["Partial Delivered to Customer","partial_delivered_to_customer"],
-        "Approval Pending"        => ["Approval Pending", "approval_pending"],
-        "Received at Production"  => ["Received at Production", "received_at_production"],
-        "Partial Delivered By Production"       => ["Partial Delivered By Production", "partial_delivered_by_production"],
-        "Fully Delivered By Production"         => ["Fully Delivered By Production", "fully_delivered_by_production"],
+        "Approved"                         => ["Approved", "approved_order"],
+        "Ready for Delivery"               => ["Ready for Delivery", "ready_for_delivery"],
+        "Cancelled"                        => ["Cancelled", "order_cancelled"],
+        "Returned"                         => ["Returned", "order_returned"],
+        "Received by Sales Team"           => ["Received by Sales Team", "received_by_sales_team"],
+        "Delivered to Customer"            =>["Delivered to Customer","delivered_to_customer"],
+        "Partial Delivered to Customer"    =>["Partial Delivered to Customer","partial_delivered_to_customer"],
+        "Approval Pending"                 => ["Approval Pending", "approval_pending"],
+        "Received at Production"           => ["Received at Production", "received_at_production"],
+        "Partial Delivered By Production"  => ["Partial Delivered By Production", "partial_delivered_by_production"],
+        "Fully Delivered By Production"    => ["Fully Delivered By Production", "fully_delivered_by_production"],
+        "Approved By TL"    => ["Approved By TL", "approved_by_tl"],
+
     ];
 
     // Accessor to get status label

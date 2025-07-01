@@ -8,7 +8,7 @@ use \App\Models\Product;
 use \App\Models\Invoice;
 use App\Models\Delivery;
 use Illuminate\Support\Facades\Auth;
-
+use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Component;
 
 class OrderView extends Component
@@ -146,5 +146,64 @@ class OrderView extends Component
         return redirect(url()->previous())->with('success', 'Order has been Delivered to Customer successfully!');
 
 
+    }
+    public function generatePdf($id)
+    {
+        $order = Order::with([
+            'customer'=>fn($q) => $q->select('id','country_code_phone','phone','employee_rank'),
+            'items.deliveries' => fn($q) => $q->with('user:id,name'),
+            'items.voice_remark','items.catlogue_image'
+        ])->findOrFail($id);
+        $last_order = Order::where('customer_id', $order['customer_id'])
+        ->where('id', '<', $id) // ensure it's before current order
+        ->orderBy('id', 'desc') // get the most recent before current
+        ->first();
+       //die($last_order->order_number);exit;
+        $item_sold=[];
+        $item_delivered=[];
+        $rest_items=[];
+        $net_qty=0;
+        foreach($order['items'] as $item)
+        {
+            $item_sold[]=$item['quantity'].' '.$item['product_name'];
+            $net_qty+=$item['quantity'];
+            $delivered_qty=0;
+            foreach($item['deliveries'] as $delivered)
+            {
+                if($delivered['status']=='delivered')
+                {
+                    $delivered_qty+=1;
+
+                }
+            }
+            if($delivered_qty>0)
+            {
+                $item_delivered[]=$delivered_qty.' '.$item['product_name'];
+
+            }
+            $rest_qty=$item['quantity']- $delivered_qty;
+            if($rest_qty>0)
+            {
+                $rest_items[]=$rest_qty.' '.$item['product_name'];
+
+            }
+        }
+        $data = [
+            'order_no' => $order['order_number'],
+            'last_order_no' =>$last_order->order_number,
+            'name' => $order['customer_name'],
+            'rank' =>$order['customer']['employee_rank'],
+            'address' =>$order['billing_address'],
+            'telephone' => $order['customer']['country_code_phone'].$order['customer']['phone'],
+            'amount' => number_format($order['total_amount'], 2, ',', ''),
+            'item_sold' => implode("+",$item_sold),
+            'rest_items' => implode("+",$rest_items),
+            'status' => implode("+",$item_delivered),
+            'net_qty' =>$net_qty,
+
+
+        ];
+        $pdf = Pdf::loadView('invoice.product_delivery', $data)->setPaper('A4');
+        return $pdf->download('product_delivery.pdf');
     }
 }

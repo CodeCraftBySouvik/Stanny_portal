@@ -38,13 +38,38 @@ class AddOrderSlip extends Component
     }
     public function mount($id){
 
-        $this->order = Order::with('items','customer','createdBy')->where('id', $id)->first();
+        $this->order = Order::with('items.measurements','items.fabric','customer','createdBy')->where('id', $id)->first();
         if($this->order){
             foreach($this->order->items as $key=>$order_item){
-                $this->order_item[$key]['id']= $order_item->id;
-                $this->order_item[$key]['piece_price']= (int)$order_item->piece_price;
-                $this->order_item[$key]['quantity']= $order_item->quantity;
-                
+               $product =  $order_item->product ?? null;
+
+               $this->order_item[$key] = [
+                'id' => $order_item->id,
+                'product_name' => $order_item->product_name ?? $product?->name,
+                'collection_id' => $order_item->collection,
+                'collection_title' => $order_item->collectionType?->title ?? '',
+                'fabrics' => $order_item->fabric,
+               'measurements' => $order_item->measurements->map(function ($m) {
+                    return [
+                        'measurement_name' => $m->name,
+                        'measurement_title_prefix' => $m->title_prefix,
+                        'measurement_value' => $m->value,
+                    ];
+                })->toArray(),
+                'catalogue' => $order_item->catalogue_id ? $order_item->catalogue : '',
+                'catalogue_id' => $order_item->catalogue_id,
+                'cat_page_number' => $order_item->cat_page_number,
+                'piece_price' => (int) $order_item->piece_price,
+                'quantity' => $order_item->quantity,
+                'remarks' => $order_item->remarks,
+                'catlogue_image' => $order_item->catlogue_image,
+                'voice_remark' => $order_item->voice_remark,
+             ];
+                // $this->order_item[$key]['id']= $order_item->id;
+                // $this->order_item[$key]['piece_price']= (int)$order_item->piece_price;
+                // $this->order_item[$key]['quantity']= $order_item->quantity;
+                // $this->order_item[$key]['measurements']= $order_item->measurements->toArray();
+
             }
             $this->total_amount = $this->order->total_amount;
             $this->actual_amount = $this->order->total_amount;
@@ -57,7 +82,7 @@ class AddOrderSlip extends Component
         }else{
             abort(404);
         }
-        
+
         $this->voucher_no = 'PAYRECEIPT'.time();
         $this->staffs = User::where('user_type', 0)->where('designation', 2)->select('name', 'id')->orderBy('name', 'ASC')->get();
     }
@@ -72,7 +97,7 @@ class AddOrderSlip extends Component
             foreach ($this->order_item as $item) {
                 $subtotal += $item['price'];
             }
-    
+
             // Add the air_mail from the Order, not items
            $this->actual_amount = $subtotal + $this->air_mail;
         }
@@ -94,13 +119,13 @@ class AddOrderSlip extends Component
         if (empty($this->customer_id)) {
            $this->errorMessage['customer_id'] = 'Please select a customer.';
         }
-        
+
         // Validate collected by
         if (empty($this->staff_id)) {
            $this->errorMessage['staff_id'] = 'Please select a staff member.';
         }
 
-     
+
         if(count($this->errorMessage)>0){
             return $this->errorMessage;
         }else{
@@ -113,7 +138,7 @@ class AddOrderSlip extends Component
                 $this->createPackingSlip();
 
                 // $this->accountingRepository->StorePaymentReceipt($this->all());
-              
+
 
                 DB::commit();
 
@@ -124,7 +149,7 @@ class AddOrderSlip extends Component
                 session()->flash('error', $e->getMessage());
             }
         }
-       
+
     }
     public function updateOrder()
     {
@@ -134,13 +159,21 @@ class AddOrderSlip extends Component
             'staff_id' => 'required|exists:users,id',
         ]);
 
-        $order = Order::find($this->order->id); 
+        $order = Order::find($this->order->id);
+        $userDesignationId = auth()->guard('admin')->user()->designation;
+        if($userDesignationId==4)
+        {
+            $status="Approved By TL";
+        }
+        else{
 
+            $status="Approved";
+        }
         if ($order) {
             $order->update([
                 'customer_id' => $this->customer_id,
                 'created_by' => $this->staff_id,
-                'status' => "Approved",
+                'status' => $status,
                 'last_payment_date' => $this->payment_date,
             ]);
         }
@@ -173,13 +206,13 @@ class AddOrderSlip extends Component
     public function createPackingSlip()
     {
         $order = Order::find($this->order->id);
-       
+
         if ($order) {
             // Calculate the remaining amount
             $packingSlip=PackingSlip::create([
                 'order_id' => $this->order->id,
                 'customer_id' => $this->customer_id,
-                'slipno' => $this->order->order_number, 
+                'slipno' => $this->order->order_number,
                 // 'is_disbursed' => ($remaining_amount == 0) ? 1 : 0,
                 'is_disbursed' => 0,
                 'created_by' => $this->staff_id,
@@ -189,12 +222,12 @@ class AddOrderSlip extends Component
                 // 'updated_at' => now(),
             ]);
 
-            
+
             do {
                 $lastInvoice = Invoice::orderBy('id', 'DESC')->first();
                 $invoice_no = str_pad(optional($lastInvoice)->id + 1, 6, '0', STR_PAD_LEFT);
             } while (Invoice::where('invoice_no', $invoice_no)->exists()); // Ensure unique invoice_no
-            
+
 
             $order->invoice_type = $this->document_type;
             $invoice = Invoice::create([
@@ -242,7 +275,7 @@ class AddOrderSlip extends Component
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s'),
             ]);
-        }  
+        }
     }
 
 

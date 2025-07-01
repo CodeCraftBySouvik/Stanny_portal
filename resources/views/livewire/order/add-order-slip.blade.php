@@ -1,5 +1,5 @@
 <div class="container">
-    <section class="admin__title">                
+    <section class="admin__title">
         <h5>Confirm Order</h5>
     </section>
     <section>
@@ -41,7 +41,7 @@
                                         <td>
                                             <span class="text-sm badge bg-primary sale_grn_sl" style="{{$magrin}}">{{$key+1}}</span>
                                         </td>
-                                        <td class="w-100"> 
+                                        <td class="w-100">
                                             <div class="form-group mb-3">
                                             @if($key==0)
                                                 <label>Product</label>
@@ -56,7 +56,7 @@
                                     </td>
                                     </tr>
                                 </table>
-                               
+
                             </div>
                             <div class="col-sm-3">
                                 <div class="form-group mb-3">
@@ -77,9 +77,59 @@
                                     @endif --}}
                                 </div>
                             </div>
+
+                            {{-- Start the measurement section --}}
+                            @if($order_item->collection == 1 && !empty($order_item->measurements))
+                            <div class="row">
+                                <div class="col-sm-7">
+                                <div class="section-title" style="background: black; color: white; padding: 5px 10px; border-radius: 5px; display: inline-block; margin-bottom: 10px;">Measurements</div>
+
+                                @php
+                                    $measurements = collect($order_item['measurements'])->mapWithKeys(function($m) {
+                                        return [$m['measurement_name'] . ' [' . $m['measurement_title_prefix'] . ']' => $m['measurement_value']];
+                                    });
+                                    $chunks = array_chunk($measurements->toArray(), 5, true);
+                                @endphp
+
+                                <table width="100%" cellspacing="0" cellpadding="6">
+                                    @foreach($chunks as $row)
+                                        <tr>
+                                            @foreach($row as $label => $value)
+                                                <td style="padding: 8px; vertical-align: top;">
+                                                    <div style="font-size: 11px; font-weight: bold; margin-bottom: 3px;">{{ $label }}</div>
+                                                    <div style="
+                                                        border: 1px solid #ccc;
+                                                        padding: 6px;
+                                                        background: #fff;
+                                                        font-size: 12px;
+                                                        border-radius: 4px;
+                                                        min-height: 25px;
+                                                        text-align: center;">
+                                                        {{ $value }}
+                                                    </div>
+                                                </td>
+                                            @endforeach
+                                            @for ($i = count($row); $i < 5; $i++)
+                                                <td></td>
+                                            @endfor
+                                        </tr>
+                                    @endforeach
+                                </table>
+                                </div>
+                                <div class="col-sm-5">
+                                    <p><strong>Fabric:</strong> {{ $order_item['fabrics']->title ?? 'N/A' }}</p>
+                                    <p><strong>Catalogue:</strong>
+                                        {{ optional(optional($order_item['catalogue'])->catalogueTitle)->title ?? 'N/A' }}
+                                        (Page: {{ $order_item['cat_page_number'] ?? 'N/A' }})
+                                    </p>
+                                </div>
+                            </div>
+
+                        @endif
+
                             @endforeach
-                           
-                            
+
+
                             {{-- Air mail --}}
                             @if($order->air_mail > 0)
                             @php
@@ -102,14 +152,14 @@
                                     </tr>
                                 </table>
                             </div>
-                           
+
                             <div class="col-sm-3">
                                 <div class="form-group mb-3">
                                     <label>Quantity</label>
                                     <input type="text" class="form-control form-control-sm" value="1" readonly>
                                 </div>
                             </div>
-                            
+
                             <div class="col-sm-3">
                                 <div class="form-group mb-3">
                                     <label>Price</label>
@@ -120,18 +170,7 @@
                         </div>
                     </div>
                 </div>
-                {{-- <div class="row">
-                    <div class="input-group">
-                        <div class="form-check form-check-inline">
-                            <input type="radio" wire:model="document_type" id="invoice" value="invoice" class="form-check-input">
-                            <label for="invoice" class="form-check-label">Invoice</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input type="radio" wire:model="document_type" id="bill" value="bill" class="form-check-input">
-                            <label for="bill" class="form-check-label">Bill</label>
-                        </div>
-                    </div>
-                </div> --}}
+
                 <div class="row">
                     <div class="form-group text-end">
                         <span>ORDER AMOUNT <span class="text-danger">({{$actual_amount}})</span></span>
@@ -148,8 +187,8 @@
                         <div class="form-group mb-3">
                             <label for="" id="">Customer <span class="text-danger">*</span></label>
                             <div class="position-relative">
-                                <input type="text" wire:model="customer" 
-                                    class="form-control form-control-sm border border-1 customer_input" 
+                                <input type="text" wire:model="customer"
+                                    class="form-control form-control-sm border border-1 customer_input"
                                     placeholder="Search customer by name, mobile, order ID" {{$readonly}}>
                                     <input type="hidden" wire:model="customer_id" value="">
                                     <input type="hidden" wire:model="staff_id" value="">
@@ -256,7 +295,7 @@
         function validateNumber(input) {
         // Remove any characters that are not digits or a single decimal point
         input.value = input.value.replace(/[^0-9.]/g, '');
-        
+
         // Ensure only one decimal point is allowed
         const parts = input.value.split('.');
         if (parts.length > 2) {
