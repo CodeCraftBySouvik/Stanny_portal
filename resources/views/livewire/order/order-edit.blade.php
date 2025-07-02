@@ -411,32 +411,9 @@
                         </div>
                         <!-- Product -->
                         @if(isset($item['selected_collection']) && $item['selected_collection'] == 1)
-                        {{-- Quantity for garment --}}
-                         <div class="col-md-2 col-12 mb-3">
-                            <label class="form-label"><strong>Quantity</strong><span class="text-danger">*</span></label>
-                            <input type="number"
-                                wire:model="items.{{ $index }}.quantity"
-                                class="form-control form-control-sm border border-1 customer_input
-                                @error('items.' . $index . '.quantity') border-danger @enderror"
-                                placeholder="Enter quantity" min="1">
-                            @error('items.' . $index . '.quantity')
-                            <div class="text-danger error-message">{{ $message }}</div>
-                            @enderror
-                        </div>
                         <div class="mb-2 col-md-2">
                             @else
-                            {{-- Quantity for garment item --}}
-                            <div class="col-md-2 col-12 mb-3">
-                                <label class="form-label"><strong>Quantity</strong><span class="text-danger">*</span></label>
-                                <input type="number"
-                                    wire:model="items.{{ $index }}.quantity"
-                                    class="form-control form-control-sm border border-1 customer_input
-                                    @error('items.' . $index . '.quantity') border-danger @enderror"
-                                    placeholder="Enter quantity" min="1">
-                                @error('items.' . $index . '.quantity')
-                                <div class="text-danger error-message">{{ $message }}</div>
-                                @enderror
-                            </div>
+                            
                             <div class="mb-2 col-md-3">
                                 @endif
                                 <label class="form-label"><strong>Product</strong></label>
@@ -465,6 +442,24 @@
                                 </div>
                                 @endif
                             </div>
+                            @if(isset($item['selected_collection']) && $item['selected_collection'] != 1)
+                                {{-- Quantity field shown for all except collection 1 --}}
+                                <div class="col-md-2 col-12 mb-3">
+                                    <label class="form-label"><strong>Quantity</strong><span class="text-danger">*</span></label>
+                                    <input type="number"
+                                        wire:model="items.{{ $index }}.quantity"
+                                        class="form-control form-control-sm border border-1 customer_input
+                                            @error('items.' . $index . '.quantity') border-danger @enderror"
+                                        placeholder="Enter quantity" min="1">
+                                    @error('items.' . $index . '.quantity')
+                                    <div class="text-danger error-message">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            @else
+                                {{-- Hidden quantity field for collection 1 to preserve value --}}
+                                <input type="hidden" wire:model="items.{{ $index }}.quantity">
+                            @endif
+
                             @if(isset($item['selected_collection']) && $item['selected_collection'] == 1)
                             <!-- Fabrics -->
                             <div class="mb-2 col-12 col-md-2">
@@ -552,6 +547,29 @@
                                 @enderror
 
                             </div>
+                            @if(isset($item['selected_collection']) && $items[$index]['selected_collection'] == 2)
+                                <div class="row mb-3">
+                                    <div class="col-md-2">
+                                        <label for="">Expected Delivery Date</label>
+                                        <input type="date" class="form-control form-control-sm border border-1" wire:model="items.{{$index}}.expected_delivery_date">
+                                        @error("items.$index.expected_delivery_date")
+                                        <div class="text-danger">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label"><strong>Priority Level</strong></label>
+                                        <select class="form-control form-control-sm border border-1"
+                                                wire:model="items.{{ $index }}.priority">
+                                            <option value="" hidden>Select Priority</option>
+                                            <option value="Priority">Priority</option>
+                                            <option value="Non Priority">Non Priority</option>
+                                        </select>
+                                        @error("items.$index.priority")
+                                        <div class="text-danger">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            @endif
                             @endif
                         </div>
                         <!-- Measurements -->
@@ -671,6 +689,46 @@
                                         @enderror
                                         @endif
                                     </div>
+                                    {{-- Expected Delivery Date,Fittings,Priority Level --}}
+                                     @if(isset($item['selected_collection']) && $item['selected_collection'] == 1)
+                                        <div class="row mb-3">
+                                            <div class="col-md-4">
+                                                <label for="">Expected Delivery Date</label>
+                                                <input type="date" class="form-control form-control-sm border border-1" wire:model="items.{{$index}}.expected_delivery_date">
+                                                @error("items.$index.expected_delivery_date")
+                                                    <div class="text-danger">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                            {{-- Fittings --}}
+                                            <div class="col-md-4">
+                                                <label class="form-label"><strong>Fittings</strong></label>
+                                                <select class="form-control form-control-sm border border-1"
+                                                        wire:model="items.{{ $index }}.fitting">
+                                                    <option value="" hidden>Select Fitting</option>
+                                                    <option value="Regular Fit">Regular Fit</option>
+                                                    <option value="Slim Fit">Slim Fit</option>
+                                                    <option value="Loose Fit">Loose Fit</option>
+                                                </select>
+                                                @error("items.$index.fitting")
+                                                <div class="text-danger">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+
+                                            {{-- Priority Level --}}
+                                            <div class="col-md-4">
+                                                <label class="form-label"><strong>Priority Level</strong></label>
+                                                <select class="form-control form-control-sm border border-1"
+                                                        wire:model="items.{{ $index }}.priority">
+                                                    <option value="" hidden>Select Priority</option>
+                                                    <option value="Priority">Priority</option>
+                                                    <option value="Non Priority">Non Priority</option>
+                                                </select>
+                                                @error("items.$index.priority")
+                                                <div class="text-danger">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    @endif
                                 </div>
                                 <div class="mb-3 col-12">
                                     <div class="d-flex justify-content-between flex-wrap gap-3 align-items-start">

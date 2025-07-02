@@ -51,9 +51,9 @@ class OrderNew extends Component
 
     public $customers = null;
     public $orders = null;
-    public $name, $company_name,$employee_rank, $email, $dob, $customer_id, $whatsapp_no, $phone ,$alternative_phone_number_1,$alternative_phone_number_2;
+    public $name, $company_name,$employee_rank, $email,$customer_image, $dob, $customer_id, $whatsapp_no, $phone ,$alternative_phone_number_1,$alternative_phone_number_2;
     public $billing_address,$billing_landmark,$billing_city,$billing_state,$billing_country,$billing_pin;
-
+    
     public $is_billing_shipping_same;
 
     public $shipping_address,$shipping_landmark,$shipping_city,$shipping_state,$shipping_country,$shipping_pin;
@@ -99,7 +99,7 @@ class OrderNew extends Component
     public $voiceUploads = [];
     public $air_mail;
     public $customerType = 'new';
-
+    
     public function onCustomerTypeChange($value){
         $this->customerType = $value;
         if($value == 'new'){
@@ -217,6 +217,17 @@ class OrderNew extends Component
         $this->countries = Country::where('status',1)->get();
     }
 
+   public function updatedItems($value, $key)
+    {
+        [$index, $field] = explode('.', $key);
+
+        if ($field === 'collection' && $this->items[$index]['collection'] == 1) {
+            $this->items[$index]['quantity'] = 1;
+        }
+    }
+
+
+
     public function GetCountryDetails($mobileLength, $field){
         switch($field){
             case 'phone':
@@ -294,6 +305,9 @@ class OrderNew extends Component
             'items.*.selectedCatalogue' => 'required_if:items.*.collection,1',
             'items.*.page_number' => 'required_if:items.*.collection,1',
             'items.*.price' => 'required|numeric|min:1',  
+            'items.*.fitting' => 'required_if:items.*.collection,1',  
+            'items.*.priority' => 'required',  
+            'items.*.expected_delivery_date' => 'required',  
             'items.*.searchTerm' => 'required_if:items.*.collection,1',
             'order_number' => 'required|string|not_in:000|unique:orders,order_number',
             'air_mail' => 'nullable|numeric',
@@ -319,6 +333,9 @@ class OrderNew extends Component
              'items.*.selectedCatalogue.required_if' => 'Please select a catalogue for the item.',
              'items.*.page_number.required_if' => 'Please select a page for the item.',
              'items.*.price.required'  => 'Please enter a price for the item.',
+             'items.*.fitting.required_if'  => 'Please select a fittings for the item.',
+             'items.*.priority.required'  => 'Please select a priority for the item.',
+             'items.*.expected_delivery_date.required'  => 'Please select expected delivery date for the item.',
              'items.*.collection.required' =>  'Please enter a collection for the item.',
              'items.*.searchTerm.required_if' =>  'Please enter a Fabric for the item.',
              'order_number.required' => 'Order number is required.',
@@ -397,7 +414,7 @@ class OrderNew extends Component
             'page_number' => '',
             'page_item' => '',
             'searchTerm' => '', // Ensure search field is empty
-            // 'searchResults' => [], // Clear previous search results
+            'fitting' => null
         ];
     }
     
@@ -912,6 +929,8 @@ class OrderNew extends Component
                 $order_number =  $invoiceData['number'];
             }
 
+            $customer_image = $this->customer_image ? Helper::uploadImage($this->customer_image,"client_image") : null;
+
             // Create the order
             $order = new Order();
             $order->order_number = $order_number;
@@ -919,6 +938,7 @@ class OrderNew extends Component
             $order->prefix = $this->prefix;
             $order->customer_name = $this->name;
             $order->customer_email = $this->email;
+            $order->customer_image = $customer_image;
             $order->billing_address = $this->billing_address . ', ' . $this->billing_landmark . ', ' . $this->billing_city . ', ' . $this->billing_state . ', ' . $this->billing_country . ' - ' . $this->billing_pin;
 
             
@@ -971,7 +991,11 @@ class OrderNew extends Component
                 $orderItem->product_name = $item['searchproduct'];
                 $orderItem->remarks  = $item['remarks'] ?? null;
                 $orderItem->piece_price = $item['price'];
-                $orderItem->quantity = $item['quantity'];
+                // $orderItem->quantity = $item['quantity'];
+                $orderItem->quantity = ($item['collection'] == 1) ? 1 : $item['quantity'];
+                $orderItem->fittings  = ($item['collection'] == 1) ? $item['fitting'] : null;
+                $orderItem->priority_level  = $item['priority'];
+                $orderItem->expected_delivery_date  = $item['expected_delivery_date'];
                 $itemPrice = floatval($item['price']);
                 $orderItem->total_price = $itemPrice * $orderItem->quantity;
                 $orderItem->fabrics = $fabric_data ? $fabric_data->id : "";
@@ -1245,6 +1269,15 @@ class OrderNew extends Component
             } else {
                 $this->errorClass['name'] = null;
                 $this->errorMessage['name'] = null;
+            }
+
+            // validate customer image
+            if (empty($this->customer_image)) {
+                $this->errorClass['customer_image'] = 'border-danger';
+                $this->errorMessage['customer_image'] = 'Please choose customer image';
+            } else {
+                $this->errorClass['customer_image'] = null;
+                $this->errorMessage['customer_image'] = null;
             }
     
            

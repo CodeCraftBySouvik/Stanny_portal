@@ -25,6 +25,8 @@ class OrderItem extends Model
         'piece_price',
         'remarks',
         'quantity',
+        'fittings',
+        'priority_level'
     ];
 
     public function catalogue()

@@ -242,6 +242,16 @@
                             <div class="text-danger error-message">{{ $errorMessage['email'] }}</div>
                             @endif
                         </div>
+                        <div class="mb-2 col-md-3">
+                            <label for="customer_image" class="form-label"> Image <span class="small text-danger">*</span></label>
+                            <input type="file" wire:model="customer_image" id="customer_image"
+                                class="form-control form-control-sm border border-1 p-2 {{ $errorClass['customer_image'] ?? '' }}">
+                            @if(isset($errorMessage['customer_image']))
+                            <div class="text-danger error-message">{{ $errorMessage['customer_image'] }}</div>
+                            @endif
+                        </div>
+
+
 
                         <div class="mb-2 col-md-3">
                             <label for="dob" class="form-label">Date Of Birth</label>
@@ -287,33 +297,7 @@
                             </div>
                         </div>
 
-                        <!-- WhatsApp Number -->
-                        {{-- <div class="mb-3 col-md-3">
-                            <label for="whatsapp_no" class="form-label">WhatsApp Number <span
-                                    class="text-danger">*</span></label>
-                            <div class="extention-group">
-                                <!-- Country Select Dropdown for WhatsApp -->
-                                <select wire:model="selectedCountryWhatsapp"
-                                    wire:change="GetCountryDetails($event.target.selectedOptions[0].getAttribute('data-length'), 'whatsapp')"
-                                    class="form-control form-control-sm">
-                                    <option value="" selected hidden>Select Country</option>
-                                    @foreach($countries as $country)
-                                    <option value="{{ $country->country_code }}"
-                                        data-length="{{ $country->mobile_length }}">
-                                        {{ $country->title }} ({{ $country->country_code }})
-                                    </option>
-                                    @endforeach
-                                </select>
-
-                                <!-- WhatsApp Input Field -->
-                                <input type="text" wire:model="whatsapp_no" id="whatsapp_no"
-                                    class="form-control form-control-sm border border-1 p-2 {{ $errorClass['whatsapp_no'] ?? '' }}"
-                                    placeholder="Enter WhatsApp Number" maxlength="{{ $mobileLengthWhatsapp }}">
-                            </div>
-                            @if(isset($errorMessage['whatsapp_no']))
-                            <div class="text-danger error-message">{{ $errorMessage['whatsapp_no'] }}</div>
-                            @endif
-                        </div> --}}
+                       
 
                         <!-- Alternative Phone Number 1 -->
                         <div class="mb-3 col-md-3">
@@ -465,103 +449,6 @@
                                     </div>
                                 </content>
                             </div>
-                            {{-- <div class="admin__content">
-                                <aside>
-
-                                </aside>
-                                <content class="p-0">
-                                    <div class="row mb-2 align-items-center">
-                                        <div class="col-auto">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="1"
-                                                    wire:model="is_billing_shipping_same" id="checkSameBilling"
-                                                    wire:change="toggleShippingAddress" @if ($is_billing_shipping_same)
-                                                    checked @endif>
-                                                <label class="form-check-label same_as_field" for="checkSameBilling">
-                                                    Same as Billing Address
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </content>
-                            </div> --}}
-                            {{-- <div class="admin__content">
-                                <aside>
-                                    <nav class="text-uppercase font-weight-bold">Shipping Address</nav>
-                                </aside>
-                                <content>
-                                    <div class="row mb-2 align-items-center">
-                                        <div class="col-3">
-                                            <label for="" class="col-form-label">Address <span
-                                                    class="text-danger">*</span></label>
-                                        </div>
-                                        <div class="col-9">
-                                            <input type="text" id="shipping_addr" class="form-control form-control-sm"
-                                                wire:model="shipping_address" value="" @if ($shipping_address) disabled
-                                                @endif>
-                                            @if(isset($errorMessage['shipping_address']))
-                                            <div class="text-danger error-message">{{ $errorMessage['shipping_address']
-                                                }}</div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2 align-items-center">
-                                        <div class="col-3">
-                                            <label for="" class="col-form-label">Landmark</label>
-                                        </div>
-                                        <div class="col-9">
-                                            <input type="text" id="shipping_landmark"
-                                                class="form-control form-control-sm" wire:model="shipping_landmark"
-                                                value="" @if ($shipping_landmark) disabled @endif>
-                                            @if(isset($errorMessage['shipping_landmark']))
-                                            <div class="text-danger error-message">{{ $errorMessage['shipping_landmark']
-                                                }}</div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2 align-items-center">
-                                        <div class="col-3">
-                                            <label for="" class="col-form-label">City<span
-                                                    class="text-danger">*</span></label>
-                                        </div>
-                                        <div class="col-3">
-                                            <input type="text" id="shipping_city" class="form-control form-control-sm"
-                                                wire:model="shipping_city" value="" @if ($shipping_city) disabled
-                                                @endif>
-                                            @if(isset($errorMessage['shipping_city']))
-                                            <div class="text-danger error-message">{{ $errorMessage['shipping_city'] }}
-                                            </div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2 align-items-center">
-                                        <div class="col-3">
-                                            <label for="" class="col-form-label">Country <span
-                                                    class="text-danger">*</span></label>
-                                        </div>
-                                        <div class="col-3">
-                                            <input type="text" id="shipping_country"
-                                                class="form-control form-control-sm" wire:model="shipping_country"
-                                                value="" @if ($shipping_country) disabled @endif>
-                                            @if(isset($errorMessage['shipping_country']))
-                                            <div class="text-danger error-message">{{ $errorMessage['shipping_country']
-                                                }}</div>
-                                            @endif
-                                        </div>
-                                        <div class="col-3 text-end">
-                                            <label for="" class="col-form-label">Pincode</label>
-                                        </div>
-                                        <div class="col-3">
-                                            <input type="text" id="shipping_pin" class="form-control form-control-sm"
-                                                wire:model="shipping_pin" value="" @if ($shipping_pin) disabled @endif>
-                                            @if(isset($errorMessage['shipping_pin']))
-                                            <div class="text-danger error-message">{{ $errorMessage['shipping_pin'] }}
-                                            </div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </content>
-                            </div> --}}
                         </div>
                     </div>
                 </div>
@@ -644,7 +531,7 @@
                             @else
                             <div class="col-md-2 col-12 mb-3">
                                 @endif
-                                <label class="form-label"><strong>Product1</strong></label>
+                                <label class="form-label"><strong>Product</strong></label>
                                 <input type="text" wire:keyup="FindProduct($event.target.value, {{ $index }})"
                                     wire:model="items.{{ $index }}.searchproduct"
                                     class="form-control form-control-sm border border-1 customer_input @error('items.'.$index.'.searchproduct') border-danger @enderror"
@@ -668,17 +555,27 @@
                                 <div class="text-danger error-message">{{ $message }}</div>
                                 @enderror
                             </div>
+                            @if(isset($items[$index]['collection']) && $items[$index]['collection'] != 1)
                             <div class="col-md-2 col-12 mb-3">
-                                <label class="form-label"><strong>Quantity1</strong><span class="text-danger">*</span></label>
+                                <label class="form-label"><strong>Quantity</strong>
+                                    @if($items[$index]['collection'] == 2)
+                                        <span class="text-danger">*</span>
+                                    @endif
+                                </label>
                                 <input type="number"
                                     wire:model="items.{{ $index }}.quantity"
                                     class="form-control form-control-sm border border-1 customer_input
-                                    @error('items.' . $index . '.quantity') border-danger @enderror"
+                                        @error('items.' . $index . '.quantity') border-danger @enderror"
                                     placeholder="Enter quantity" min="1">
                                 @error('items.' . $index . '.quantity')
                                 <div class="text-danger error-message">{{ $message }}</div>
                                 @enderror
-                             </div>
+                            </div>
+                            @else
+                                {{-- Hidden field for collection 1 --}}
+                                <input type="hidden" wire:model="items.{{ $index }}.quantity">
+                            @endif
+
                             @if(isset($items[$index]['collection']) && $items[$index]['collection'] == 1)
                             {{-- Fabric --}}
                             <div class="col-md-2 col-12 mb-3 position-relative">
@@ -768,6 +665,29 @@
                                 <div class="text-danger error-message">{{ $message }}</div>
                                 @enderror
                             </div>
+                            @if(isset($items[$index]['collection']) && $items[$index]['collection'] == 2)
+                            <div class="row mb-3">
+                                 <div class="col-md-2">
+                                    <label for="">Expected Delivery Date</label>
+                                    <input type="date" class="form-control form-control-sm border border-1" wire:model="items.{{$index}}.expected_delivery_date">
+                                    @error("items.$index.expected_delivery_date")
+                                    <div class="text-danger">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label"><strong>Priority Level</strong></label>
+                                    <select class="form-control form-control-sm border border-1"
+                                            wire:model="items.{{ $index }}.priority">
+                                        <option value="" hidden>Select Priority</option>
+                                        <option value="Priority">Priority</option>
+                                        <option value="Non Priority">Non Priority</option>
+                                    </select>
+                                    @error("items.$index.priority")
+                                    <div class="text-danger">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            @endif
                             @endif
                         </div>
 
@@ -876,76 +796,50 @@
                                         <div class="text-danger error-message">{{ $message }}</div>
                                         @enderror
                                         @endif
-                                        {{-- upload images and voice in different section --}}
-
-                                        {{-- Catalog picture capture --}}
-                                        {{-- <div class="mt-2 text-end">
-                                            <button type="button" class="btn btn-cta btn-sm"
-                                                onclick="document.getElementById('catalog-upload-{{ $index }}').click()">
-                                                <i class="material-icons text-white" style="font-size: 15px;">add</i>
-                                                Upload Images
-                                            </button>
-                                            <button type="button" class="btn btn-cta btn-sm"
-                                                onclick="document.getElementById('voice-upload-{{ $index }}').click()">
-                                                <i class="material-icons text-white" style="font-size: 15px;">mic</i>
-                                                Upload Voice
-                                            </button>
-                                            @error('imageUploads.*')
-                                            <div class="text-danger">{{ $message }}</div>
-                                            @enderror
-                                        </div> --}}
-
-                                        {{-- Hidden File Input --}}
-                                        {{-- <input type="file" id="catalog-upload-{{ $index }}" multiple --}} {{--
-                                            wire:model="imageUploads.{{ $index }}" accept="image/*" class="d-none" />
-                                        --}}
-                                        {{-- Voice Upload --}}
-                                        {{-- <input type="file" id="voice-upload-{{ $index }}" multiple
-                                            wire:model="voiceUploads.{{ $index }}" accept="audio/*" class="d-none" />
-                                        --}}
-                                        {{-- Image Preview --}}
-                                        {{-- <div class="mt-2">
-                                            @if (!empty($imageUploads[$index]))
-                                            <div class="d-flex flex-wrap gap-2">
-                                                @foreach ($imageUploads[$index] as $imgIndex => $img)
-                                                <div style="position: relative; width: 70px;">
-                                                    <img src="{{ $img->temporaryUrl() }}" class="img-thumbnail"
-                                                        style="width: 100%;" />
-                                                    <button type="button"
-                                                        class="btn btn-sm btn-danger rounded-circle p-1 position-absolute top-0 end-0"
-                                                        style="width: 22px; height: 22px; font-size: 12px; display: flex; align-items: center; justify-content: center;"
-                                                        wire:click="removeUploadedImage({{ $index }}, {{ $imgIndex }})">
-                                                        &times;
-                                                    </button>
-                                                </div>
-                                                @endforeach
-                                            </div>
-                                            @endif
-                                        </div> --}}
-                                        {{-- Voice Preview --}}
-                                        {{-- <div class="mt-2">
-                                            @if (!empty($voiceUploads[$index]))
-                                            <div class="d-flex flex-wrap gap-2">
-                                                @foreach ($voiceUploads[$index] as $voiceIndex => $voice)
-                                                <div style="width: 150px; position: relative;">
-                                                    <audio controls style="width: 100%;">
-                                                        <source src="{{ $voice->temporaryUrl() }}" type="audio/mpeg">
-                                                        Your browser does not support the audio element.
-                                                    </audio>
-                                                    <button type="button"
-                                                        class="btn btn-sm btn-danger rounded-circle p-1 position-absolute top-0 end-0"
-                                                        style="width: 22px; height: 22px; font-size: 12px; display: flex; align-items: center; justify-content: center;"
-                                                        wire:click="removeUploadedVoice({{ $index }}, {{ $voiceIndex }})">
-                                                        &times;
-                                                    </button>
-                                                </div>
-                                                @endforeach
-                                            </div>
-                                            @endif
-                                        </div> --}}
                                     </div>
 
                                 </div>
+                                @if(isset($items[$index]['collection']) && $items[$index]['collection'] == 1)
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                         <label for="">Expected Delivery Date</label>
+                                         <input type="date" class="form-control form-control-sm border border-1" wire:model="items.{{$index}}.expected_delivery_date">
+                                         @error("items.$index.expected_delivery_date")
+                                            <div class="text-danger">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    {{-- Fittings --}}
+                                    <div class="col-md-4">
+                                        <label class="form-label"><strong>Fittings</strong></label>
+                                        <select class="form-control form-control-sm border border-1"
+                                                wire:model="items.{{ $index }}.fitting">
+                                            <option value="" hidden>Select Fitting</option>
+                                            <option value="Regular Fit">Regular Fit</option>
+                                            <option value="Slim Fit">Slim Fit</option>
+                                            <option value="Loose Fit">Loose Fit</option>
+                                        </select>
+                                        @error("items.$index.fitting")
+                                        <div class="text-danger">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    {{-- Priority Level --}}
+                                    <div class="col-md-4">
+                                        <label class="form-label"><strong>Priority Level</strong></label>
+                                        <select class="form-control form-control-sm border border-1"
+                                                wire:model="items.{{ $index }}.priority">
+                                            <option value="" hidden>Select Priority</option>
+                                            <option value="Priority">Priority</option>
+                                            <option value="Non Priority">Non Priority</option>
+                                        </select>
+                                        @error("items.$index.priority")
+                                        <div class="text-danger">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            @endif
+
+                                
                                 <div class="row">
                                     {{-- Image Upload Section --}}
                                     <div class="mb-3 col-12">
