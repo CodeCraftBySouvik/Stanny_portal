@@ -391,7 +391,7 @@ class OrderNew extends Component
         } else {
             // Reset results when the search term is empty
             $this->reset([
-                'searchResults','orders','prefix','selectedBusinessType','selectedCountryPhone','selectedCountryWhatsapp','selectedCountryAlt1','selectedCountryAlt2','isWhatsappPhone', 'isWhatsappAlt1', 'isWhatsappAlt2'
+                'searchResults','orders','prefix','selectedCountryPhone','selectedCountryWhatsapp','selectedCountryAlt1','selectedCountryAlt2','isWhatsappPhone', 'isWhatsappAlt1', 'isWhatsappAlt2'
             ]);
         }
     }
@@ -929,7 +929,7 @@ class OrderNew extends Component
                 $order_number =  $invoiceData['number'];
             }
 
-            $customer_image = $this->customer_image ? Helper::uploadImage($this->customer_image,"client_image") : null;
+            $customer_image = $this->customer_image ? Helper::handleFileUpload($this->customer_image,"client_image") : null;
 
             // Create the order
             $order = new Order();
@@ -1128,7 +1128,7 @@ class OrderNew extends Component
                 }
 
                  $staff = User::find($this->salesman);
-                if ($staff && $staff->designation == 12) {
+                if ($staff && (in_array($staff->designation,[1,12]))) {
                     $orderRepo->approveOrder($order->id, $staff->id);
                 }
 

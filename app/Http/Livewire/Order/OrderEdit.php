@@ -28,6 +28,8 @@ use App\Models\OrderItemVoiceMessage;
 use App\Models\Changelog;
 use Illuminate\Support\Facades\Storage;
 use Livewire\WithFileUploads;
+use App\Helpers\Helper;
+
 
 
 class OrderEdit extends Component
@@ -48,7 +50,7 @@ class OrderEdit extends Component
 
     public $customers = null;
     public $orders;
-    public $is_wa_same, $prefix, $name, $company_name,$employee_rank, $email, $dob, $customer_id, $phone ,$alternative_phone_number_1, $alternative_phone_number_2,
+    public $is_wa_same, $prefix, $name, $company_name,$employee_rank, $email,$customer_image, $dob, $customer_id, $phone ,$alternative_phone_number_1, $alternative_phone_number_2,
     $selectedCountryPhone, $selectedCountryWhatsapp, $selectedCountryAlt1 , $selectedCountryAlt2 ,$mobileLengthPhone, $mobileLengthWhatsapp, $mobileLengthAlt1, $mobileLengthAlt2,
     $countries,$isWhatsappPhone,$isWhatsappAlt1,$isWhatsappAlt2;
 
@@ -89,6 +91,7 @@ class OrderEdit extends Component
 
     //    dd($this->orders->customer->id);
         if ($this->orders) {
+            $this->customer_image = $this->orders->customer_image;
             $this->order_number = $this->orders->order_number;
             $this->customer_id = $this->orders->customer_id;
             $this->name = $this->orders->customer_name;
@@ -951,6 +954,7 @@ class OrderEdit extends Component
                 $order->prefix = $this->prefix;
                 $order->customer_name = $this->name;
                 $order->customer_email = $this->email;
+                $order->customer_image = $this->customer_image ? Helper::handleFileUpload($this->customer_image, "client_image") : null;
                 $order->billing_address = $billingadd . ', ' . $billingLandmark . ', ' . $billingCity . ', ' . $billingState . ', ' . $billingCountry . ' - ' . $billingPin;
                 $order->total_product_amount = $total_product_amount;
                 $order->air_mail = $airMail;

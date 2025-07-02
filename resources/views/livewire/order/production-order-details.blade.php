@@ -182,6 +182,13 @@
                                             <button class="btn btn-success select-md" disabled>
                                                 Delivered
                                             </button>
+                                            {{-- View log button --}}
+                                              <button class="btn btn-outline-info select-md"
+                                                data-bs-toggle="tooltip"
+                                                data-bs-placement="top"
+                                                title="{{ $item['logs'] }}">
+                                                View Log
+                                            </button>
                                         @else
                                         <button class="btn btn-outline-success select-md"
                                             wire:click="openStockModal({{$loop->index}},true)">
@@ -210,6 +217,12 @@
                                         @if ($remainingQty <=0 )
                                             <button class="btn btn-success select-md" disabled>
                                                 Delivered
+                                            </button>
+                                            <button class="btn btn-outline-info select-md"
+                                                data-bs-toggle="tooltip"
+                                                data-bs-placement="top"
+                                                title="{{ $item['logs'] }}">
+                                                View Log
                                             </button>
                                         @else
                                             <button class="btn btn-outline-success select-md"

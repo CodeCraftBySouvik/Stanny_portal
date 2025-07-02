@@ -93,7 +93,7 @@
                     {{-- <div class="container"> --}}
                         <!-- Customer Details -->
                         <div class="row">
-                            <div class="mb-2 col-md-6">
+                            <div class="mb-2 col-md-3">
                                 <input type="hidden" name="customer_id" wire:model="customer_id">
                                 <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
                                 <div class="input-group">
@@ -135,6 +135,20 @@
                                 <div class="text-danger">{{ $errorMessage['email'] }}</div>
                                 @endif
                             </div>
+
+                             <div class="mb-2 col-md-3">
+                                <label for="customer_image" class="form-label"> Image <span class="small text-danger">*</span></label>
+                                <input type="file" wire:model="customer_image" id="customer_image"
+                                    class="form-control form-control-sm border border-1 p-2 {{ $errorClass['customer_image'] ?? '' }}">
+                                @if(isset($errorMessage['customer_image']))
+                                <div class="text-danger error-message">{{ $errorMessage['customer_image'] }}</div>
+                                @endif
+                                 @if ($customer_image)
+                                    <div class="mt-2">
+                                        <img src="{{ asset($customer_image) }}" alt="" class="img-thumbnail" width="100">
+                                    </div>
+                                @endif
+                           </div>
 
                             <div class="mb-2 col-md-3">
                                 <label for="dob" class="form-label">Date Of Birth </label>

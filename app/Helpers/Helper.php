@@ -47,6 +47,17 @@ class Helper
         return 'uploads/' . $folderName . '/' . $filename;
     }
 
+    public static function handleFileUpload($file, $folder)
+    {
+        if ($file && $file instanceof \Illuminate\Http\UploadedFile) {
+            $timestamp = now()->timestamp;
+            $fileName = $timestamp . '.' . $file->getClientOriginalExtension();
+            $storedPath = $file->storeAs($folder, $fileName, 'public');
+            return "storage/" . $storedPath;
+        }
+        return null;
+    }
+
     public static function generateInvoiceBill($salesManId)
     {
         // Fetch Salesman Details

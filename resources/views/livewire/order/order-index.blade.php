@@ -170,46 +170,77 @@
                                 @endphp
                                     @if(empty($order->packingslip))
                                         @if($order->status!="Cancelled")
-                                        @if (in_array($userDesignationId,[1,4]))
-                                        @if($userDesignationId==4 and $order->status=='Approval Pending')
-                                        <a href="{{route('admin.order.add_order_slip', $order->id)}}" class="btn btn-outline-primary select-md btn_action btn_outline">Approve Order</a>
-
-                                        @endif
-                                        @if($userDesignationId==1 and $order->status=='Approved By TL')
-                                        <a href="{{route('admin.order.add_order_slip', $order->id)}}" class="btn btn-outline-primary select-md btn_action btn_outline">Approve Order</a>
-
-                                        @endif
-                                        @endif
-                                            <a href="{{route('admin.order.edit', $order->id)}}" class="btn btn-outline-success select-md btn_outline" data-toggle="tooltip">Edit</a>
+                                            {{-- @if (in_array($userDesignationId,[1,4])) --}}
+                                                {{-- @if($userDesignationId == 4 && $order->status=='Approval Pending')
+                                                <a href="{{route('admin.order.add_order_slip', $order->id)}}" class="btn btn-outline-primary select-md btn_action btn_outline">Approve Order (TL)</a>
+                                                @endif
+                                                @if($userDesignationId==1 && $order->status=='Approved By TL')
+                                                <a href="{{route('admin.order.add_order_slip', $order->id)}}" class="btn btn-outline-primary select-md btn_action btn_outline">Approve Order(Admin)</a>
+                                                @endif --}}
+                                            {{-- @endif --}}
+                                            {{-- <a href="{{route('admin.order.edit', $order->id)}}" class="btn btn-outline-success select-md btn_outline" data-toggle="tooltip">Edit</a>
 
                                             <button  wire:click="confirmCancelOrder({{ $order->id }})"
-                                            class="btn btn-outline-danger select-md btn_outline">Cancel Order</button >
+                                            class="btn btn-outline-danger select-md btn_outline">Cancel Order</button > --}}
+
+                                                {{-- New Code By Souvik --}}
+                                             @if($userDesignationId == 1 && $order->status == 'Approved By TL')
+                                                <a href="{{ route('admin.order.add_order_slip', $order->id) }}" class="btn btn-outline-primary btn_action select-md btn_outline">
+                                                    Approve Order
+                                                </a>
+
+                                                <a href="{{ route('admin.order.edit', $order->id) }}" class="btn btn-outline-success btn_action select-md btn_outline">
+                                                    Edit
+                                                </a>
+
+                                                <button wire:click="confirmCancelOrder({{ $order->id }})" class="btn btn-outline-danger btn_action select-md btn_outline">
+                                                    Cancel Order
+                                                </button>
+
+                                                <a href="{{ route('admin.order.details', $order->id) }}" class="btn btn-outline-info btn_action select-md btn_outline">
+                                                    View Details
+                                                </a>
+                                            @endif
+
+                                            {{-- (Optional) TL Approve button --}}
+                                            @if($userDesignationId == 4 && $order->status == 'Approval Pending')
+                                                <a href="{{ route('admin.order.add_order_slip', $order->id) }}" class="btn btn-outline-primary btn_action select-md btn_outline">
+                                                    Approve Order
+                                                </a>
+                                                <a href="{{ route('admin.order.edit', $order->id) }}" class="btn btn-outline-success btn_action select-md btn_outline">
+                                                    Edit
+                                                </a>
+
+                                                <button wire:click="confirmCancelOrder({{ $order->id }})" class="btn btn-outline-danger btn_action select-md btn_outline">
+                                                    Cancel Order
+                                                </button>
+                                            @endif
+                                                {{-- New Code end By Souvik --}}
                                         @endif
                                     @else
-                                        <!-- <a href="#" class="btn btn-outline-primary select-md btn_action">Edit Slip</a> -->
-                                        {{-- <a href="#" class="btn btn-outline-success select-md btn_outline">Order Copy</a> --}}
-                                        {{-- @if($order->invoice_type=="invoice") --}}
+                                         {{-- ✅ Admin override: Show Approve/Edit/Cancel even if slip exists and status is Approved By TL --}}
+                                        @if($userDesignationId == 1 && $order->status == 'Approved By TL')
+                                            <a href="{{ route('admin.order.add_order_slip', $order->id) }}" class="btn btn-outline-primary btn_action select-md btn_outline">
+                                                Approve Order
+                                            </a>
+                                            <a href="{{ route('admin.order.edit', $order->id) }}" class="btn btn-outline-success btn_action select-md btn_outline">
+                                                Edit
+                                            </a>
+                                            <button wire:click="confirmCancelOrder({{ $order->id }})" class="btn btn-outline-danger btn_action select-md btn_outline">
+                                                Cancel Order
+                                            </button>
+                                           
+                                        @else
                                             <a href="{{route('admin.order.download_invoice',$order->id)}}" target="_blank" class="btn btn-outline-primary select-md btn_outline">Invoice</a>
-                                        {{-- @endif --}}
-                                        {{-- @if($order->invoice_type=="bill") --}}
+                                       
                                             <a href="{{route('admin.order.download_bill',$order->id)}}" target="_blank" class="btn btn-outline-primary select-md btn_outline">Bill</a>
-                                        {{-- @endif --}}
+                                        @endif
+                                       
                                     @endif
                                      @if ($order->invoice_type=="invoice")
                                        <a href="{{route('admin.order.view',$order->id)}}" class="btn btn-outline-success select-md btn_action btn_outline">Details</a>
                                     @endif
-
-
-
-                                     {{-- <a href="{{route('admin.order.view',$order->id)}}" class="btn btn-outline-info btn-sm custom-btn-sm mb-0" data-toggle="tooltip" data-original-title="View product">
-                                         <span class="material-icons">visibility</span>
-                                    </a>
-                                    @if($order->status=="Pending")
-                                    <a href="{{route('admin.order.edit', $order->id)}}" class="btn btn-outline-info btn-sm custom-btn-sm mb-0" data-toggle="tooltip" data-original-title="Edit product">
-                                        <span class="material-icons">edit</span>
-                                    </a>
-                                    @endif
-                                    <a href="{{route('admin.order.invoice', $order->id)}}" target="_blank" class="btn btn-outline-info btn-sm custom-btn-sm mb-0">Invoice</a> --}}
+                                    <button class="btn btn-outline-info select-md btn_action btn_outline">Logs</button>
                                 </td>
                             </tr>
                         @endforeach

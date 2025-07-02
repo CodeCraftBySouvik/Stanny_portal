@@ -150,7 +150,7 @@
                     </div>
 
                     <!-- Order Customer Fields... -->
-                    @if(session()->has('orders-found') && $orders->count() > 0)
+                    @if(session()->has('orders-found') && $orders?->count() > 0)
                     <div class="alert alert-success mt-3">
                         {{ session('orders-found') }}
                     </div>

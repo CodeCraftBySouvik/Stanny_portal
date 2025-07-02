@@ -219,7 +219,25 @@ class ProductionOrderDetails extends Component
                 $item->id
             );
            $hasStockEntry = OrderStockEntry::where('order_item_id', $item->id)->exists();
-            
+             // Fetch logs for this item
+           $logs = Changelog::whereJsonContains('data_details->order_item_id', $item->id)
+                ->whereIn('purpose', ['stock_entry_update', 'extra_stock_entry','delivery_proceed'])
+                ->get();
+
+            $logTooltip = $logs->map(function ($log) use($item) {
+                $details = json_decode($log->data_details, true);
+                if ($log->purpose === 'stock_entry_update') {
+                    return 'Entered Quantity: ' . ($details['entered_quantity'] ?? '-');
+                } elseif ($log->purpose === 'extra_stock_entry') {
+                    return 'Extra Quantity: ' . ($details['extra_quantity'] ?? '-');
+                } elseif ( $log->purpose === 'delivery_proceed' &&
+                            $item->collection == 2 &&
+                            isset($details['delivered_quantity'])){
+                    return 'Delivered Quantity : '.($details['delivered_quantity']);
+                }
+                return null;
+            })->filter()->implode(' | ');
+
             $stock = null;
             $totalStock = 0;
             $used = 0;
@@ -271,7 +289,8 @@ class ProductionOrderDetails extends Component
                 'initial_stock' => $initialStock,
                 'is_delivered' => $isDelivered,
                 'delivered_quantity' => $deliveredQty,
-                'remaining_to_deliver' => $remainingQty
+                'remaining_to_deliver' => $remainingQty,
+                'logs' => $logTooltip
             ];
         });
         
