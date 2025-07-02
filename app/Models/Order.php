@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\ChangeLog;
+use Illuminate\Support\Facades\Auth;
+use App\Services\ChangeTracker;
 
 class Order extends Model
 {
@@ -11,7 +14,7 @@ class Order extends Model
 
 
     protected $table = 'orders';
-
+    public $_relatedChanges = [];
     protected $fillable = [
         'customer_id',
         'business_type',
@@ -114,6 +117,133 @@ class Order extends Model
         return $this->hasOne(Invoice::class, 'order_id', 'id');
     }
 
+    // protected static function booted(): void
+    // {
+    //     static::updating(function ($order) {
+    //         $original = $order->getOriginal();
+    //         $dirty = $order->getDirty();
+
+    //         $normalize = function ($value) {
+    //             if (is_null($value)) return 0;
+    //             if (is_numeric($value)) return (float)$value;
+    //             try {
+    //                 return (new \DateTime($value))->format('Y-m-d H:i:s');
+    //             } catch (\Exception $e) {
+    //                 return $value;
+    //             }
+    //         };
+
+    //         $before = [];
+    //         $after = [];
+
+    //         foreach ($dirty as $key => $value) {
+    //             $normOld = $normalize($original[$key] ?? null);
+    //             $normNew = $normalize($value);
+    //             if ($normOld !== $normNew) {
+    //                 $before[$key] = $normOld;
+    //                 $after[$key] = $normNew;
+    //             }
+    //         }
+
+    //         if (!empty($before)) {
+    //             ChangeTracker::add('order', [
+    //                 'order_id' => $order->id,
+    //                 'before'   => $before,
+    //                 'after'    => $after,
+    //             ]);
+    //         }
+    //     });
+
+    //     static::updated(function ($order) {
+    //         $allChanges = ChangeTracker::getAll();
+    //         if (empty($allChanges)) return;
+
+    //         ChangeLog::create([
+    //             'purpose'      => request()->input('action') ?? 'order_edit',
+    //             'order_id'     => $order->id,
+    //             'done_by'      => Auth::guard('admin')->id(),
+    //             'data_details' => json_encode($allChanges),
+    //         ]);
+
+    //         ChangeTracker::clear(); // Clean up after use
+    //     });
+    // }
+
+    protected static function booted(): void
+    {
+        static::updating(function ($order) {
+            $original = $order->getOriginal();
+            $dirty = $order->getDirty();
+
+            $normalize = function ($value) {
+                if (is_null($value)) return 0;
+                if (is_numeric($value)) return (float)$value;
+                try {
+                    return (new \DateTime($value))->format('Y-m-d H:i:s');
+                } catch (\Exception $e) {
+                    return $value;
+                }
+            };
+
+            $before = [];
+            $after = [];
+
+            foreach ($dirty as $key => $value) {
+                $normOld = $normalize($original[$key] ?? null);
+                $normNew = $normalize($value);
+                if ($normOld !== $normNew) {
+                    $before[$key] = $normOld;
+                    $after[$key] = $normNew;
+                }
+            }
+
+            if (!empty($before)) {
+                ChangeTracker::add('order', [
+                    'order_id' => $order->id,
+                    'before'   => $before,
+                    'after'    => $after,
+                ]);
+            }
+        });
+
+        static::updated(function ($order) {
+            $allChanges = ChangeTracker::getAll();
+            if (empty($allChanges)) return;
+
+            // Format into { before: {order: {}}, after: {order: {}} }
+            $formatted = [
+                'before' => [],
+                'after'  => [],
+            ];
+
+            foreach ($allChanges as $modelType => $entries) {
+                foreach ($entries as $entry) {
+                    if (!empty($entry['before'])) {
+                        $formatted['before'][$modelType] = array_merge(
+                            $formatted['before'][$modelType] ?? [],
+                            $entry['before']
+                        );
+                    }
+                    if (!empty($entry['after'])) {
+                        $formatted['after'][$modelType] = array_merge(
+                            $formatted['after'][$modelType] ?? [],
+                            $entry['after']
+                        );
+                    }
+                }
+            }
+
+            ChangeLog::create([
+                'purpose'      => request()->input('action') ?? 'order_edit',
+                'order_id'     => $order->id,
+                'done_by'      => Auth::guard('admin')->id(),
+                'data_details' => json_encode($formatted),
+            ]);
+
+            ChangeTracker::clear(); // Clean up after use
+        });
+
+}
 
 
 

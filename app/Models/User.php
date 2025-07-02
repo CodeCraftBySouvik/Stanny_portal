@@ -9,7 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
+use App\Services\ChangeTracker;
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable,SoftDeletes;
@@ -70,7 +70,7 @@ class User extends Authenticatable
         'alternative_phone_number_2',
         'customer_badge'
     ];
-    
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -131,7 +131,7 @@ class User extends Authenticatable
     {
         return $this->hasOne(UserAddress::class)->where('address_type', 2);
     }
-    
+
     public function billingAddressLatest()
     {
         return $this->hasOne(UserAddress::class)->where('address_type', 1) ->latest('created_at');
@@ -179,7 +179,7 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Country::class);
     }
-    
+
     public function payments()
     {
         return $this->hasMany(Payment::class, 'supplier_id');
@@ -197,5 +197,46 @@ class User extends Authenticatable
         return $this->hasMany(UserWhatsapp::class, 'user_id', 'id');
     }
 
-   
+    protected static function booted()
+    {
+        static::updating(function ($user) {
+            $original = $user->getOriginal();
+            $dirty = $user->getDirty();
+
+            $normalize = function ($value) {
+                if (is_null($value)) return 0;
+                if (is_numeric($value)) return (float)$value;
+                try {
+                    return (new \DateTime($value))->format('Y-m-d H:i:s');
+                } catch (\Exception $e) {
+                    return $value;
+                }
+            };
+
+            $before = [];
+            $after = [];
+
+            foreach ($dirty as $key => $value) {
+                $old = $normalize($original[$key] ?? null);
+                $new = $normalize($value);
+                if ($old !== $new) {
+                    $before[$key] = $old;
+                    $after[$key] = $new;
+                }
+            }
+
+            if (!empty($before)) {
+                $order = \App\Models\Order::where('customer_id', $user->id)->latest()->first();
+                if ($order) {
+                    ChangeTracker::add('customer', [
+                        'order_id' => $order->id,
+                        'id'       => $user->id,
+                        'before'   => $before,
+                        'after'    => $after,
+                    ]);
+                }
+            }
+        });
+    }
+
 }
