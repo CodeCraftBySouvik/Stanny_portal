@@ -135,10 +135,11 @@ class AddOrderSlip extends Component
 
                 $this->updateOrderItems();
 
-                $this->createPackingSlip();
-
-                // $this->accountingRepository->StorePaymentReceipt($this->all());
-
+                 // Only create packing slip, invoice, ledger if admin approves
+                $userDesignationId = auth()->guard('admin')->user()->designation;
+                if($userDesignationId == 1){
+                    $this->createPackingSlip();
+                }
 
                 DB::commit();
 
@@ -208,6 +209,7 @@ class AddOrderSlip extends Component
         $order = Order::find($this->order->id);
 
         if ($order) {
+            // $packingSlip = PackingSlip::where('')
             // Calculate the remaining amount
             $packingSlip=PackingSlip::create([
                 'order_id' => $this->order->id,

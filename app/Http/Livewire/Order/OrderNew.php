@@ -312,7 +312,7 @@ class OrderNew extends Component
             'order_number' => 'required|string|not_in:000|unique:orders,order_number',
             'air_mail' => 'nullable|numeric',
             'imageUploads.*.*'  => 'nullable|image|mimes:jpg,jpeg,png,webp', 
-            'voiceUploads.*.*'  => 'nullable|mimes:mp3,wav,ogg', 
+            'voiceUploads.*.*' => 'nullable|mimes:mp3,wav,ogg,m4a,wma,webm,mpga', 
         ];
 
         return $rules;
@@ -950,6 +950,11 @@ class OrderNew extends Component
             // for team-lead id
             $loggedInAdmin = auth()->guard('admin')->user();
             $order->team_lead_id = $loggedInAdmin->parent_id ?? null;
+            if ($loggedInAdmin->designation == 4) { // 4 = TL
+                $order->status = 'Approved By TL';
+            } else {
+                $order->status = 'Approval Pending'; // default if not TL or Admin
+            }
             // dd($order);
             $order->save();
 

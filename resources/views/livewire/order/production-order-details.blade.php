@@ -248,8 +248,8 @@
                                                 {{$measurement['measurement_name']}}
                                                 <strong>[{{$measurement['measurement_title_prefix']}}]</strong>
                                             </label>
-                                            <input type="text"
-                                                class="form-control form-control-sm border border-1 customer_input text-center measurement_input"
+                                            <input type="text" 
+                                                class="form-control form-control-sm border border-1 customer_input text-center measurement_input" readonly
                                                 value="{{ $measurement['measurement_value'] }}">
                                         </div>
                                         @endforeach

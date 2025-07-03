@@ -193,33 +193,7 @@
                                 </div>
                             </div>
 
-                            <!-- WhatsApp Number -->
-                            {{-- <div class="mb-3 col-md-3">
-                                <label for="whatsapp_no" class="form-label">WhatsApp Number <span
-                                        class="text-danger">*</span></label>
-                                <div class="extention-group">
-                                    <!-- Country Select Dropdown for WhatsApp -->
-                                    <select wire:model="selectedCountryWhatsapp"
-                                        wire:change="GetCountryDetails($event.target.selectedOptions[0].getAttribute('data-length'), 'whatsapp')"
-                                        class="form-control form-control-sm">
-                                        <option value="" selected hidden>Select Country</option>
-                                        @foreach($countries as $country)
-                                        <option value="{{ $country->country_code }}"
-                                            data-length="{{ $country->mobile_length }}">
-                                            {{ $country->title }} ({{ $country->country_code }})
-                                        </option>
-                                        @endforeach
-                                    </select>
-
-                                    <!-- WhatsApp Input Field -->
-                                    <input type="text" wire:model="whatsapp_no" id="whatsapp_no"
-                                        class="form-control form-control-sm border border-1 p-2 {{ $errorClass['whatsapp_no'] ?? '' }}"
-                                        placeholder="Enter WhatsApp Number" maxlength="{{ $mobileLengthWhatsapp }}">
-                                </div>
-                                @if(isset($errorMessage['whatsapp_no']))
-                                <div class="text-danger">{{ $errorMessage['whatsapp_no'] }}</div>
-                                @endif
-                            </div> --}}
+                           
 
                             <!-- Alternative Phone Number 1 -->
                             <div class="mb-2 col-md-3">
@@ -965,7 +939,7 @@
     const mediaRecorders = {};
     const audioChunksMap = {};
 
-    // ✅ Assigns a file to a hidden file input so Livewire can pick it up
+    //  Assigns a file to a hidden file input so Livewire can pick it up
     function assignFileToInput(index, file) {
         const dt = new DataTransfer();
         dt.items.add(file);
@@ -977,7 +951,7 @@
         const event = new Event('change', { bubbles: true });
         input.dispatchEvent(event);
 
-        console.log(`✅ File assigned to input #voice-upload-${index}`);
+        console.log(` File assigned to input #voice-upload-${index}`);
     }
 
     // Start recording
@@ -994,7 +968,7 @@
             const blob = new Blob(chunks, { type: 'audio/webm' });
             const file = new File([blob], `recording_${index}.webm`, { type: 'audio/webm' });
 
-            assignFileToInput(index, file); // ✅ assign file to Livewire input
+            assignFileToInput(index, file); //  assign file to Livewire input
         };
 
         mediaRecorders[index] = mediaRecorder;

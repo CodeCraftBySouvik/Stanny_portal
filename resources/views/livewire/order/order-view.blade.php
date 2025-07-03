@@ -90,14 +90,7 @@
                                 <p class="small m-0"> {{$order->customer? $order->customer->phone: ""}}</p>
                             </div>
                         </div>
-                        {{-- <div class="row">
-                            <div class="col-sm-4">
-                                <p class="small m-0"><strong>WhatsApp :</strong></p>
-                            </div>
-                            <div class="col-sm-8">
-                                <p class="small m-0"> {{$order->customer? $order->customer->whatsapp_no: ""}}</p>
-                            </div>
-                        </div> --}}
+                       
                         <div class="row">
                             <div class="col-sm-4">
                                 <p class="small m-0"><strong> Address :</strong></p>
@@ -106,14 +99,7 @@
                                 <p class="small m-0">{{$order->billing_address}}</p>
                             </div>
                         </div>
-                        {{-- <div class="row">
-                            <div class="col-sm-4">
-                                <p class="small m-0"><strong>Shipping Address :</strong></p>
-                            </div>
-                            <div class="col-sm-8">
-                                <p class="small m-0">{{$order->shipping_address}}</p>
-                            </div>
-                        </div> --}}
+                        
 
                     </div>
                 </div>
@@ -270,7 +256,7 @@
                                                     <strong>[{{$measurement['measurement_title_prefix']}}]</strong>
                                                 </label>
                                                 <input type="text"
-                                                    class="form-control form-control-sm border border-1 customer_input text-center measurement_input"
+                                                    class="form-control form-control-sm border border-1 customer_input text-center measurement_input" readonly
                                                     value="{{ $measurement['measurement_value'] }}">
                                             </div>
                                             @endforeach

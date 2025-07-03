@@ -1009,44 +1009,7 @@
                                         </td>
                                     </tr>
 
-                                    {{-- <tr>
-                                        <td><label class="form-label"><strong>Ordered By</strong></label></td>
-                                        <td>
-                                            <select
-                                                class="form-control border border-2 p-2 form-control-sm @error('salesman') border-danger  @enderror"
-                                                wire:change="changeSalesman($event.target.value)" wire:model="salesman">
-                                                <option value="" selected hidden>Choose one..</option>
-                                                <!-- Set authenticated user as default -->
-
-                                                <option value="{{auth()->guard('admin')->user()->id}}" selected>
-                                                    {{auth()->guard('admin')->user()->name}}
-                                                </option>
-                                                <!-- Fetch all salesme  n from the database -->
-                                                @foreach ($salesmen as $salesmans)
-                                                @if($salesmans->id != auth()->guard('admin')->user()->id)
-                                                <option value="{{$salesmans->id}}">{{$salesmans->name}}</option>
-                                                @endif
-                                                @endforeach
-                                            </select>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="w-70"><label class="form-label"><strong>Bill Number</strong></label>
-                                        </td>
-                                        <td>
-                                            <!-- Remaining Amount -->
-                                            <input type="text"
-                                                class="form-control form-control-sm text-center border border-1"
-                                                disabled wire:model="order_number" value="{{$order_number}}">
-                                        </td>
-                                    </tr>
-                                    @error('order_number')
-                                    <tr>
-                                        <td colspan="2">
-                                            <div class="text-danger error-message">{{ $message }}</div>
-                                        </td>
-                                    </tr>
-                                    @enderror --}}
+                                    
                                 </table>
                             </div>
                             <div class="col-md-4 col-12"></div>
@@ -1078,7 +1041,7 @@
     const mediaRecorders = {};
     const audioChunksMap = {};
 
-    // ✅ Assigns a file to a hidden file input so Livewire can pick it up
+    //  Assigns a file to a hidden file input so Livewire can pick it up
     function assignFileToInput(index, file) {
         const dt = new DataTransfer();
         dt.items.add(file);
@@ -1090,7 +1053,7 @@
         const event = new Event('change', { bubbles: true });
         input.dispatchEvent(event);
 
-        console.log(`✅ File assigned to input #voice-upload-${index}`);
+        console.log(` File assigned to input #voice-upload-${index}`);
     }
 
     // Start recording
@@ -1107,7 +1070,7 @@
             const blob = new Blob(chunks, { type: 'audio/webm' });
             const file = new File([blob], `recording_${index}.webm`, { type: 'audio/webm' });
 
-            assignFileToInput(index, file); // ✅ assign file to Livewire input
+            assignFileToInput(index, file); //  assign file to Livewire input
         };
 
         mediaRecorders[index] = mediaRecorder;

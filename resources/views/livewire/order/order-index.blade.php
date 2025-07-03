@@ -97,27 +97,6 @@
                     </div>
                 @endif
             </div>
-            {{-- tab --}}
-            {{-- <ul class="nav nav-tabs mb-2" id="orderTabs">
-                <li class="nav-item">
-                    <a class="nav-link {{ $tab == 'all' ? 'active' : '' }}" href="#" wire:click.prevent="changeTab('all')">All</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ $tab == 'pending' ? 'active' : '' }}" href="#" wire:click.prevent="changeTab('pending')">Pending</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ $tab == 'approved' ? 'active' : '' }}" href="#" wire:click.prevent="changeTab('approved')">Received</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ $tab == 'stock_entered' ? 'active' : '' }}" href="#" wire:click.prevent="changeTab('stock_entered')">Stock Entered</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ $tab == 'delivered' ? 'active' : '' }}" href="#" wire:click.prevent="changeTab('delivered')">Delivered</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ $tab == 'completed' ? 'active' : '' }}" href="#" wire:click.prevent="changeTab('completed')">Completed</a>
-                </li>
-            </ul> --}}
 
             <div class="table-responsive p-0">
                 <table class="table table-sm table-hover">
@@ -150,18 +129,9 @@
                                 <td>
                                    <p class="small text-muted mb-1 text-uppercase">{{$order->createdBy?strtoupper($order->createdBy->name .' '.$order->createdBy->surname):""}}</p>
                                 </td>
-                                {{-- <td class="{{$order->remaining_amount>0?"text-danger":""}}"><p class="text-xs font-weight-bold mb-0">{{ $order->remaining_amount }}</p></td> --}}
+                                
                                 <td>
-                                    {{-- @php
-                                     $status = ($order->status === 'Fully Delivered' || $order->status === 'Partial Delivered')
-                                        ? 'Delivered from Production'
-                                        : $order->status;
-
-                                        $labelClass = $status_classes[$status][1] ?? 'success';
-                                    @endphp
-                                    <span class="badge bg-{{ $labelClass }}">
-                                        {{ $status }}
-                                    </span> --}}
+                                   
                                     <span class="badge bg-{{ $order->status_class }}">{{ $order->status_label }}</span>
                                 </td>
                             <td class="text-center">
@@ -185,33 +155,39 @@
 
                                                 {{-- New Code By Souvik --}}
                                              @if($userDesignationId == 1 && $order->status == 'Approved By TL')
-                                                <a href="{{ route('admin.order.add_order_slip', $order->id) }}" class="btn btn-outline-primary btn_action select-md btn_outline">
+                                                <a href="{{ route('admin.order.add_order_slip', $order->id) }}" class="btn btn-outline-success select-md btn_outline">
                                                     Approve Order
                                                 </a>
 
-                                                <a href="{{ route('admin.order.edit', $order->id) }}" class="btn btn-outline-success btn_action select-md btn_outline">
+                                                <a href="{{ route('admin.order.edit', $order->id) }}" class="btn btn-outline-success select-md btn_outline">
                                                     Edit
                                                 </a>
 
-                                                <button wire:click="confirmCancelOrder({{ $order->id }})" class="btn btn-outline-danger btn_action select-md btn_outline">
+                                                <button wire:click="confirmCancelOrder({{ $order->id }})" class="btn btn-outline-danger select-md btn_outline">
                                                     Cancel Order
                                                 </button>
-
-                                                <a href="{{ route('admin.order.details', $order->id) }}" class="btn btn-outline-info btn_action select-md btn_outline">
-                                                    View Details
-                                                </a>
                                             @endif
 
                                             {{-- (Optional) TL Approve button --}}
                                             @if($userDesignationId == 4 && $order->status == 'Approval Pending')
-                                                <a href="{{ route('admin.order.add_order_slip', $order->id) }}" class="btn btn-outline-primary btn_action select-md btn_outline">
+                                                <a href="{{ route('admin.order.add_order_slip', $order->id) }}" class="btn btn-outline-success select-md btn_outline">
                                                     Approve Order
                                                 </a>
-                                                <a href="{{ route('admin.order.edit', $order->id) }}" class="btn btn-outline-success btn_action select-md btn_outline">
+                                                <a href="{{ route('admin.order.edit', $order->id) }}" class="btn btn-outline-success select-md btn_outline">
                                                     Edit
                                                 </a>
 
-                                                <button wire:click="confirmCancelOrder({{ $order->id }})" class="btn btn-outline-danger btn_action select-md btn_outline">
+                                                <button wire:click="confirmCancelOrder({{ $order->id }})" class="btn btn-outline-danger select-md btn_outline">
+                                                    Cancel Order
+                                                </button>
+                                            @endif
+
+                                            {{-- Designation 2(Sales Person): Show only Edit and Cancel if status is Approval Pending --}}
+                                            @if($userDesignationId == 2 && $order->status == 'Approval Pending')
+                                                <a href="{{ route('admin.order.edit', $order->id) }}" class="btn btn-outline-success select-md btn_outline">
+                                                    Edit
+                                                </a>
+                                                <button wire:click="confirmCancelOrder({{ $order->id }})" class="btn btn-outline-danger select-md btn_outline">
                                                     Cancel Order
                                                 </button>
                                             @endif
@@ -220,13 +196,13 @@
                                     @else
                                          {{-- ✅ Admin override: Show Approve/Edit/Cancel even if slip exists and status is Approved By TL --}}
                                         @if($userDesignationId == 1 && $order->status == 'Approved By TL')
-                                            <a href="{{ route('admin.order.add_order_slip', $order->id) }}" class="btn btn-outline-primary btn_action select-md btn_outline">
+                                            <a href="{{ route('admin.order.add_order_slip', $order->id) }}" class="btn btn-outline-success select-md btn_outline">
                                                 Approve Order
                                             </a>
-                                            <a href="{{ route('admin.order.edit', $order->id) }}" class="btn btn-outline-success btn_action select-md btn_outline">
+                                            <a href="{{ route('admin.order.edit', $order->id) }}" class="btn btn-outline-success select-md btn_outline">
                                                 Edit
                                             </a>
-                                            <button wire:click="confirmCancelOrder({{ $order->id }})" class="btn btn-outline-danger btn_action select-md btn_outline">
+                                            <button wire:click="confirmCancelOrder({{ $order->id }})" class="btn btn-outline-danger select-md btn_outline">
                                                 Cancel Order
                                             </button>
                                            

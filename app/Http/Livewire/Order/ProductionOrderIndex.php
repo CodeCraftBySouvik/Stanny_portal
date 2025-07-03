@@ -73,7 +73,7 @@ class ProductionOrderIndex extends Component
     }
     
     public function resetForm(){
-        $this->reset(['search', 'start_date','end_date','created_by']);
+        $this->reset(['search','status', 'start_date','end_date','created_by']);
     }
 
     public function updatingSearch()
@@ -131,6 +131,10 @@ class ProductionOrderIndex extends Component
         ->header('Content-Disposition', 'inline; filename="bill_' . $order->order_number . '.pdf"');
     }
 
+    public function setStatus($value){
+        $this->status = $value;
+    }
+
     public function render()
     {
          $placed_by = User::where('user_type', 0)->get();
@@ -173,6 +177,7 @@ class ProductionOrderIndex extends Component
         ->when($this->created_by, fn($query) => $query->where('created_by', $this->created_by))
         ->when($this->start_date, fn($query) => $query->whereDate('created_at', '>=', $this->start_date)) 
         ->when($this->end_date, fn($query) => $query->whereDate('created_at', '<=', $this->end_date))
+        ->when($this->status, fn($query) => $query->where('status',$this->status))
         ->orderBy('created_at', 'desc')
         ->paginate(20);
         

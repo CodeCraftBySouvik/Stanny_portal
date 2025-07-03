@@ -6,7 +6,7 @@
         <div class="search__filter">
             <div class="row align-items-center justify-content-end">
                 <div class="col-auto">
-                    <div class="row g-3 align-items-center">
+                    <div class="row gx-3 gy-3 align-items-center">
                         <div class="col-auto" style="margin-top: -27px;">
                             <label for="" class="date_lable">Start Date</label>
                             <input type="date" wire:model="start_date" wire:change="AddStartDate($event.target.value)"
@@ -17,7 +17,23 @@
                             <input type="date" wire:model="end_date" wire:change="AddEndDate($event.target.value)"
                                 class="form-control select-md bg-white" placeholder="End Date">
                         </div>
-
+                        
+                         <div class="col-auto" style="margin-top: -27px;">
+                            <label for="" class="date_lable">Status</label>
+                            <select class="form-control select-md bg-white" wire:model="status" wire:change="setStatus($event.target.value)">
+                                <option value="">Status</option>
+                                <option value="Approval Pending">Approval Pending</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Ready for Delivery">Ready for Delivery</option>
+                                <option value="Partial Delivered By Production">Partial Delivered By Production</option>
+                                <option value="Fully Delivered By Production">Fully Delivered By Production</option>
+                                <option value="Cancelled">Cancelled</option>
+                                <option value="Returned">Returned</option>
+                                <option value="Delivered to Customer">Delivered to Customer</option>
+                                <option value="Partial Delivered to Customer">Partial Delivered to Customer</option>
+                                <option value="Approved By TL">Approved By TL</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -27,7 +43,7 @@
                 </div>
 
                 <div class="col-auto">
-                    <div class="row g-3 align-items-center">
+                    <div class="row gx-2 gy-2 align-items-center">
                         <div class="col-auto mt-0">
                             <input type="text" wire:model="search" class="form-control select-md bg-white search-input"
                                 id="customer" placeholder="Search by customer detail or Order number" value=""
@@ -63,33 +79,7 @@
                 </div>
                 @endif
             </div>
-            {{-- tab --}}
-            {{-- <ul class="nav nav-tabs mb-2" id="orderTabs">
-                <li class="nav-item">
-                    <a class="nav-link {{ $tab == 'all' ? 'active' : '' }}" href="#"
-                        wire:click.prevent="changeTab('all')">All</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ $tab == 'pending' ? 'active' : '' }}" href="#"
-                        wire:click.prevent="changeTab('pending')">Pending</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ $tab == 'approved' ? 'active' : '' }}" href="#"
-                        wire:click.prevent="changeTab('approved')">Received</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ $tab == 'stock_entered' ? 'active' : '' }}" href="#"
-                        wire:click.prevent="changeTab('stock_entered')">Stock Entered</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ $tab == 'delivered' ? 'active' : '' }}" href="#"
-                        wire:click.prevent="changeTab('delivered')">Delivered</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ $tab == 'completed' ? 'active' : '' }}" href="#"
-                        wire:click.prevent="changeTab('completed')">Completed</a>
-                </li>
-            </ul> --}}
+            
 
             <div class="table-responsive p-0">
                 <table class="table table-sm table-hover">
@@ -224,7 +214,6 @@
                 confirmButtonText: 'Yes, Mark as Received!'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Call Livewire method with confirmed orderId
                     // Livewire.dispatch('markReceivedConfirmed', { orderId: data.orderId });
                     @this.call('markReceivedConfirmed', orderId); // Call Livewire method
                     Swal.fire("Mark As Received!", "The order has been marked as received.", "success");
