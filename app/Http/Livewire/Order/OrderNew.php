@@ -53,12 +53,12 @@ class OrderNew extends Component
     public $orders = null;
     public $name, $company_name,$employee_rank, $email,$customer_image, $dob, $customer_id, $whatsapp_no, $phone ,$alternative_phone_number_1,$alternative_phone_number_2;
     public $billing_address,$billing_landmark,$billing_city,$billing_state,$billing_country,$billing_pin;
-    
+
     public $is_billing_shipping_same;
 
     public $shipping_address,$shipping_landmark,$shipping_city,$shipping_state,$shipping_country,$shipping_pin;
 
-    //  product 
+    //  product
     public $categories,$subCategories = [], $products = [], $measurements = [];
     public $selectedCategory = null, $selectedSubCategory = null,$searchproduct, $product_id =null,$collection;
     public $paid_amount = 0;
@@ -74,7 +74,7 @@ class OrderNew extends Component
     public $cataloguePages = [];
     public $catalogues = [];
     public $maxPages = [];
-    
+
     // For ordered by
     public $salesmen;
     public $salesman;
@@ -82,7 +82,7 @@ class OrderNew extends Component
     // for checking salesman billing exists or not
     public $salesmanBill;
     public $selectedFabric = null;
-   
+
     public $mobileLength;
     public $country_code;
     public $country_id;
@@ -95,11 +95,11 @@ class OrderNew extends Component
     public $isWhatsappPhone, $isWhatsappAlt1, $isWhatsappAlt2;
     public $mobileLengthPhone,$mobileLengthWhatsapp,$mobileLengthAlt1,$mobileLengthAlt2;
     public $items = [];
-    public $imageUploads = []; 
+    public $imageUploads = [];
     public $voiceUploads = [];
     public $air_mail;
     public $customerType = 'new';
-    
+
     public function onCustomerTypeChange($value){
         $this->customerType = $value;
         if($value == 'new'){
@@ -241,23 +241,23 @@ class OrderNew extends Component
             case 'alt_phone_1':
                 $this->mobileLengthAlt1 = $mobileLength;
                 break;
-            
+
             case 'alt_phone_2':
                 $this->mobileLengthAlt2 = $mobileLength;
                 break;
         }
     }
 
-     
+
 
 
     public function searchFabrics($index)
     {
-    
+
         // Perform the fabric search
         $productId = $this->items[$index]['product_id'] ?? null;
         $searchTerm = $this->items[$index]['searchTerm'] ?? '';
-        
+
         if (!empty($searchTerm) && !is_null($productId)) {
             $this->items[$index]['searchResults'] = Fabric::join('product_fabrics', 'fabrics.id', '=', 'product_fabrics.fabric_id')
                 ->where('product_fabrics.product_id', $productId)
@@ -270,12 +270,12 @@ class OrderNew extends Component
         } else {
             $this->items[$index]['searchResults'] = [];
         }
-    
-       
-    }
-    
 
-    
+
+    }
+
+
+
     public function selectFabric($fabricId, $index)
     {
         // Get the selected fabric details
@@ -286,9 +286,9 @@ class OrderNew extends Component
         }
 
         // Set the exact selected fabric name
-        $this->items[$index]['searchTerm'] = $fabric->title; 
+        $this->items[$index]['searchTerm'] = $fabric->title;
         $this->items[$index]['selected_fabric'] = $fabric->id;
-        
+
         // Clear search results to hide the dropdown after selection
         $this->items[$index]['searchResults'] = [];
     }
@@ -296,7 +296,7 @@ class OrderNew extends Component
     // Define rules for validation
     public function rules(){
        $rules = [
-            'items' => 'required|min:1',     
+            'items' => 'required|min:1',
             'items.*.collection' => 'required|string',
             'items.*.category' => 'required|string',
             'items.*.searchproduct' => 'required|string',
@@ -304,10 +304,10 @@ class OrderNew extends Component
             'items.*.quantity' => 'required|numeric|min:1',
             'items.*.selectedCatalogue' => 'required_if:items.*.collection,1',
             'items.*.page_number' => 'required_if:items.*.collection,1',
-            'items.*.price' => 'required|numeric|min:1',  
-            'items.*.fitting' => 'required_if:items.*.collection,1',  
-            'items.*.priority' => 'required',  
-            'items.*.expected_delivery_date' => 'required',  
+            'items.*.price' => 'required|numeric|min:1',
+            'items.*.fitting' => 'required_if:items.*.collection,1',
+            'items.*.priority' => 'required',
+            'items.*.expected_delivery_date' => 'required',
             'items.*.searchTerm' => 'required_if:items.*.collection,1',
             'order_number' => 'required|string|not_in:000|unique:orders,order_number',
             'air_mail' => 'nullable|numeric',
@@ -322,7 +322,7 @@ class OrderNew extends Component
     {
         $this->validateOnly($propertyName, $this->rules());
     }
-   
+
 
     public function messages(){
         return [
@@ -342,7 +342,7 @@ class OrderNew extends Component
              'order_number.not_in' => 'Order number "000" is not allowed.',
              'order_number.unique' => 'Order number already exists, please try again.',
              'items.*.get_measurements.*.value.required' => 'Each measurement value is required.',
-            
+
         ];
     }
 
@@ -417,7 +417,7 @@ class OrderNew extends Component
             'fitting' => null
         ];
     }
-    
+
 
 
     // updateSalesman
@@ -426,11 +426,11 @@ class OrderNew extends Component
         $this->order_number = $this->bill_book['number'];
         $this->bill_id = $this->bill_book['bill_id'] ?? null;
     }
-    
 
 
 
-    
+
+
 
     public function removeItem($index)
     {
@@ -448,12 +448,12 @@ class OrderNew extends Component
         $this->items[$index]['measurements'] = [];
         $this->items[$index]['fabrics'] = [];
         $this->items[$index]['selectedCatalogue'] = null; // Reset catalogue
-        // $this->items[$index]['selectedPage'] = null; 
-      
-            // Fetch categories and products based on the selected collection 
+        // $this->items[$index]['selectedPage'] = null;
+
+            // Fetch categories and products based on the selected collection
             $this->items[$index]['categories'] = Category::orderBy('title', 'ASC')->where('collection_id', $value)->where('status',1)->get();
             $this->items[$index]['products'] = Product::orderBy('name', 'ASC')->where('collection_id', $value)->where('status',1)->get();
-       
+
             if ($value == 1) {
                 $catalogues = Catalogue::with('catalogueTitle')->where('status',1)->get();
                 $this->catalogues[$index] = $catalogues->pluck('catalogueTitle.title', 'catalogue_title_id');
@@ -483,12 +483,12 @@ class OrderNew extends Component
 
     public function validatePageNumber($value, $index)
     {
-   
+
 
         if (!isset($this->items[$index]['page_number']) || !isset($this->items[$index]['selectedCatalogue'])) {
             return;
         }
-    
+
         $pageNumber = (int) $this->items[$index]['page_number'];
         $selectedCatalogue = $this->items[$index]['selectedCatalogue'];  //this is actually catalogue title id
         // dd($pageNumber,$selectedCatalogue);
@@ -501,7 +501,7 @@ class OrderNew extends Component
          // Fetch catalog items from `catalogue_page_item` table
          if ($page) {
             $pageItems = CataloguePageItem::join('pages', 'catalogue_page_items.page_id', '=', 'pages.id')
-                ->whereIn('catalogue_page_items.catalogue_id', $catalogueIds) 
+                ->whereIn('catalogue_page_items.catalogue_id', $catalogueIds)
                 ->where('pages.page_number', $pageNumber)
                 ->select('catalogue_page_items.id', 'catalogue_page_items.catalog_item', 'pages.page_number')
                 ->get();
@@ -509,7 +509,7 @@ class OrderNew extends Component
             // Store fetched items in a property for dropdown use
             if(count($pageItems)>0){
                 $this->catalogue_page_item[$index]=  $value;
-              
+
             }else{
                 $this->catalogue_page_item[$index] = "";
             }
@@ -518,14 +518,14 @@ class OrderNew extends Component
         } else {
             $this->pageItems[$index] = [];
         }
-    
+
         // Ensure we get the correct max page for the selected catalogue
         $maxPage = $this->maxPages[$index][$selectedCatalogue] ?? null;
-    
+
         if ($maxPage === null) {
             return; // No catalogue selected, or no max page found
         }
-    
+
         if ($pageNumber < 1 || $pageNumber > $maxPage) {
             $this->addError("items.$index.page_number", "Page number must be between 1 to $maxPage.");
         } else {
@@ -535,7 +535,7 @@ class OrderNew extends Component
 
     }
 
-    
+
 
     public function validateMeasurement($itemIndex, $measurementId)
     {
@@ -575,7 +575,7 @@ class OrderNew extends Component
 
 
 
-    
+
 
     public function CategoryWiseProduct($categoryId, $index)
     {
@@ -597,7 +597,7 @@ class OrderNew extends Component
     public function FindProduct($term, $index)
     {
         $collection = $this->items[$index]['collection'];
-        $category = $this->items[$index]['category']; 
+        $category = $this->items[$index]['category'];
 
         if (empty($collection)) {
             session()->flash('errorProduct.' . $index, '🚨 Please select a collection before searching for a product.');
@@ -608,10 +608,10 @@ class OrderNew extends Component
             session()->flash('errorProduct.' . $index, '🚨 Please select a category before searching for a product.');
             return;
         }
-    
+
         // Clear previous products in the current index
         $this->items[$index]['products'] = [];
-    
+
         if (!empty($term)) {
             // Search for products within the specified collection and matching the term
             $this->items[$index]['products'] = Product::where('collection_id', $collection)
@@ -623,10 +623,10 @@ class OrderNew extends Component
                 ->where('status', 1)
                 ->get();
         }
-    
+
     }
 
-   
+
 
     public function checkproductPrice($value, $index)
     {
@@ -636,7 +636,7 @@ class OrderNew extends Component
             $fabricData = Fabric::find($selectedFabricId);
             if ($fabricData && floatval($value) < floatval($fabricData->threshold_price)) {
                 // Show an error message for threshold price violation
-                session()->flash('errorPrice.' . $index, 
+                session()->flash('errorPrice.' . $index,
                     "🚨 The price for fabric '{$fabricData->title}' cannot be less than its threshold price of {$fabricData->threshold_price}.");
                 return;
             }
@@ -670,7 +670,7 @@ class OrderNew extends Component
     public function GetRemainingAmount($paid_amount)
     {
        // Remove leading zeros if present in the paid amount
-        
+
         // Ensure the values are numeric before performing subtraction
         $billingAmount = floatval($this->billing_amount);
         $paidAmount = floatval($paid_amount);
@@ -683,7 +683,7 @@ class OrderNew extends Component
             }
             $this->paid_amount = $paidAmount;
             $this->remaining_amount = $billingAmount - $this->paid_amount;
-        
+
             // Check if the remaining amount is negative
             if ($this->remaining_amount < 0) {
                 $this->remaining_amount = 0;
@@ -692,11 +692,11 @@ class OrderNew extends Component
             }
         } else {
             $this->paid_amount = 0;
-           
+
             session()->flash('errorAmount', '🚨 Please add item amount first.');
         }
     }
-    
+
     public function selectProduct($index, $name, $id)
     {
         // Set product details
@@ -710,7 +710,7 @@ class OrderNew extends Component
                                                         ->orderBy('position', 'ASC')
                                                         ->get()
                                                         ->toArray();
-        
+
         // Get previous measurements if user ordered this product before
         $this->populatePreviousOrderMeasurements($index, $id);
         // dd($this->populatePreviousOrderMeasurements($index, $id));
@@ -722,7 +722,7 @@ class OrderNew extends Component
             session()->flash('measurements_error.' . $index, '🚨 Oops! Measurement data not added for this product.');
         }
     }
- 
+
 
 
     public function populatePreviousOrderMeasurements($index, $productId)
@@ -797,13 +797,13 @@ class OrderNew extends Component
 
 
     public function save(OrderRepository $orderRepo)
-    {   
+    {
         // dd($this->all());
         DB::beginTransaction(); // Begin transaction
-        
+
         $this->validate();
-        try{ 
-            
+        try{
+
             // Calculate the total amount
             $total_product_amount = array_sum(array_column($this->items, 'price'));
             // Correct total based on price * quantity for each item
@@ -845,7 +845,7 @@ class OrderNew extends Component
                     'user_type' => 1, // Customer
                     'created_by' => auth()->guard('admin')->user()->id, // Customer
                 ]);
-             } 
+             }
                 // Store Billing Address for the new user
              $billingAddress = $user->address()->where('address_type', 1)->first();
              if (!$billingAddress) {
@@ -859,7 +859,7 @@ class OrderNew extends Component
                      'zip_code' => $this->billing_pin,
                  ]);
              }
-                
+
 
 
             if ($user) {
@@ -918,10 +918,10 @@ class OrderNew extends Component
                     $billingAddressUpdated = true;
                 }
 
-              
+
             }
-            
-            
+
+
             if (!empty($this->order_number)) {
                 $order_number = $this->order_number;
             } else {
@@ -941,7 +941,7 @@ class OrderNew extends Component
             $order->customer_image = $customer_image;
             $order->billing_address = $this->billing_address . ', ' . $this->billing_landmark . ', ' . $this->billing_city . ', ' . $this->billing_state . ', ' . $this->billing_country . ' - ' . $this->billing_pin;
 
-            
+
             $order->total_product_amount = $total_product_amount;
             $order->air_mail = $airMail;
             $order->total_amount = $total_amount;
@@ -958,7 +958,7 @@ class OrderNew extends Component
             // dd($order);
             $order->save();
 
-           
+
 
             $update_bill_book = SalesmanBilling::where('id',$this->bill_id)->first();
             if($update_bill_book){
@@ -977,7 +977,7 @@ class OrderNew extends Component
                             return false;
                         }
                     }
-                  
+
                 }
                 $collection_data = Collection::find($item['collection']);
                 $category_data = Category::find($item['category']);
@@ -992,7 +992,7 @@ class OrderNew extends Component
                 $orderItem->product_id = $item['product_id'];
                 $orderItem->collection = $collection_data ? $collection_data->id : "";
                 $orderItem->category = $category_data ? $category_data->id : "";
-                
+
                 $orderItem->product_name = $item['searchproduct'];
                 $orderItem->remarks  = $item['remarks'] ?? null;
                 $orderItem->piece_price = $item['price'];
@@ -1006,7 +1006,7 @@ class OrderNew extends Component
                 $orderItem->fabrics = $fabric_data ? $fabric_data->id : "";
                 $orderItem->save();
 
-                 // upload multiple catalogue images 
+                 // upload multiple catalogue images
                 if(!empty($this->imageUploads)){
                     foreach ($this->imageUploads as $images) {
                         foreach($images as $image){
@@ -1040,7 +1040,7 @@ class OrderNew extends Component
                 if (isset($item['get_measurements']) && count($item['get_measurements']) > 0) {
                     $get_all_measurment_field = [];
                     $get_all_field_measurment_id = [];
-                   
+
                     foreach ($item['get_measurements'] as $mindex => $measurement) {
                         if (!isset($measurement['value'])) {
                             session()->flash('measurements_error.' . $k, '🚨 Measurement value is missing.');
@@ -1068,19 +1068,19 @@ class OrderNew extends Component
                         $orderMeasurement->save();
                     }
 
-                    
+
                     $missing_measurements = array_diff($get_all_measurment_field, $get_all_field_measurment_id);
-                    
+
                     if (!empty($missing_measurements)) {
                         session()->flash('measurements_error.' . $k, '🚨 Oops! All measurement data should be mandatory.');
                         return;
                     }
-                    
+
                 }
             }
 
 
-           
+
 
 
             // Store WhatsApp details if the flags are set
@@ -1096,7 +1096,7 @@ class OrderNew extends Component
                         );
                     }
                 }
-             
+
 
                 if ($this->isWhatsappAlt1) {
                     $existingRecord = UserWhatsapp::where('whatsapp_number', $this->alternative_phone_number_1)
@@ -1112,7 +1112,7 @@ class OrderNew extends Component
                             'created_at' => now(),
                             'updated_at' => now(),
                         ]);
-                    }          
+                    }
                 }
 
 
@@ -1139,7 +1139,7 @@ class OrderNew extends Component
 
 
             DB::commit();
-            
+
 
             session()->flash('success', 'Order has been generated successfully.');
             return redirect()->route('admin.order.index');
@@ -1147,7 +1147,7 @@ class OrderNew extends Component
             // dd($e);
             DB::rollBack();
             dd($e->getMessage());
-            \Log::error('Error saving order: ' . $e->getMessage());
+            //\Log::error('Error saving order: ' . $e->getMessage());
             session()->flash('error', '🚨 Something went wrong. The operation has been rolled back.');
         }
     }
@@ -1164,7 +1164,7 @@ class OrderNew extends Component
             'dob',
             'phone',
             // 'whatsapp_no',
-           
+
         ]);
     }
     public function updateMobileLengths()
@@ -1212,8 +1212,8 @@ class OrderNew extends Component
         $this->searchResults = [];
         $this->searchTerm = '';
     }
-   
-    
+
+
 
     public function TabChange($value)
     {
@@ -1238,7 +1238,7 @@ class OrderNew extends Component
                 $this->errorMessage['selectedBusinessType'] = null;
             }
 
-            
+
 
             // validate Salesman
             if(empty($this->salesman)){
@@ -1284,8 +1284,8 @@ class OrderNew extends Component
                 $this->errorClass['customer_image'] = null;
                 $this->errorMessage['customer_image'] = null;
             }
-    
-           
+
+
            // Validate Phone Number
             if (empty($this->phone)) {
                 $this->errorClass['phone'] = 'border-danger';
@@ -1298,7 +1298,7 @@ class OrderNew extends Component
                 $this->errorMessage['phone'] = null;
             }
 
-            
+
 
             // Validate Alternative Phone Number 1
             if (!empty($this->alternative_phone_number_1)) {
@@ -1322,7 +1322,7 @@ class OrderNew extends Component
                 }
             }
 
-    
+
             // Validate Billing Information
             if (empty($this->billing_address)) {
                 $this->errorClass['billing_address'] = 'border-danger';
@@ -1331,7 +1331,7 @@ class OrderNew extends Component
                 $this->errorClass['billing_address'] = null;
                 $this->errorMessage['billing_address'] = null;
             }
-    
+
             if (empty($this->billing_city)) {
                 $this->errorClass['billing_city'] = 'border-danger';
                 $this->errorMessage['billing_city'] = 'Please enter city';
@@ -1339,9 +1339,9 @@ class OrderNew extends Component
                 $this->errorClass['billing_city'] = null;
                 $this->errorMessage['billing_city'] = null;
             }
-    
-           
-    
+
+
+
             if (empty($this->billing_country)) {
                 $this->errorClass['billing_country'] = 'border-danger';
                 $this->errorMessage['billing_country'] = 'Please enter country';
@@ -1349,9 +1349,9 @@ class OrderNew extends Component
                 $this->errorClass['billing_country'] = null;
                 $this->errorMessage['billing_country'] = null;
             }
-            
-            
-           
+
+
+
             // Check if both errorClass and errorMessage arrays are empty
 
             $errorClassNull = empty(array_filter($this->errorClass, function($val) {
@@ -1364,7 +1364,7 @@ class OrderNew extends Component
              // Return the error classes and messages
             return [$this->errorClass, $this->errorMessage];
         }
-       
+
     }
     private function populateAddress($type, $address)
     {
@@ -1394,5 +1394,5 @@ class OrderNew extends Component
             'categories' => $this->categories,
         ]);
     }
-    
+
 }

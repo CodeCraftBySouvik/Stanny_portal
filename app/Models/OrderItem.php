@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Services\ChangeTracker;
 
 class OrderItem extends Model
 {
@@ -94,5 +95,50 @@ class OrderItem extends Model
     {
         return $this->hasOne(OrderItemCatalogueImage::class, 'order_item_id', 'id');
     }
+    protected static function booted(): void
+    {
+        static::updating(function ($item) {
+            $original = $item->getOriginal();
+            $dirty = $item->getDirty();
+
+            $normalize = function ($value) {
+                if (is_null($value)) return 0;
+                if (is_numeric($value)) return (float)$value;
+                try {
+                    return (new \DateTime($value))->format('Y-m-d H:i:s');
+                } catch (\Exception $e) {
+                    return $value;
+                }
+            };
+
+            $before = [];
+            $after = [];
+
+            foreach ($dirty as $key => $value) {
+                $normOld = $normalize($original[$key] ?? null);
+                $normNew = $normalize($value);
+                if ($normOld !== $normNew) {
+                    $before[$key] = $normOld;
+                    $after[$key] = $normNew;
+                }
+            }
+
+            if (!empty($before)) {
+                $orderId = ChangeTracker::getOrderId();
+
+                if ($orderId) {
+
+                    ChangeTracker::add("items", [
+                        'order_id' => $orderId,
+                        'id'       => $item->id,
+                        'before'   => $before,
+                        'after'    => $after,
+                    ]);
+
+                }
+            }
+        });
+    }
+
 
 }

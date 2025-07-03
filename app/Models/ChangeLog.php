@@ -9,8 +9,9 @@ class ChangeLog extends Model
     protected $table = 'changelog';
     protected $fillable = [
         'done_by',
-         'purpose', 
+        'order_id',
+         'purpose',
          'data_details'
     ];
-    
+
 }

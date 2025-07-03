@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\ChangeLog;
+use Illuminate\Support\Facades\Auth;
+use App\Services\ChangeTracker;
 
 class Order extends Model
 {
@@ -11,7 +14,7 @@ class Order extends Model
 
 
     protected $table = 'orders';
-
+    public $_relatedChanges = [];
     protected $fillable = [
         'customer_id',
         'business_type',
@@ -113,12 +116,5 @@ class Order extends Model
     {
         return $this->hasOne(Invoice::class, 'order_id', 'id');
     }
-
-
-
-
-
-
-
 
 }
