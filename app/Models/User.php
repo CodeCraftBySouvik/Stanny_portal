@@ -226,10 +226,11 @@ class User extends Authenticatable
             }
 
             if (!empty($before)) {
-                $order = \App\Models\Order::where('customer_id', $user->id)->latest()->first();
-                if ($order) {
+                $orderId = ChangeTracker::getOrderId();
+                die('HIII'.$orderId);
+                if ($orderId) {
                     ChangeTracker::add('customer', [
-                        'order_id' => $order->id,
+                        'order_id' => $orderId,
                         'id'       => $user->id,
                         'before'   => $before,
                         'after'    => $after,

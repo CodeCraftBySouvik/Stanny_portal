@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Services\ChangeTracker;
 
 class OrderItemVoiceMessage extends Model
 {
@@ -19,5 +20,36 @@ class OrderItemVoiceMessage extends Model
     {
         return $this->belongsTo(OrderItem::class,'order_item_id');
     }
+    protected static function boot(): void
+    {
+        parent::boot(); // ✅ MUST be first
+
+        static::created(function ($message) {
+           ChangeTracker::add('voice_messages', [
+                'order_id'      =>ChangeTracker::getOrderId(),
+                'order_item_id' => $message->order_item_id,
+                'id'            => $message->id,
+                'action'        => 'created',
+                'data'          => [
+                    'filename' => $message->voices_path,
+                    'action'   => 'created',
+                ],
+            ]);
+        });
+
+        static::deleted(function ($message) {
+            ChangeTracker::add('voice_messages', [
+                'order_id'      =>ChangeTracker::getOrderId(),
+                'order_item_id' => $message->order_item_id,
+                'id'            => $message->id,
+                'action'        => 'deleted',
+                'data'          => [
+                    'filename' => $message->voices_path,
+                    'action'   => 'deleted',
+                ],
+            ]);
+        });
+    }
+
 
 }

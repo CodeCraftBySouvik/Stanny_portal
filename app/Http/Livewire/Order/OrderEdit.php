@@ -27,6 +27,7 @@ use App\Models\CataloguePageItem;
 use App\Models\OrderItemVoiceMessage;
 use Illuminate\Support\Facades\Storage;
 use Livewire\WithFileUploads;
+use App\Services\ChangeTracker;
 
 
 class OrderEdit extends Component
@@ -819,6 +820,7 @@ class OrderEdit extends Component
     }
 
     public function removeVideo($index, $audioIndex){
+        ChangeTracker::setOrderId($this->orders->id);
         $orderItemId = $this->items[$index]['order_item_id'];
         $audioPath = OrderItemVoiceMessage::where('order_item_id', $orderItemId)
         ->skip($audioIndex)
@@ -829,8 +831,11 @@ class OrderEdit extends Component
 
 
             OrderItemVoiceMessage::where('order_item_id', $orderItemId)
-                ->where('voices_path', $audioPath)
-                ->delete();
+            ->where('voices_path', $audioPath)
+            ->get()
+            ->each(function ($message) {
+                $message->delete(); // ✅ This triggers the `deleted` event
+            });
 
             unset($this->existingVideos[$index][$audioIndex]);
             $this->existingVideos[$index] = array_values($this->existingVideos[$index]);
@@ -941,6 +946,8 @@ class OrderEdit extends Component
             $billingPin= $this->billing_pin;
 
             $order = Order::find($this->orders->id);
+            ChangeTracker::setOrderId($order->id);
+            //die(ChangeTracker::getOrderId().'llll');
             if (!$order) {
                 session()->flash('error', 'Order not found.');
                 return redirect()->route('admin.order.index');
@@ -1115,6 +1122,7 @@ class OrderEdit extends Component
 
             DB::commit();
             session()->flash('success', 'Order has been updated successfully.');
+            //ChangeTracker::clear(); // to prevent accidental leakage into other requests
             return redirect()->route('admin.order.index');
         } catch (\Exception $e) {
             DB::rollBack();
