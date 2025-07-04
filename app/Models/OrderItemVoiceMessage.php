@@ -24,31 +24,31 @@ class OrderItemVoiceMessage extends Model
     {
         parent::boot(); // ✅ MUST be first
 
-        static::created(function ($message) {
-           ChangeTracker::add('voice_messages', [
-                'order_id'      =>ChangeTracker::getOrderId(),
-                'order_item_id' => $message->order_item_id,
-                'id'            => $message->id,
-                'action'        => 'created',
-                'data'          => [
-                    'filename' => $message->voices_path,
-                    'action'   => 'created',
-                ],
-            ]);
-        });
+        // static::created(function ($message) {
+        //    ChangeTracker::add('voice_messages', [
+        //         'order_id'      =>ChangeTracker::getOrderId(),
+        //         'order_item_id' => $message->order_item_id,
+        //         'id'            => $message->id,
+        //         'action'        => 'created',
+        //         'data'          => [
+        //             'filename' => $message->voices_path,
+        //             'action'   => 'created',
+        //         ],
+        //     ]);
+        // });
 
-        static::deleted(function ($message) {
-            ChangeTracker::add('voice_messages', [
-                'order_id'      =>ChangeTracker::getOrderId(),
-                'order_item_id' => $message->order_item_id,
-                'id'            => $message->id,
-                'action'        => 'deleted',
-                'data'          => [
-                    'filename' => $message->voices_path,
-                    'action'   => 'deleted',
-                ],
-            ]);
-        });
+        // static::deleted(function ($message) {
+        //     ChangeTracker::add('voice_messages', [
+        //         'order_id'      =>ChangeTracker::getOrderId(),
+        //         'order_item_id' => $message->order_item_id,
+        //         'id'            => $message->id,
+        //         'action'        => 'deleted',
+        //         'data'          => [
+        //             'filename' => $message->voices_path,
+        //             'action'   => 'deleted',
+        //         ],
+        //     ]);
+        // });
     }
 
 

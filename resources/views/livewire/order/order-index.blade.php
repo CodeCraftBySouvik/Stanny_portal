@@ -129,9 +129,9 @@
                                 <td>
                                    <p class="small text-muted mb-1 text-uppercase">{{$order->createdBy?strtoupper($order->createdBy->name .' '.$order->createdBy->surname):""}}</p>
                                 </td>
-                                
+
                                 <td>
-                                   
+
                                     <span class="badge bg-{{ $order->status_class }}">{{ $order->status_label }}</span>
                                 </td>
                             <td class="text-center">
@@ -213,18 +213,18 @@
                                             <button wire:click="confirmCancelOrder({{ $order->id }})" class="btn btn-outline-danger select-md btn_outline">
                                                 Cancel Order
                                             </button>
-                                           
+
                                         @else
                                             <a href="{{route('admin.order.download_invoice',$order->id)}}" target="_blank" class="btn btn-outline-primary select-md btn_outline">Invoice</a>
-                                       
+
                                             <a href="{{route('admin.order.download_bill',$order->id)}}" target="_blank" class="btn btn-outline-primary select-md btn_outline">Bill</a>
                                         @endif
-                                       
+
                                     @endif
                                      @if ($order->invoice_type=="invoice")
                                        <a href="{{route('admin.order.view',$order->id)}}" class="btn btn-outline-success select-md btn_action btn_outline">Details</a>
                                     @endif
-                                    <button class="btn btn-outline-info select-md btn_action btn_outline">Logs</button>
+                                    <a href="{{route('admin.order.log',$order->id)}}"><button class="btn btn-outline-info select-md btn_action btn_outline">Logs</button></a>
                                 </td>
                             </tr>
                         @endforeach

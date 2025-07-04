@@ -76,14 +76,14 @@ class AppServiceProvider extends ServiceProvider
 
             // 📦 Nesting rules: model => ['parent', 'child_key']
             $nestingRules = [
-                'measurements' => ['items', 'measurements'],
+                'measurements'    => ['items', 'measurements'],
                 'voice_messages'  => ['items', 'voice_messages'],
             ];
 
             foreach ($allChanges as $modelType => $entries) {
                 foreach ($entries as $entry) {
-                    $modelId     = $entry['id'] ?? null;
-                    $parentId    = $entry['order_item_id'] ?? null;
+                    $modelId  = $entry['id'] ?? null;
+                    $parentId = $entry['order_item_id'] ?? null;
 
                     $injectId = function (array $data, $id) {
                         if ($id !== null) {
@@ -116,7 +116,7 @@ class AppServiceProvider extends ServiceProvider
                             continue; // 🛑 Skip default logic for this entry
                         }
 
-                        // ✅ Default before/after logic
+                        // ✅ Default before/after logic for nested models
                         if (!empty($entry['before'])) {
                             if ($parentId !== null) {
                                 $formatted['before'][$parentKey]['id'] = $parentId;
@@ -139,13 +139,14 @@ class AppServiceProvider extends ServiceProvider
                             );
                         }
                     } else {
-                        // 🔁 Fallback for non-nested types
+                        // 🔁 Fallback for non-nested types (like items)
+
                         if (!empty($entry['before'])) {
-                            $formatted['before'][$modelType] = $injectId($entry['before'], $modelId);
+                            $formatted['before'][$modelType][] = $injectId($entry['before'], $modelId);
                         }
 
                         if (!empty($entry['after'])) {
-                            $formatted['after'][$modelType] = $injectId($entry['after'], $modelId);
+                            $formatted['after'][$modelType][] = $injectId($entry['after'], $modelId);
                         }
                     }
                 }
@@ -162,13 +163,15 @@ class AppServiceProvider extends ServiceProvider
                             'data_details' => json_encode($formatted),
                         ]);
                     } catch (\Throwable $e) {
-
+                        // You can log this if needed
+                        // Log::error('Failed to save change log', ['error' => $e->getMessage()]);
                     }
                 }
             }
 
             ChangeTracker::clear();
         });
+
     }
 
 
