@@ -91,43 +91,104 @@ class OrderView extends Component
             'latestOrders'=>$this->latestOrders
         ]);
     }
+    // public function deliveredToCustomerPartial()
+    // {
+    // $this->validate();
+    // //\Log::info("Mark As Customer Delivered Method method triggered with Order ID: " . ($this->Id ?? 'NULL'));
+
+    //     if (!$this->Id) {
+    //         throw new \Exception("Order ID is required but received null.");
+    //     }
+    //     // $totalQuantity = OrderItem::where('order_id', $this->orderId)->sum('quantity');
+
+    //     // // Perform order cancellation logic here
+    //     Delivery::where('id', $this->Id)
+    //     ->update( ['status' =>$this->status,'remarks'=>$this->remarks,'customer_delivered_by'=>auth()->guard('admin')->user()->id]);
+    //     // Check if any item in the order has collection = 1
+    //     $hasfabricCollection = OrderItem::where('order_id',$this->orderId)->where('collection',1)->exists();
+
+    //     if($hasfabricCollection){
+    //         $totalQuantity = OrderItem::where('order_id', $this->orderId)->sum('quantity');
+    //         $totalDelevery= Delivery::where('order_id', $this->orderId)->where('status','Delivered')->sum('fabric_quantity');
+    //     }
+    //     else{
+    //         $totalQuantity = OrderItem::where('order_id', $this->orderId)->sum('quantity');
+    //         $totalDelevery= Delivery::where('order_id', $this->orderId)->where('status','Delivered')->sum('delivered_quantity');
+    //     }
+
+    //     if($totalQuantity==$totalDelevery)
+    //     {
+    //        Order::where('id', operator: $this->orderId)->update(['status' => 'Delivered to Customer']);
+    //     }
+    //     else{
+    //         if($this->status=='Delivered')
+    //         {
+    //             Order::where('id', operator: $this->orderId)->update(['status' => 'Partial Delivered to Customer']);
+
+    //         }
+
+    //     }
+
+    // session()->flash('success', 'Order delivery updated successfully!');
+
+    // // Close modal (optional)
+    // $this->dispatch('close-delivery-modal');
+
+
+    //     //return redirect(url()->previous())->with('success', 'Order has been Delivered to Customer successfully!');
+    // }
+
     public function deliveredToCustomerPartial()
     {
-    $this->validate();
-    //\Log::info("Mark As Customer Delivered Method method triggered with Order ID: " . ($this->Id ?? 'NULL'));
+        $this->validate();
 
         if (!$this->Id) {
             throw new \Exception("Order ID is required but received null.");
         }
-        $totalQuantity = OrderItem::where('order_id', $this->orderId)->sum('quantity');
 
-        // // Perform order cancellation logic here
-        Delivery::where('id', $this->Id)
-        ->update( ['status' =>$this->status,'remarks'=>$this->remarks,'customer_delivered_by'=>auth()->guard('admin')->user()->id]);
+        // Update the current delivery
+        Delivery::where('id', $this->Id)->update([
+            'status' => $this->status,
+            'remarks' => $this->remarks,
+            'customer_delivered_by' => auth()->guard('admin')->user()->id,
+        ]);
 
-        $totalDelevery= Delivery::where('order_id', $this->orderId)->where('status','Delivered to Customer')->sum('delivered_quantity');
+        // Get all order items
+        $orderItems = OrderItem::where('order_id', $this->orderId)->get();
 
-        if($totalQuantity==$totalDelevery)
-        {
-           Order::where('id', operator: $this->orderId)->update(['status' => 'Delivered to Customer']);
-        }
-        else{
-            if($this->status=='Delivered')
-            {
-                Order::where('id', operator: $this->orderId)->update(['status' => 'Partial Delivered to Customer']);
+        $totalQuantity = 0;
+        $totalDelivery = 0;
 
+        foreach ($orderItems as $item) {
+            $totalQuantity += $item->quantity;
+
+            // For this item, get all Delivered deliveries
+            $deliveries = Delivery::where('order_item_id', $item->id)
+                ->where('status', 'Delivered')
+                ->get();
+
+            foreach ($deliveries as $delivery) {
+                if ($item->collection == 1) {
+                    $totalDelivery += (int)$delivery->fabric_quantity;
+                } else {
+                    $totalDelivery += (int)$delivery->delivered_quantity;
+                }
             }
-
         }
 
-    session()->flash('success', 'Order delivery updated successfully!');
+        // dd($totalQuantity, $totalDelivery);
 
-    // Close modal (optional)
-    $this->dispatch('close-delivery-modal');
+        // Update order status
+        if ($totalQuantity == $totalDelivery) {
+            Order::where('id', $this->orderId)->update(['status' => 'Delivered to Customer']);
+        } elseif ($this->status == 'Delivered') {
+            Order::where('id', $this->orderId)->update(['status' => 'Partial Delivered to Customer']);
+        }
 
-
-        //return redirect(url()->previous())->with('success', 'Order has been Delivered to Customer successfully!');
+        session()->flash('success', 'Order delivery updated successfully!');
+        $this->dispatch('close-delivery-modal');
     }
+
     public function openDeliveryModal($Id=null,$orderId=null)
     {
         $this->Id = $Id;
@@ -170,21 +231,26 @@ class OrderView extends Component
             $delivered_qty=0;
             foreach($item['deliveries'] as $delivered)
             {
-                if($delivered['status']=='delivered')
+                if($delivered['status']=='Delivered')
                 {
-                    $delivered_qty+=1;
+                    // $delivered_qty+=1;
+                     // Extract numeric part from 'delivered_quantity' like '2 pieces'
+                    preg_match('/\d+/', $delivered['delivered_quantity'], $matches);
+                    $qty = isset($matches[0]) ? (int)$matches[0] : 1;
 
+                    $delivered_qty += $qty;
                 }
             }
+            $delivered_qty = min($delivered_qty, $item['quantity']);
             if($delivered_qty>0)
             {
-                $item_delivered[]=$delivered_qty.' '.$item['product_name'];
+                $item_delivered[] = $delivered_qty.' '.$item['product_name'];
 
             }
             $rest_qty=$item['quantity']- $delivered_qty;
             if($rest_qty>0)
             {
-                $rest_items[]=$rest_qty.' '.$item['product_name'];
+                $rest_items[] = $rest_qty.' '.$item['product_name'];
 
             }
         }
@@ -200,10 +266,11 @@ class OrderView extends Component
             'rest_items' => implode("+",$rest_items),
             'status' => implode("+",$item_delivered),
             'net_qty' =>$net_qty,
-
-
         ];
         $pdf = Pdf::loadView('invoice.product_delivery', $data)->setPaper('A4');
-        return $pdf->download('product_delivery.pdf');
+        // return $pdf->download('product_delivery.pdf');
+         return response($pdf->output(), 200)
+        ->header('Content-Type', 'application/pdf')
+        ->header('Content-Disposition', 'inline; filename="product_delivery.pdf"');
     }
 }

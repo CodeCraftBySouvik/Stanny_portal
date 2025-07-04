@@ -110,7 +110,7 @@
                         $invoice->order->order_number }}</h2>
                 </td>
                 <td style="width:40%;">
-                    <h3
+                    <h3 
                         style="font-size: 15px; margin-bottom:5px;display:block; vertical-align:middle; line-height:15px;">
                         <span style="line-height: 0;">
                             <img src="{{public_path('assets/img/phone.svg')}}" alt=""
@@ -236,7 +236,6 @@
                     </table>
                 </td>
             </tr>
-
             <tr>
                 <td colspan="2">
                     <table>
@@ -300,7 +299,6 @@
                     </table>
                 </td>
             </tr>
-
         </table>
 
         <div class="footer">

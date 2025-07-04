@@ -46,7 +46,7 @@
 
                     </div>
                 </div>
-                <div class="col-sm-6">
+                {{-- <div class="col-sm-6">
                     <div class="form-group mb-3">
                         <h6>Customer Details</h6>
                         <div class="row">
@@ -101,7 +101,7 @@
                        
 
                     </div>
-                </div>
+                </div> --}}
             </div>
         </div>
     </div>
@@ -173,9 +173,9 @@
                             @endif
                            <td>
                                 <div>
-                                    @if ($item['collection_id'] == 1)
+                                    {{-- @if ($item['collection_id'] == 1)
                                    
-                                    @endif
+                                    @endif --}}
 
                                     @if ($item['collection_id'] == 1)
                                         @if ($item['is_delivered'] ?? false)
