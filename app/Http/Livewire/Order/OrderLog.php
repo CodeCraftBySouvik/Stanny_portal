@@ -26,7 +26,16 @@ class OrderLog extends Component
     use WithPagination;
 
     public $customer_id;
-    public $created_by, $search,$status,$start_date,$end_date,$order;
+    public $created_by, $search,$status,$start_date,$end_date,$order,
+    $ignore_fields=['id','product_id','customer_email'],
+    $relational_tables=['collection','category'],
+    $fields=['company_name'=>'Company Name','product_name'=>'Product','total_price'=>'Total Price',
+    'total_amount'=>'Total Amount','alternative_phone_number_1'=>'Alternative No(1)',
+      'alternative_phone_number_2'=>'Alternative No(2)','billing_address'=>'Billing Address',
+      'priority_level'=>'Priority Level','expected_delivery_date'=>'Expected Delivery',
+      'country_code_alt_1'=>'Country Code(1)', 'country_code_alt_2'=>'Country Code(2)','customer_image'=>'Profile Image'
+];
+
     public $invoiceId;
     public $orderId;
     public $totalPrice;
@@ -75,8 +84,6 @@ class OrderLog extends Component
     public function setStatus($status){
         $this->status = $status;
     }
-
-
     public function render()
     {
         $placed_by = User::where('user_type', 0)->get();
@@ -84,6 +91,7 @@ class OrderLog extends Component
         $sl_no=1;
         $logs=ChangeLog::where('order_id',$this->orderId)
         ->with('user:id,name')
+        ->orderBy('created_at', 'desc')  // Order by created_at in descending order
         ->get();
 
         $logs = $logs->map(function ($item) use (&$sl_no)  {
@@ -94,33 +102,32 @@ class OrderLog extends Component
             // Convert to array recursively
 
             $item->before=trim($this->renderDiff($before));
+
             $item->after=$this->renderDiff($after);
+
+
             $item->sl_no=$sl_no++;
 
             return $item;
         });
-
         return view('livewire.order.order-log', [
             'logs' => $logs,
             'order'=>$this->order
         ]);
     }
-
-
-
     private function renderDiff($data)
     {
         //echo "<pre>";print_r($data);exit;
         $label="";
         foreach($data as $key =>$val)
         {
+
           if($key=='items')
           {
-            //$label=
-            //echo "<pre>";echo ($this->isAssoc($val).'fggg');
+
             if($this->isAssoc($val))
             {
-                $label='Item>>'.$this->fetchItem($val['id']);
+                $label.='Item>>'.$this->fetchItem($val['id']);
                 foreach($val as $key=> $sub_val)
                 {
                     //$label.=$sub_val;
@@ -131,20 +138,24 @@ class OrderLog extends Component
                     //$label.=$this->subObject($sub_val,$key);exit;
                  }
                  else{
-                    if($key!='id')
+                    if(!in_array($key,$this->ignore_fields))
                     {
                         if($key=='expected_delivery_date')
                         {
                             $sub_val= Date('Y-m-d',strtotime($sub_val));
                         }
-                        $label.='>>'.Str::title($key).'>>'.$sub_val;
+                        $title=Str::title(value: $key);
+                        if(!empty($this->fields[$key]))
+                        {
+                            $title=$this->fields[$key];
+                        }
+                        $label.='>>'.$title.'>>'.$sub_val;
 
                     }
                  }
                 }
             }
             else{
-                $label="";
                 foreach($val as $key=> $sub_val)
                 {
                 $label.='Item>>'.$this->fetchItem($sub_val['id']);
@@ -158,25 +169,75 @@ class OrderLog extends Component
                     //$label.=$this->subObject($sub_val,$key);exit;
                     }
                     else{
-                    if($sub_key!='id')
+                    if(!in_array($sub_key,$this->ignore_fields))
                     {
+                        $title=Str::title(value: $sub_key);
+                        if(!empty($this->fields[$sub_key]))
+                        {
+                            $title=$this->fields[$sub_key];
+                        }
                         if($sub_key=='expected_delivery_date')
                         {
                             $sub_sub_val= Date('Y-m-d',strtotime($sub_sub_val));
+                            $label.='>>'.$title.'>>'.$sub_sub_val;
+
+
                         }
-                        $label.='>>'.Str::title($sub_key).'>>'.$sub_sub_val;
+                        else if(in_array($sub_key,$this->relational_tables))
+                        {
+                            $label.='>>'.$this->subObject(['id'=>$sub_sub_val],$sub_key);
+
+                        }
+
+                        else{
+                            $label.='>>'.$title.'>>'.$sub_sub_val;
+
+                        }
 
                     }
                     }
+                    $label.='<br>';
                 }
-                $label.='<br>';
+
+                }
+
+            }
+          }
+          else{
+             if($key=='customer')
+             {
+                $label.='Customer>>';
+             }
+            foreach($val as $key=> $sub_val)
+            {
+
+                foreach($sub_val as $sub_key=> $sub_sub_val)
+                {
+                     $title=Str::title($sub_key);
+
+
+
+                     if(!empty($this->fields[$sub_key]))
+                     {
+
+                        $title=$this->fields[$sub_key];
+                     }
+                    if(!in_array($sub_key,$this->ignore_fields))
+                    {
+                        if ($sub_key=='dob')
+                        {
+                            $sub_sub_val= Date('Y-m-d',strtotime($sub_sub_val));
+                        }
+                        $label.=$title.'>>'.$sub_sub_val;
+                    }
+                    $label.="<br>";
                 }
 
             }
           }
 
         }
-
+        //echo $label;
         return  preg_replace('/\s*>>\s*/', '>>', $label);
     }
     private function isIndexed(array $arr): bool
@@ -195,24 +256,38 @@ class OrderLog extends Component
     private function fetchItem($id)
     {
         $item=OrderItem::findOrFail($id);
-        //echo "<pre>";print_r( $item->product_name);exit;
         return  $item->product_name;
     }
 
     private function subObject($arr,$sub_label)
     {
-
-        //$label="";
         if($sub_label=='measurements')
         {
 
             $label="Measurements>>";
             $item=OrderMeasurement::findOrFail($arr['id']);
             $label.=$item->measurement_name.'>>'.$arr['measurement_value'];
+        }
+        if($sub_label=='collection')
+        {
+
+            $label="Collection>>";
+            $item=\App\Models\Collection::findOrFail($arr['id']);
+            $label.=$item->title;
+
+        }
+        if($sub_label=='category')
+        {
+
+            $label="Category>>";
+            $item=\App\Models\Category::findOrFail($arr['id']);
+            $label.=$item->title;
 
         }
         return preg_replace('/\s*>>\s*/', '>>', $label);
     }
+
+
 
 
 }

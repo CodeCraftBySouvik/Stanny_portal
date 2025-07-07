@@ -157,7 +157,7 @@ class ProductionOrderIndex extends Component
        
         $this->usersWithOrders = $wonOrders;
         $orders = Order::query()
-        ->whereIn('status',['Approved','Received at Production','Partial Delivered By Production','Fully Delivered By Production'])
+        ->whereIn('status',['Approved','Received at Production','Partial Delivered By Production','Fully Delivered By Production','Partial Delivered to Customer','Delivered to Customer'])
         // ->where('status', '!=' , 'Cancelled') // Uncomment if needed
         ->when($this->customer_id, fn($query) => $query->where('customer_id', $this->customer_id)) // Filter by customer ID
         ->when($this->search, function ($query) {

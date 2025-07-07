@@ -163,9 +163,9 @@
 
                                                 {{-- New Code By Souvik --}}
                                              @if($userDesignationId == 1 && $order->status == 'Approved By TL')
-                                                <a href="{{ route('admin.order.add_order_slip', $order->id) }}" class="btn btn-outline-success select-md btn_outline">
+                                                {{-- <a href="{{ route('admin.order.add_order_slip', $order->id) }}" class="btn btn-outline-success select-md btn_outline">
                                                     Approve Order
-                                                </a>
+                                                </a> --}}
 
                                                 <a href="{{ route('admin.order.edit', $order->id) }}" class="btn btn-outline-success select-md btn_outline">
                                                     Edit

@@ -46,7 +46,13 @@
     .payment-table th, .payment-table td {
       border: 1px solid black;
       padding: 6px 10px;
-      text-align: left;
+      text-align: center;
+
+    }
+
+    .payment-table td {
+      height: 40px; /* adjust as needed */
+      font-size: 14px; /* match header font size */
     }
 
     .section-title {
@@ -129,6 +135,27 @@
       </tr>
     </thead>
     <tbody>
+      <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
       <tr>
         <td></td>
         <td></td>

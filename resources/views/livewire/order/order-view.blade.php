@@ -7,9 +7,10 @@
             <li><a href="{{route('admin.order.index')}}">Orders</a></li>
             <li>Order detail :- <span>#{{$order->order_number}}</span></li>
             <li class="back-button">
-                <a href="{{ url()->previous()}}"
+                <a href="{{route('admin.order.index')}}"
                     class="btn btn-sm btn-danger select-md text-light font-weight-bold mb-0">Back </a>
             </li>
+            
         </ul>
     </section>
     <div id="export-area">
@@ -43,13 +44,40 @@
                             </div>
                         </div>
 
+                        <div class="row">
+                            
+                            <div>
+                                
+
+                            </div>
+                        </div>
+
 
 
                     </div>
                 </div>
+                
                 <div class="col-sm-6">
                     <div class="form-group mb-3">
-                        <h6>Customer Details</h6>
+                        @php
+                            $hasDelivered = false;
+                            foreach ($orderItems as $key => $item) {
+                            foreach ($item['deliveries'] as $delivery) {
+                                if($delivery['status'] == 'Delivered'){
+                                        $hasDelivered = true;
+                                        break 2;   // exit both loops
+                                }
+                            }
+                            }
+                        @endphp
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6>Customer Details</h6>
+                            @if ($hasDelivered)
+                                <p>
+                                    <a class="btn btn-outline-success select-md" href="{{ route('orders.generatePdf', $order->id) }}" target="_blank">Download</a>
+                                </p>
+                            @endif
+                        </div>
                         <div class="row">
                             <div class="col-sm-4">
                                 <p class="small m-0"><strong>Person Name :</strong></p>
@@ -212,7 +240,7 @@
                                                         @endif
                                                     </td>
                                                     <td>
-                                                        <button href="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="top" class="btn btn-info" title="{{ $delivery_data['remarks'] }}">Show Remarks Click Here</button>
+                                                        <button href="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="top" class="btn btn-outline-info select-md mt-3" title="{{ $delivery_data['remarks'] }}">Show Remarks Click Here</button>
                                                     </td>
                                                     <td>
                                                         @if($delivery_data['status']=='Pending')
@@ -281,26 +309,18 @@
                                                 <img src="{{ asset('storage/'.$item['catlogue_image']['image_path']) }}" style="width:150px;height:150px;" class="img-fluid rounded shadow border border-secondary" alt="Styled Image">
 
                                             </a>
-
                                         </div>
                                     </p>
                                     @endif
                                     @if(!empty($item['voice_remark']['voices_path']))
                                     <p>VOICE REMARKS :
-                                                <audio controls>
-                                                    <source src="{{ asset('storage/'.$item['voice_remark']['voices_path']) }}" type="audio/mpeg">
-                                                  Your browser does not support the audio element.
-                                                  </audio>
-
-
+                                        <audio controls>
+                                            <source src="{{ asset('storage/'.$item['voice_remark']['voices_path']) }}" type="audio/mpeg">
+                                            Your browser does not support the audio element.
+                                        </audio>
                                     </p>
                                     @endif
-                                    <p>
-                                        <a class="btn btn-outline-success select-md" href="{{ route('orders.generatePdf', $order->id) }}">Download</a>
-
-
-                            </p>
-
+                                   
                                 </td>
                             </tr>
                         @endif
@@ -462,8 +482,8 @@ window.addEventListener('delivered-to-customer', event => {
             }).then((result) => {
             if (result.isConfirmed) {
                 Livewire.dispatch('markReceivedConfirmed', {Id});
-
             }
+
             })
 
     });

@@ -224,7 +224,8 @@ class ProductionOrderDetails extends Component
                 ->whereIn('purpose', ['stock_entry_update', 'extra_stock_entry','delivery_proceed'])
                 ->get();
 
-            $logTooltip = $logs->map(function ($log) use($item) {
+            $deliveryCount = 0;
+            $logTooltip = $logs->map(function ($log) use($item, &$deliveryCount) {
                 $details = json_decode($log->data_details, true);
                 if ($log->purpose === 'stock_entry_update') {
                     return 'Entered Quantity: ' . ($details['entered_quantity'] ?? '-');
@@ -232,8 +233,17 @@ class ProductionOrderDetails extends Component
                     return 'Extra Quantity: ' . ($details['extra_quantity'] ?? '-');
                 } elseif ( $log->purpose === 'delivery_proceed' &&
                             $item->collection == 2 &&
-                            isset($details['delivered_quantity'])){
-                    return 'Delivered Quantity : '.($details['delivered_quantity']);
+                            isset($details['delivered_quantity']))
+                {
+                     $deliveryCount++;
+                     $ordinal = match($deliveryCount){
+                        1 => '1st',
+                        2 => '2nd',
+                        3 => '3rd',
+                        default => $deliveryCount . 'th',
+                     };
+                    // return '{$ordinal} Delivered Quantity : '.($details['delivered_quantity']);
+                      return "{$ordinal} Delivered Quantity : " . $details['delivered_quantity'];
                 }
                 return null;
             })->filter()->implode(' | ');

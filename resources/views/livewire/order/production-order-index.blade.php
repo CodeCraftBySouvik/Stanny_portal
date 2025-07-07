@@ -87,10 +87,10 @@
                         <tr>
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Order #
                             </th>
-                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Customer
-                                Details</th>
-                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Order
-                                Amount</th>
+                            {{-- <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Customer
+                                Details</th> --}}
+                            {{-- <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Order
+                                Amount</th> --}}
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Placed By
                             </th>
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Status</th>
@@ -108,7 +108,7 @@
                                 <p class="small text-muted mb-1 badge bg-warning">{{ $order->created_at->format('Y-m-d
                                     H:i') }}</p>
                             </td>
-                            <td>
+                            {{-- <td>
                                 <p class="small text-muted mb-1">
                                     <span>Name: <strong>{{ucwords($order->prefix ." ". $order->customer_name)}}</strong>
                                     </span>
@@ -116,10 +116,10 @@
                                     <span>Mobile : <strong>{{$order->customer? $order->customer->country_code_phone.'
                                             '.$order->customer->phone:""}}</strong> </span> <br>
                                 </p>
-                            </td>
-                            <td>
+                            </td> --}}
+                            {{-- <td>
                                 <p class="text-xs font-weight-bold mb-0">{{ $order->total_amount }}</p>
-                            </td>
+                            </td> --}}
                             <td>
                                 <p class="small text-muted mb-1 text-uppercase">
                                     {{$order->createdBy?strtoupper($order->createdBy->name .'
@@ -141,7 +141,7 @@
                                        <a href="{{route('production.order.details',$order->id)}}" class="btn btn-outline-success select-md btn_action btn_outline">Stock Entry</a>   
                                     @elseif(in_array($order->id, $has_order_entry) && $order->status != 'Fully Delivered By Production')
                                        <a href="{{route('production.order.details',$order->id)}}" class="btn btn-outline-success select-md btn_action btn_outline">Delivery</a>   
-                                    @elseif($order->status == 'Fully Delivered By Production')
+                                    @elseif($order->status == 'Fully Delivered By Production' || $order->status == 'Partial Delivered to Customer')
                                        <button class="btn btn-outline-success select-md btn_action btn_outline" disabled>Delivered</button> 
                                     @endif
                                 @endif
