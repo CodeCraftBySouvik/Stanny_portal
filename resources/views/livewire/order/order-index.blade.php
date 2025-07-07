@@ -138,14 +138,7 @@
                                 @php
                                     $userDesignationId = auth()->guard('admin')->user()->designation;
                                 @endphp
-                                @if($userDesignationId==4 and $order->status=='Approval Pending')
-                                <a href="{{route('admin.order.add_order_slip', $order->id)}}" class="btn btn-outline-primary select-md btn_action btn_outline">Approve Order</a>
-
-                                @endif
-                                @if($userDesignationId==1 and $order->status=='Approved By TL')
-                                <a href="{{route('admin.order.add_order_slip', $order->id)}}" class="btn btn-outline-primary select-md btn_action btn_outline">Approve Order</a>
-
-                                @endif
+                               
                                     @if(empty($order->packingslip))
                                         @if($order->status!="Cancelled")
                                             {{-- @if (in_array($userDesignationId,[1,4])) --}}
@@ -215,8 +208,23 @@
                                             </button>
 
                                         @else
-                                            <a href="{{route('admin.order.download_invoice',$order->id)}}" target="_blank" class="btn btn-outline-primary select-md btn_outline">Invoice</a>
-
+                                            @if ($userDesignationId == 2 && $order->hasPendingItemsForApproval())
+                                                <a href="{{ route('admin.order.edit', $order->id) }}" class="btn btn-outline-success select-md btn_outline">
+                                                    Edit
+                                                </a>
+                                            @endif
+                                            @if($userDesignationId == 1 && $order->hasPendingItemsForApproval())
+                                                <a href="{{ route('admin.order.add_order_slip', $order->id) }}" class="btn btn-outline-success select-md btn_outline">
+                                                Approve Order
+                                            </a>
+                                            @endif
+                                            @if($userDesignationId == 4 && $order->hasPendingItemsForApproval())
+                                                <a href="{{ route('admin.order.add_order_slip', $order->id) }}" class="btn btn-outline-success select-md btn_outline">
+                                                   Approve Order
+                                                </a>
+                                            @endif
+                                            
+                                            <a href="{{route('admin.order.download_invoice',$order->id)}}" target="_blank" class="btn btn-outline-primary select-md btn_outline">Invoice</a>    
                                             <a href="{{route('admin.order.download_bill',$order->id)}}" target="_blank" class="btn btn-outline-primary select-md btn_outline">Bill</a>
                                         @endif
 

@@ -602,7 +602,7 @@
                             {{-- <div class="col-12 col-md-2"></div> --}}
                             {{-- Price --}}
                             <div class="col-md-2 col-12 mb-3">
-                                <div class="d-flex align-items-end gap-2">
+                                <div class="d-flex align-items-end">
                                     <!-- Price Input -->
                                     <div>
                                         <label class="form-label"><strong>Price</strong></label>
@@ -613,6 +613,7 @@
                                             @error('items.' . $index . '.price') border-danger  @enderror"
                                             placeholder="Enter Price">
                                     </div>
+                                    
                                     <div>
                                         <!-- Delete Button -->
                                         <button type="button" class="btn btn-danger btn-sm danger_btn mb-0"
@@ -633,6 +634,7 @@
                                 @enderror
 
                             </div>
+                            
                             {{-- --}}
                             @else
                             {{--Garment item Price --}}
@@ -683,6 +685,18 @@
                                         <option value="Non Priority">Non Priority</option>
                                     </select>
                                     @error("items.$index.priority")
+                                    <div class="text-danger">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-2" >
+                                    <label class="form-label"><strong>Item Status</strong></label>
+                                    <select class="form-control form-control-sm border border-1"
+                                            wire:model="items.{{ $index }}.item_status">
+                                        <option value="" hidden>Select Item Status</option>
+                                        <option value="Process">Process</option>
+                                        <option value="Hold">Hold</option>
+                                    </select>
+                                    @error("items.$index.item_status")
                                     <div class="text-danger">{{ $message }}</div>
                                     @enderror
                                 </div>
@@ -836,7 +850,23 @@
                                         <div class="text-danger">{{ $message }}</div>
                                         @enderror
                                     </div>
+                                    
                                 </div>
+                                <div class="row mb-4">
+                                    <div class="col-md-4" >
+                                        <label class="form-label"><strong>Item Status</strong></label>
+                                        <select class="form-control form-control-sm border border-1"
+                                                wire:model="items.{{ $index }}.item_status">
+                                            <option value="" hidden>Select Item Status</option>
+                                            <option value="Process">Process</option>
+                                            <option value="Hold">Hold</option>
+                                        </select>
+                                        @error("items.$index.item_status")
+                                        <div class="text-danger">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+
                             @endif
 
                                 
