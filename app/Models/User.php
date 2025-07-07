@@ -227,7 +227,6 @@ class User extends Authenticatable
 
             if (!empty($before)) {
                 $orderId = ChangeTracker::getOrderId();
-                die('HIII'.$orderId);
                 if ($orderId) {
                     ChangeTracker::add('customer', [
                         'order_id' => $orderId,

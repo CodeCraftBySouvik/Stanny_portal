@@ -883,6 +883,7 @@ class OrderEdit extends Component
             }, 0);
             $airMail = floatval($this->air_mail);
             $total_amount += $airMail;
+            ChangeTracker::setOrderId($this->orders->id);
 
             // Retrieve user details
             $user = User::find($this->customer_id);
@@ -951,7 +952,6 @@ class OrderEdit extends Component
             $billingPin= $this->billing_pin;
 
             $order = Order::find($this->orders->id);
-            ChangeTracker::setOrderId($order->id);
             //die(ChangeTracker::getOrderId().'llll');
             if (!$order) {
                 session()->flash('error', 'Order not found.');
