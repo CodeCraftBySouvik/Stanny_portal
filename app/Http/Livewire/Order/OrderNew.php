@@ -992,9 +992,10 @@ class OrderNew extends Component
                 $orderItem->product_id = $item['product_id'];
                 $orderItem->collection = $collection_data ? $collection_data->id : "";
                 $orderItem->category = $category_data ? $category_data->id : "";
-
+                
                 $orderItem->product_name = $item['searchproduct'];
                 $orderItem->remarks  = $item['remarks'] ?? null;
+                $orderItem->status  = $item['item_status'] ?? null;
                 $orderItem->piece_price = $item['price'];
                 // $orderItem->quantity = $item['quantity'];
                 $orderItem->quantity = ($item['collection'] == 1) ? 1 : $item['quantity'];

@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\ChangeLog;
+use App\Models\Invoice;
+use App\Models\InvoiceProduct;
 use Illuminate\Support\Facades\Auth;
 use App\Services\ChangeTracker;
 
@@ -116,5 +118,24 @@ class Order extends Model
     {
         return $this->hasOne(Invoice::class, 'order_id', 'id');
     }
+
+    public function hasPendingItemsForApproval()
+    {
+        $invoiceIds = Invoice::where('order_id', $this->id)->pluck('id');
+
+        if ($invoiceIds->isEmpty()) {
+            return $this->items()->where('status', 'Process')->exists(); // No invoice yet
+        }
+
+        $invoicedProductIds = InvoiceProduct::whereIn('invoice_id', $invoiceIds)->pluck('product_id');
+
+        return $this->items()
+            ->where('status', 'Process')
+            ->whereNotIn('product_id', $invoicedProductIds)
+            ->exists();
+    }
+
+
+
 
 }

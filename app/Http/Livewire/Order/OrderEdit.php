@@ -168,6 +168,7 @@ class OrderEdit extends Component
                     'quantity'  => $item->quantity,
                     'price' => round($item->piece_price),
                     'remarks' => $item->remarks,
+                    'item_status' => $item->status,
                     'selected_collection' => $item->collection,
                     'collection' => Collection::orderBy('title', 'ASC')->whereIn('id',[1,2])->get(),
                     'selected_category' => $item->category,
@@ -961,7 +962,11 @@ class OrderEdit extends Component
                 $order->prefix = $this->prefix;
                 $order->customer_name = $this->name;
                 $order->customer_email = $this->email;
-                $order->customer_image = $this->customer_image ? Helper::handleFileUpload($this->customer_image, "client_image") : null;
+                if(!empty($this->customer_image) and !is_string($this->customer_image))
+                {
+                    $order->customer_image = Helper::handleFileUpload($this->customer_image, "client_image");
+                }
+
                 $order->billing_address = $billingadd . ', ' . $billingLandmark . ', ' . $billingCity . ', ' . $billingState . ', ' . $billingCountry . ' - ' . $billingPin;
                 $order->total_product_amount = $total_product_amount;
                 $order->air_mail = $airMail;
@@ -998,6 +1003,7 @@ class OrderEdit extends Component
                     $orderItem->order_id = $order->id;
                     $orderItem->product_name = $item['searchproduct'];
                     $orderItem->remarks = $item['remarks'] ?? null;
+                    $orderItem->status = $item['item_status'] ?? null;
                     $orderItem->quantity = $item['quantity'] ?? null;
                     $itemPrice = floatval($item['price']);
                     $orderItem->total_price = $itemPrice * $orderItem->quantity;

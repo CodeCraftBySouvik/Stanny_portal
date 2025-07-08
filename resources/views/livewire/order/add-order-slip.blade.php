@@ -35,7 +35,7 @@
                                     $magrin = "margin-bottom: 20px;";
                                 }
                             @endphp
-                            <div class="col-sm-6">
+                            <div class="col-sm-4">
                                 <table>
                                     <tr>
                                         <td>
@@ -77,7 +77,18 @@
                                     @endif --}}
                                 </div>
                             </div>
-
+                             <div class="col-sm-2">
+                                <div class="form-group mb-3">
+                                    @if($key==0)
+                                        <label>Status</label>
+                                    @endif
+                                    <input type="text" class="form-control form-control-sm text-white fw-bold rounded-pill text-center {{$order_item->status == "Process" ? 'bg-success' : 'bg-danger'}}" 
+                                       
+                                           value="{{$order_item->status}}" 
+                                           disabled 
+                                           {{$readonly}}>
+                                </div>
+                            </div>
                             {{-- Start the measurement section --}}
                             @if($order_item->collection == 1 && !empty($order_item->measurements))
                             <div class="row">
