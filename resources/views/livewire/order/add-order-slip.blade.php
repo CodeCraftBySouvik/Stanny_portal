@@ -12,6 +12,126 @@
           </ul>
     </section>
     <form wire:submit.prevent="submitForm">
+        <div class="card shadow-sm mb-2">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group mb-3">
+                            <h6>Order Information</h6>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <p class="small m-0">
+
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <p class="small m-0"><strong>Order Amount :</strong></p>
+                                </div>
+                                <div class="col-sm-8">
+                                    <p class="small m-0">{{number_format($order_detail->total_amount, 2)}}</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <p class="small m-0"><strong>Order Time :</strong></p>
+                                </div>
+                                <div class="col-sm-8">
+                                    <p class="small m-0">{{ $order_detail->created_at->format('d M Y h:i A') }}</p>
+                                </div>
+                            </div>
+
+                            <div class="row">
+
+                                <div>
+
+
+                                </div>
+                            </div>
+
+
+
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="form-group mb-3">
+                            @php
+                                $hasDelivered = false;
+                                foreach ($orderItemsNew as $key => $item) {
+                                foreach ($item['deliveries'] as $delivery) {
+                                    if($delivery['status'] == 'Delivered'){
+                                            $hasDelivered = true;
+                                            break 2;   // exit both loops
+                                    }
+                                }
+                                }
+                            @endphp
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6>Customer Details</h6>
+                                @if ($hasDelivered)
+                                    <p>
+                                        <a class="btn btn-outline-success select-md" href="{{ route('orders.generatePdf', $order_detail->id) }}" target="_blank">Download</a>
+                                    </p>
+                                @endif
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <p class="small m-0"><strong>Person Name :</strong></p>
+                                </div>
+                                <div class="col-sm-8">
+                                    <p class="small m-0">{{$order_detail->customer_name}}</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <p class="small m-0"><strong>Company Name :</strong></p>
+                                </div>
+                                <div class="col-sm-8">
+                                    <p class="small m-0">{{$order_detail->customer?$order_detail->customer->company_name:"---"}}</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <p class="small m-0"><strong>Rank :</strong></p>
+                                </div>
+                                <div class="col-sm-8">
+                                    <p class="small m-0">{{$order_detail->customer?$order_detail->customer->employee_rank:"---"}}</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <p class="small m-0"><strong>Email :</strong></p>
+                                </div>
+                                <div class="col-sm-8">
+                                    <p class="small m-0"> {{$order_detail->customer_email}} </p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <p class="small m-0"><strong>Mobile :</strong></p>
+                                </div>
+                                <div class="col-sm-8">
+                                    <p class="small m-0"> {{$order_detail->customer? $order_detail->customer->phone: ""}}</p>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <p class="small m-0"><strong> Address :</strong></p>
+                                </div>
+                                <div class="col-sm-8">
+                                    <p class="small m-0">{{$order_detail->billing_address}}</p>
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="card">
             <div class="card-body">
                 <div class="row">
@@ -35,7 +155,7 @@
                                     $magrin = "margin-bottom: 20px;";
                                 }
                             @endphp
-                            <div class="col-sm-4">
+                            <div class="col-sm-3">
                                 <table>
                                     <tr>
                                         <td>
@@ -82,12 +202,42 @@
                                     @if($key==0)
                                         <label>Status</label>
                                     @endif
-                                    <input type="text" class="form-control form-control-sm text-white fw-bold rounded-pill text-center {{$order_item->status == "Process" ? 'bg-success' : 'bg-danger'}}" 
-                                       
-                                           value="{{$order_item->status}}" 
-                                           disabled 
-                                           {{$readonly}}>
+                                    @php
+                                        $isApprovedByTL = $order_item->status === 'Process' && $order_item->tl_status === 'Approved';
+                                    @endphp
+
+                                    {{-- <input type="text" class="form-control form-control-sm text-white fw-bold rounded-pill text-center {{$order_item->status == "Process" ? 'bg-success' : 'bg-danger'}}"
+                                           value="{{$order_item->status}}"
+                                           disabled
+                                           {{$readonly}}> --}}
+                                           <input type="text"
+                                            class="form-control form-control-sm text-white fw-bold rounded-pill text-center
+                                                    {{ $isApprovedByTL ? 'bg-info' : ($order_item->status === 'Process' ? 'bg-success' : 'bg-danger') }}"
+                                            value="{{ $isApprovedByTL ? 'Approved by TL' : $order_item->status }}"
+                                            disabled
+                                            {{$readonly}}>
                                 </div>
+                            </div>
+                            <div class="col-sm-1">
+                                @php
+                                    $userDesignationId = auth()->guard('admin')->user()->designation;
+                                     $isApprovedByTL = $order_item->status === 'Process' && $order_item->tl_status === 'Approved';
+                                @endphp
+
+                                @if($userDesignationId == 4)
+                                    @if($order_item->status == 'Process')
+                                        <input type="checkbox" wire:model="order_item.{{$key}}.tl_approved"
+                                         wire:change="updateTlStatus({{ $key }})" >
+                                    @else
+                                        <span class="badge bg-secondary">N/A</span>
+                                    @endif
+                                @else
+                                    @if (!$isApprovedByTL)
+                                        <span class="badge {{ $order_item->tl_status == 'Approved' ? 'bg-success' : ($order_item->tl_status == 'Hold' ? 'bg-danger' : 'bg-secondary') }}">
+                                            {{ $order_item->tl_status ?? 'Pending' }}
+                                        </span>
+                                    @endif
+                                @endif
                             </div>
                             {{-- Start the measurement section --}}
                             @if($order_item->collection == 1 && !empty($order_item->measurements))
@@ -191,6 +341,7 @@
                 </div>
             </div>
         </div>
+
         {{-- <div class="card mt-2">
             <div class="card-body">
                 <div class="row">

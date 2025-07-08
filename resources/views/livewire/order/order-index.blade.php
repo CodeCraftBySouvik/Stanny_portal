@@ -208,17 +208,17 @@
                                             </button>
 
                                         @else
-                                            @if ($userDesignationId == 2 && $order->hasPendingItemsForApproval())
+                                            @if ($userDesignationId == 2)
                                                 <a href="{{ route('admin.order.edit', $order->id) }}" class="btn btn-outline-success select-md btn_outline">
                                                     Edit
                                                 </a>
                                             @endif
-                                            @if($userDesignationId == 1 && $order->hasPendingItemsForApproval())
+                                            @if($userDesignationId == 1 && $order->canAdminApprove())
                                                 <a href="{{ route('admin.order.add_order_slip', $order->id) }}" class="btn btn-outline-success select-md btn_outline">
                                                 Approve Order
                                             </a>
                                             @endif
-                                            @if($userDesignationId == 4 && $order->hasPendingItemsForApproval())
+                                            @if($userDesignationId == 4 && $order->canTLApprove())
                                                 <a href="{{ route('admin.order.add_order_slip', $order->id) }}" class="btn btn-outline-success select-md btn_outline">
                                                    Approve Order
                                                 </a>
