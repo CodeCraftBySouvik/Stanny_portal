@@ -19,7 +19,7 @@ use App\Interfaces\AccountingRepositoryInterface;
 class AddOrderSlip extends Component
 {
     protected $accountingRepository;
-    public $order;
+    public $order,$orderId;
     public $errorMessage = [];
     public $order_item = [];
     public $activePayementMode = 'cash';
@@ -37,7 +37,7 @@ class AddOrderSlip extends Component
         $this->accountingRepository = $accountingRepository;
     }
     public function mount($id){
-
+        $this->orderId=$id;
         $this->order = Order::with('items.measurements','items.fabric','customer','createdBy')->where('id', $id)->first();
         if($this->order){
             foreach($this->order->items as $key=>$order_item){
@@ -70,7 +70,7 @@ class AddOrderSlip extends Component
                 // $this->order_item[$key]['piece_price']= (int)$order_item->piece_price;
                 // $this->order_item[$key]['quantity']= $order_item->quantity;
                 // $this->order_item[$key]['measurements']= $order_item->measurements->toArray();
-             
+
             }
             $this->total_amount = $this->order->total_amount;
             $this->actual_amount = $this->order->total_amount;
@@ -90,7 +90,7 @@ class AddOrderSlip extends Component
 
    public function updateTlStatus($key)
     {
-        $isApproved = !empty($this->order_item[$key]['tl_approved']) 
+        $isApproved = !empty($this->order_item[$key]['tl_approved'])
                     && $this->order_item[$key]['tl_approved'] == true;
 
         $newStatus = $isApproved ? 'Approved' : 'Hold';
@@ -218,7 +218,7 @@ class AddOrderSlip extends Component
                     'total_price' => $totalPrice,
                     'quantity' => $quantity,
                     'piece_price' => $piecePrice,
-                    
+
                 ]);
 
                 $subtotal += $totalPrice;
@@ -453,6 +453,52 @@ class AddOrderSlip extends Component
     }
     public function render()
     {
-        return view('livewire.order.add-order-slip');
+        // Fetch the order and its related items
+        $order = Order::with([
+            'items.deliveries' => fn($q) => $q->with('user:id,name'),
+            'items.voice_remark','items.catlogue_image'
+        ])->findOrFail($this->orderId);
+        //echo "<pre>";print_r($order->toArray());exit;
+         $orderItems = $order->items->map(function ($item) use($order) {
+
+            $product = \App\Models\Product::find($item->product_id);
+            return [
+                'product_name' => $item->product_name ?? $product->name,
+                'collection_id' => $item->collection,
+                'collection_title' => $item->collectionType ?  $item->collectionType->title : "",
+                'fabrics' => $item->fabric,
+                'measurements' => $item->measurements,
+                'catalogue' => $item->catalogue_id?$item->catalogue:"",
+                'catalogue_id' => $item->catalogue_id,
+                'cat_page_number' => $item->cat_page_number,
+                'price' => $item->piece_price,
+                // 'deliveries' => !empty($item->deliveries)?
+                //     $item->deliveries:"",
+                'deliveries' => !empty($item->deliveries)
+                    ? $item->deliveries->map(function ($delivery) use ($item) {
+                        return [
+                            'id' => $delivery->id,
+                            'delivered_at' => $delivery->delivered_at,
+                            'status' => $delivery->status,
+                            'remarks' => $delivery->remarks,
+                            'fabric_quantity' => $delivery->fabric_quantity,
+                            'delivered_quantity' => $delivery->delivered_quantity,
+                            'user' => $delivery->user ? ['name' => $delivery->user->name] : ['name' => 'N/A'],
+                            'collection_id' => $item->collection, // inject here for later use
+                        ];
+                    })
+                    : [],
+                'quantity' => $item->quantity,
+                'remarks' => $item->remarks,
+                'catlogue_image' => $item->catlogue_image,
+                'voice_remark' => $item->voice_remark,
+
+                'product_image' => $product ? $product->product_image : null,
+            ];
+        });
+        return view('livewire.order.add-order-slip',[
+            'order_detail' => $order,
+            'orderItemsNew' => $orderItems,
+        ]);
     }
 }

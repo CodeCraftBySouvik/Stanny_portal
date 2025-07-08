@@ -33,7 +33,7 @@ class OrderLog extends Component
     'total_amount'=>'Total Amount','alternative_phone_number_1'=>'Alternative No(1)',
       'alternative_phone_number_2'=>'Alternative No(2)','billing_address'=>'Billing Address',
       'priority_level'=>'Priority Level','expected_delivery_date'=>'Expected Delivery',
-      'country_code_alt_1'=>'Country Code(1)', 'country_code_alt_2'=>'Country Code(2)','customer_image'=>'Profile Image'
+      'country_code_alt_1'=>'Country Code(1)', 'country_code_alt_2'=>'Country Code(2)','customer_image'=>'Customer Image'
 ];
 
     public $invoiceId;
@@ -54,15 +54,10 @@ class OrderLog extends Component
     public function resetForm(){
         $this->reset(['search', 'start_date','end_date','created_by','status']);
     }
-
     public function updatingSearch()
     {
         $this->resetPage();
     }
-
-
-
-
     public function mount($id = null)
     {
         $this->orderId = $id; // Store the customer_id if provided
@@ -149,6 +144,10 @@ class OrderLog extends Component
                         {
                             $title=$this->fields[$key];
                         }
+                        if(empty($sub_val))
+                        {
+                            $sub_val="N/A";
+                        }
                         $label.='>>'.$title.'>>'.$sub_val;
 
                     }
@@ -185,11 +184,19 @@ class OrderLog extends Component
                         }
                         else if(in_array($sub_key,$this->relational_tables))
                         {
+                            if(empty($sub_sub_val))
+                            {
+                                $sub_sub_val="N/A";
+                            }
                             $label.='>>'.$this->subObject(['id'=>$sub_sub_val],$sub_key);
 
                         }
 
                         else{
+                            if(empty($sub_sub_val))
+                            {
+                                $sub_sub_val="N/A";
+                            }
                             $label.='>>'.$title.'>>'.$sub_sub_val;
 
                         }
@@ -215,8 +222,6 @@ class OrderLog extends Component
                 {
                      $title=Str::title($sub_key);
 
-
-
                      if(!empty($this->fields[$sub_key]))
                      {
 
@@ -227,6 +232,17 @@ class OrderLog extends Component
                         if ($sub_key=='dob')
                         {
                             $sub_sub_val= Date('Y-m-d',strtotime($sub_sub_val));
+                        }
+                        else if($sub_key=='customer_image'){
+                            if(!empty($sub_sub_val))
+                            {
+                                $sub_sub_val='<img src="'.asset($sub_sub_val).'" alt="" class="img-thumbnail" width="100">';
+
+                            }
+                        }
+                        if(empty($sub_sub_val))
+                        {
+                            $sub_sub_val="N/A";
                         }
                         $label.=$title.'>>'.$sub_sub_val;
                     }
