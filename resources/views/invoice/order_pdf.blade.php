@@ -318,10 +318,10 @@
                             <tr>
                                 <td style="width:60%; line-height: 1.6; font-size: 13px;">{{ $item->product_name }}</td>
                                 <td style="font-size: 13px;">{{ $item->quantity }} set</td>
-                                <td style="font-size: 13px;">{{ number_format( ($item->piece_price)/($item->quantity) )
+                                <td style="font-size: 13px;">{{ number_format( $item->piece_price) 
                                     }}</td>
                                 {{-- <td style="font-size: 13px;">0.00</td> --}}
-                                <td style="font-size: 13px;">{{ number_format( $item->piece_price ) }} FCFA</td>
+                                <td style="font-size: 13px;">{{ number_format( $item->quantity * $item->piece_price ) }} FCFA</td>
                             </tr>
 
                             @endforeach
@@ -354,11 +354,20 @@
                                             {{ number_format($invoice->net_price) }} FCFA</td>
                                     </tr>
                                     @php
+                                    // previous
+                                    // $tvaPercentage = floatval(env('TVA_PERCENTAGE'));
+                                    // $caPercentage = floatval(env('CA_PERCENTAGE'));
+                                    // $tva = $item->total_price * ($tvaPercentage/100);
+                                    // $ca = $tva * ($caPercentage/100);
+                                    // $ht_amount = $item->total_price - ($tva + $ca);
+
+                                    // new
                                     $tvaPercentage = floatval(env('TVA_PERCENTAGE'));
                                     $caPercentage = floatval(env('CA_PERCENTAGE'));
-                                    $tva = $item->total_price * ($tvaPercentage/100);
+                                    $tva = $invoice->net_price * ($tvaPercentage/100);
                                     $ca = $tva * ($caPercentage/100);
-                                    $ht_amount = $item->total_price - ($tva + $ca);
+                                    $ht_amount = $invoice->net_price - ($tva + $ca);
+
                                     @endphp
 
                                     <tr>

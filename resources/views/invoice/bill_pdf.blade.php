@@ -258,10 +258,10 @@
                             <tr>
                                 <td style="width:60%; line-height: 1.6; font-size: 13px;">{{ $item->product_name }}</td>
                                 <td style="font-size: 13px;">{{ $item->quantity }} set</td>
-                                <td style="font-size: 13px;">{{ number_format( ($item->piece_price)/($item->quantity) )
+                                <td style="font-size: 13px;">{{ number_format($item->piece_price)
                                     }}</td>
                                 {{-- <td style="font-size: 13px;">0.00</td> --}}
-                                <td style="font-size: 13px;">{{ number_format( $item->piece_price ) }} FCFA</td>
+                                <td style="font-size: 13px;">{{ number_format($item->quantity * $item->piece_price ) }} FCFA</td>
                             </tr>
 
                             @endforeach

@@ -119,53 +119,70 @@ class Order extends Model
         return $this->hasOne(Invoice::class, 'order_id', 'id');
     }
 
-    
+    // public function hasPendingItemsForApproval()
+    // {
+    //     $invoiceIds = Invoice::where('order_id', $this->id)->pluck('id');
+
+    //     if ($invoiceIds->isEmpty()) {
+    //         return $this->items()->where('status', 'Process')->exists(); // No invoice yet
+    //     }
+
+    //     $invoicedProductIds = InvoiceProduct::whereIn('invoice_id', $invoiceIds)->pluck('product_id');
+
+    //     return $this->items()
+    //         ->where('status', 'Process')
+    //         ->where('tl_status', 'Approved')
+    //         ->whereNotIn('product_id', $invoicedProductIds)
+    //         ->exists();
+    // }
+
+    // public function hasPendingItemsForApproval()
+    // {
+    //     $invoiceIds = Invoice::where('order_id', $this->id)->pluck('id');
+
+    //     $invoicedProductIds = InvoiceProduct::whereIn('invoice_id', $invoiceIds)->pluck('product_id');
+
+    //     return $this->items()
+    //         ->where('status', 'Process')
+    //         ->whereNotIn('product_id', $invoicedProductIds)
+    //         ->where(function ($query) {
+    //             $query->where('tl_status', 'Approved')
+    //                 ->orWhereNull('tl_status')
+    //                 ->orWhere('tl_status', '!=', 'Approved');
+    //         })
+    //         ->exists();
+    // }
+
     // TL can approve if there are any 'Process' items not yet invoiced
     public function canTLApprove()
     {
         $invoiceIds = Invoice::where('order_id', $this->id)->pluck('id');
-        $invoicedProductIds = InvoiceProduct::whereIn('invoice_id', $invoiceIds)->pluck('product_id');
 
-        // TL can approve if there's any item that is Process but TL status is not Approved yet
-        return $this->items()
-            ->where('status', 'Process')
-            ->where(function ($q) {
-                $q->whereNull('tl_status')->orWhere('tl_status', '!=', 'Approved');
-            })
-            ->whereNotIn('product_id', $invoicedProductIds)
-            ->exists();
+        $invoicedProductIds = InvoiceProduct::whereIn('invoice_id', $invoiceIds)->pluck('order_item_id')->toArray();
+
+         return $this->items()
+        ->where('status', 'Process')
+        ->whereNotIn('id', $invoicedProductIds)
+        ->where(function ($query) {
+            $query->whereNull('tl_status')
+                  ->orWhere('tl_status', '!=', 'Approved');
+        })
+        ->exists();
     }
 
-
+    // Admin can approve only if 'Process' + 'tl_status' = 'Approved'
     public function canAdminApprove()
     {
-        // Get all invoice product IDs
         $invoiceIds = Invoice::where('order_id', $this->id)->pluck('id');
-        $invoicedProductIds = InvoiceProduct::whereIn('invoice_id', $invoiceIds)->pluck('product_id');
 
-        // Check if there's at least one item that:
-        // - is Process
-        // - is Approved by TL
-        // - is NOT in invoice_product
+        $invoicedProductIds = InvoiceProduct::whereIn('invoice_id', $invoiceIds)->pluck('order_item_id')->toArray();
+
         return $this->items()
             ->where('status', 'Process')
             ->where('tl_status', 'Approved')
-            ->whereNotIn('product_id', $invoicedProductIds)
+            ->whereNotIn('id', $invoicedProductIds)
             ->exists();
     }
-
-    public function canSalespersonEdit()
-    {
-        $invoiceIds = Invoice::where('order_id', $this->id)->pluck('id');
-        $invoicedProductIds = InvoiceProduct::whereIn('invoice_id', $invoiceIds)->pluck('product_id');
-
-        // Check if any process item that is not fully approved or not invoiced
-        return $this->items()
-            ->where('status', 'Process')
-            ->whereNotIn('product_id', $invoicedProductIds)
-            ->exists();
-    }
-
 
 
 

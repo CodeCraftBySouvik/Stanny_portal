@@ -239,7 +239,7 @@ Route::group(['prefix' => 'admin','middleware' => 'admin'], function () {
         // order invoice and bill
         Route::get('{order}/invoice', [OrderIndex::class, 'downloadOrderInvoice'])->name('admin.order.download_invoice');
         Route::get('{order}/bill', [OrderIndex::class, 'downloadOrderBill']) ->name('admin.order.download_bill');
-        Route::get('/generate-order-pdf/{id}', [OrderView::class, 'generatePdf'])->name('orders.generatePdf');;
+        Route::get('/generate-order-pdf/{id}', [OrderView::class, 'generatePdf'])->name('orders.generatePdf');
         Route::get('/log/{id}', OrderLog::class)->name('admin.order.log');
 
     });
