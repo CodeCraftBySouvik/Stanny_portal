@@ -49,6 +49,7 @@ class AddOrderSlip extends Component
                 'collection_id' => $order_item->collection,
                 'collection_title' => $order_item->collectionType?->title ?? '',
                 'fabrics' => $order_item->fabric,
+                'tl_approved' => $order_item->tl_status == 'Approved',
                'measurements' => $order_item->measurements->map(function ($m) {
                     return [
                         'measurement_name' => $m->name,
@@ -69,7 +70,7 @@ class AddOrderSlip extends Component
                 // $this->order_item[$key]['piece_price']= (int)$order_item->piece_price;
                 // $this->order_item[$key]['quantity']= $order_item->quantity;
                 // $this->order_item[$key]['measurements']= $order_item->measurements->toArray();
-
+             
             }
             $this->total_amount = $this->order->total_amount;
             $this->actual_amount = $this->order->total_amount;
@@ -86,6 +87,22 @@ class AddOrderSlip extends Component
         $this->voucher_no = 'PAYRECEIPT'.time();
         $this->staffs = User::where('user_type', 0)->where('designation', 2)->select('name', 'id')->orderBy('name', 'ASC')->get();
     }
+
+   public function updateTlStatus($key)
+    {
+        $isApproved = !empty($this->order_item[$key]['tl_approved']) 
+                    && $this->order_item[$key]['tl_approved'] == true;
+
+        $newStatus = $isApproved ? 'Approved' : 'Hold';
+
+        // Update the array (Livewire state)
+        $this->order_item[$key]['tl_status'] = $newStatus;
+
+        // Update the database
+        OrderItem::where('id', $this->order_item[$key]['id'])
+            ->update(['tl_status' => $newStatus]);
+    }
+
 
     public function updateQuantity($value, $key,$price){
         if(!empty($value)){
@@ -132,10 +149,11 @@ class AddOrderSlip extends Component
             try {
                  $hasProcessItem = OrderItem::where('order_id', $this->order->id)
                     ->where('status', 'Process')
+                    ->where('tl_status', 'Approved')
                     ->exists();
 
                 if (!$hasProcessItem) {
-                    session()->flash('error', 'Cannot approve order. No items are marked as Process.');
+                    session()->flash('error', 'Cannot approve order. No items are approved by Team Leader.');
                     return redirect()->route('admin.order.add_order_slip', $this->order->id);
                 }
 
@@ -200,6 +218,7 @@ class AddOrderSlip extends Component
                     'total_price' => $totalPrice,
                     'quantity' => $quantity,
                     'piece_price' => $piecePrice,
+                    
                 ]);
 
                 $subtotal += $totalPrice;
@@ -319,7 +338,7 @@ class AddOrderSlip extends Component
         //     return redirect()->route('admin.order.add_order_slip', $order->id);
         // }
         // Fetch all items with status = 'Process'
-        $processableItems = $order->items()->where('status', 'Process')->get();
+        $processableItems = $order->items()->where('status', 'Process')->where('tl_status','Approved')->get();
 
         // Calculate total amount from processable items
         $processedAmount = $processableItems->sum(fn($item) => $item->total_price + ($item->air_mail ?? 0));
@@ -380,6 +399,7 @@ class AddOrderSlip extends Component
             foreach ($processableItems as $item) {
                 InvoiceProduct::create([
                     'invoice_id' => $invoice->id,
+                    'order_item_id' => $item->id,
                     'product_id' => $item->product_id,
                     'product_name' => $item->product?->name ?? '',
                     'quantity' => $item->quantity,

@@ -35,7 +35,7 @@
                                     $magrin = "margin-bottom: 20px;";
                                 }
                             @endphp
-                            <div class="col-sm-4">
+                            <div class="col-sm-3">
                                 <table>
                                     <tr>
                                         <td>
@@ -82,12 +82,42 @@
                                     @if($key==0)
                                         <label>Status</label>
                                     @endif
-                                    <input type="text" class="form-control form-control-sm text-white fw-bold rounded-pill text-center {{$order_item->status == "Process" ? 'bg-success' : 'bg-danger'}}" 
-                                       
+                                    @php
+                                        $isApprovedByTL = $order_item->status === 'Process' && $order_item->tl_status === 'Approved';
+                                    @endphp
+
+                                    {{-- <input type="text" class="form-control form-control-sm text-white fw-bold rounded-pill text-center {{$order_item->status == "Process" ? 'bg-success' : 'bg-danger'}}" 
                                            value="{{$order_item->status}}" 
                                            disabled 
-                                           {{$readonly}}>
+                                           {{$readonly}}> --}}
+                                           <input type="text"
+                                            class="form-control form-control-sm text-white fw-bold rounded-pill text-center
+                                                    {{ $isApprovedByTL ? 'bg-info' : ($order_item->status === 'Process' ? 'bg-success' : 'bg-danger') }}"
+                                            value="{{ $isApprovedByTL ? 'Approved by TL' : $order_item->status }}"
+                                            disabled
+                                            {{$readonly}}>
                                 </div>
+                            </div>
+                            <div class="col-sm-1">
+                                @php
+                                    $userDesignationId = auth()->guard('admin')->user()->designation;
+                                     $isApprovedByTL = $order_item->status === 'Process' && $order_item->tl_status === 'Approved';
+                                @endphp
+                            
+                                @if($userDesignationId == 4)
+                                    @if($order_item->status == 'Process')
+                                        <input type="checkbox" wire:model="order_item.{{$key}}.tl_approved"
+                                         wire:change="updateTlStatus({{ $key }})" >
+                                    @else
+                                        <span class="badge bg-secondary">N/A</span>
+                                    @endif
+                                @else
+                                    @if (!$isApprovedByTL)
+                                        <span class="badge {{ $order_item->tl_status == 'Approved' ? 'bg-success' : ($order_item->tl_status == 'Hold' ? 'bg-danger' : 'bg-secondary') }}">
+                                            {{ $order_item->tl_status ?? 'Pending' }}
+                                        </span>
+                                    @endif
+                                @endif
                             </div>
                             {{-- Start the measurement section --}}
                             @if($order_item->collection == 1 && !empty($order_item->measurements))

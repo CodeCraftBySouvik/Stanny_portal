@@ -26,6 +26,7 @@ class OrderItem extends Model
         'piece_price',
         'remarks',
         'status',
+        'tl_status',
         'quantity',
         'fittings',
         'priority_level'
