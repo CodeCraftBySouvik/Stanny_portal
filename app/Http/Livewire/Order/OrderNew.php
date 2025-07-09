@@ -1005,6 +1005,30 @@ class OrderNew extends Component
                 $itemPrice = floatval($item['price']);
                 $orderItem->total_price = $itemPrice * $orderItem->quantity;
                 $orderItem->fabrics = $fabric_data ? $fabric_data->id : "";
+                // if($loggedInAdmin->designation == 4 && $orderItem->status == 'Process'){
+                //     $orderItem->tl_status = 'Approved';
+                // }
+
+                if ($orderItem->status === 'Process') {
+                    if ($loggedInAdmin->designation == 1) {
+                        // Admin is creating the order
+                        $orderItem->tl_status = 'Approved';
+                        $orderItem->admin_status = 'Approved';
+                    } elseif ($loggedInAdmin->designation == 4) {
+                        // Team Lead is creating the order
+                        $orderItem->tl_status = 'Approved';
+                        $orderItem->admin_status = 'Pending';
+                    } else {
+                        // For others
+                        $orderItem->tl_status = 'Pending';
+                        $orderItem->admin_status = 'Pending';
+                    }
+                } else {
+                    // If status is not Process
+                    $orderItem->tl_status = 'Pending';
+                    $orderItem->admin_status = 'Pending';
+                }
+
                 $orderItem->save();
 
                  // upload multiple catalogue images

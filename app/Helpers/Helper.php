@@ -170,29 +170,7 @@ class Helper
         return ['Mr.', 'Mrs.', 'Ms.', 'Dr.', 'Adv.', 'Me.'];
     }
 
-    // public static function getStockEntryData($collectionId, $fabricId=null, $productId=null){
-    //     if($collectionId == 1){
-    //          // Garment Collection
-    //          $fabricStock = StockFabric::where('fabric_id',$fabricId)->first();
-    //          return [
-    //             'available_label' => 'Available Meter',
-    //             'updated_label'   => 'Updated Meter',
-    //             'available_value' => $fabricStock ? (int)$fabricStock->qty_in_meter : 0,
-    //             'input_name'      => 'updated_meter',
-    //             'type'            => 'meter'
-    //          ];
-    //     }elseif($collectionId == 2){
-    //         $productStock = StockProduct::where('product_id',$productId)->first();
-    //         return [
-    //             'available_label' => 'Available Pcs',
-    //             'updated_label' => 'Updated Pcs',
-    //             'available_value' => $productStock ? $productStock->qty_in_pieces : 0,
-    //             'input_name' => 'updated_pcs',
-    //             'type' => 'pcs'
-    //         ];
-    //     }
-    //     return null;
-    // }
+  
 
     public static function getStockEntryData($collectionId, $fabricId = null, $productId = null, $orderId = null, $orderItemId = null)
     {

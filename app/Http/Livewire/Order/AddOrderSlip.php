@@ -50,6 +50,7 @@ class AddOrderSlip extends Component
                 'collection_title' => $order_item->collectionType?->title ?? '',
                 'fabrics' => $order_item->fabric,
                 'tl_approved' => $order_item->tl_status == 'Approved',
+                'admin_approved' => $order_item->admin_status == 'Approved',
                'measurements' => $order_item->measurements->map(function ($m) {
                     return [
                         'measurement_name' => $m->name,
@@ -103,6 +104,20 @@ class AddOrderSlip extends Component
             ->update(['tl_status' => $newStatus]);
     }
 
+    public function updateAdminStatus($key){
+        $isApproved = !empty($this->order_item[$key]['admin_approved'])
+                    && $this->order_item[$key]['admin_approved'] == true;
+
+        $newStatus = $isApproved ? 'Approved' : 'Hold';
+
+        // Update the array (Livewire state)
+        $this->order_item[$key]['admin_status'] = $newStatus;
+
+        // Update the database
+        OrderItem::where('id', $this->order_item[$key]['id'])
+            ->update(['admin_status' => $newStatus]);
+    }
+
 
     public function updateQuantity($value, $key,$price){
         if(!empty($value)){
@@ -147,14 +162,30 @@ class AddOrderSlip extends Component
             return $this->errorMessage;
         }else{
             try {
-                 $hasProcessItem = OrderItem::where('order_id', $this->order->id)
-                    ->where('status', 'Process')
-                    ->where('tl_status', 'Approved')
-                    ->exists();
+                $userDesignationId = auth()->guard('admin')->user()->designation;
+                if($userDesignationId == 4){
+                    $hasProcessItem = OrderItem::where('order_id', $this->order->id)
+                       ->where('status', 'Process')
+                       ->where('tl_status', 'Approved')
+                       ->exists();
+   
+                   if (!$hasProcessItem) {
+                       session()->flash('error', 'Cannot approve order. No items are approved by Team Leader.');
+                       return redirect()->route('admin.order.add_order_slip', $this->order->id);
+                   }
+                }
 
-                if (!$hasProcessItem) {
-                    session()->flash('error', 'Cannot approve order. No items are approved by Team Leader.');
-                    return redirect()->route('admin.order.add_order_slip', $this->order->id);
+                if($userDesignationId == 1){
+                     $hasProcessItem = OrderItem::where('order_id', $this->order->id)
+                       ->where('status', 'Process')
+                       ->where('tl_status', 'Approved')
+                       ->where('admin_status', 'Approved')
+                       ->exists();
+   
+                   if (!$hasProcessItem) {
+                       session()->flash('error', 'Cannot approve order. No items are approved by Admin.');
+                       return redirect()->route('admin.order.add_order_slip', $this->order->id);
+                   }
                 }
 
                 DB::beginTransaction();
@@ -232,207 +263,192 @@ class AddOrderSlip extends Component
             // Update the Order's total_amount
             $order->update(['total_amount' => $total_amount]);
     }
-    // public function createPackingSlip()
-    // {
-    //     $order = Order::find($this->order->id);
-
-    //     if ($order) {
-    //         $processableItems = $order->items()->where('status', 'Process')->get();
-    //          if ($processableItems->isEmpty()) {
-    //            throw new \Exception('No items in "Process" status. Cannot approve order.');
-    //         }
-    //          $processedAmount = $processableItems->sum(function ($item) {
-    //             return $item->total_price + ($item->air_mail ?? 0);
-    //         });
-
-    //         if (OrderItem::where('order_id', $this->order->id)->where('status', 'Process')->count() == 0) {
-    //             session()->flash('error', 'No items are marked as Process. Cannot approve order.');
-    //             return;
-    //         }
-    //         // Calculate the remaining amount
-    //         $packingSlip=PackingSlip::create([
-    //             'order_id' => $this->order->id,
-    //             'customer_id' => $this->customer_id,
-    //             'slipno' => $this->order->order_number,
-    //             // 'is_disbursed' => ($remaining_amount == 0) ? 1 : 0,
-    //             'is_disbursed' => 0,
-    //             'created_by' => $this->staff_id,
-    //             'created_at' => now(),
-    //             'disbursed_by' => $this->staff_id,
-    //             // 'updated_by' => auth()->id(),
-    //             // 'updated_at' => now(),
-    //         ]);
-
-
-    //         do {
-    //             $lastInvoice = Invoice::orderBy('id', 'DESC')->first();
-    //             $invoice_no = str_pad(optional($lastInvoice)->id + 1, 6, '0', STR_PAD_LEFT);
-    //         } while (Invoice::where('invoice_no', $invoice_no)->exists()); // Ensure unique invoice_no
-
-
-    //         $order->invoice_type = $this->document_type;
-    //         $invoice = Invoice::create([
-    //             'order_id' => $this->order->id,
-    //             'customer_id' => $this->customer_id,
-    //             'user_id' => $this->staff_id,
-    //             'packingslip_id' => $packingSlip->id,
-    //             'invoice_no' => $invoice_no,
-    //             // Previous
-    //             // 'net_price' => $order->total_amount,
-    //             // 'required_payment_amount' =>$order->total_amount,
-    //             // Now : 7-7-2025
-    //             'net_price' => $processedAmount,
-    //             'required_payment_amount' =>$processedAmount,
-    //             'created_by' =>  $this->staff_id,
-    //             'created_at' => now(),
-    //             // 'updated_by' => auth()->id(),
-    //             'updated_at' => now(),
-    //         ]);
-
-    //         // Fetch Products from Order Items
-    //         // $orderItems = $order->items;
-    //          $orderItems = $processableItems;
-    //          // Insert Invoice Products
-    //          foreach ($orderItems as $key => $item) {
-    //             InvoiceProduct::create([
-    //                 'invoice_id' =>  $invoice->id,
-    //                 'product_id' => $item->product_id,
-    //                 'product_name'=> $item->product? $item->product->name : "",
-    //                 'quantity' => $item->quantity,
-    //                 'single_product_price'=> $item->piece_price,
-    //                 'total_price' => $item->total_price + ($item->air_mail ?? 0),
-    //                 'is_store_address_outstation' => 0,
-    //                 'created_at' => now(),
-    //                 'updated_at' => now(),
-    //             ]);
-    //          }
-
-    //         Ledger::insert([
-    //             'user_type' => 'customer',
-    //             'transaction_id' => $invoice_no,
-    //             'customer_id' => $order->customer_id,
-    //             // 'transaction_amount' => $order->total_amount,
-    //             'transaction_amount' => $processedAmount,
-    //             'bank_cash' => 'cash',
-    //             'is_credit' => 0,
-    //             'is_debit' => 1,
-    //             'entry_date' => date('Y-m-d H:i:s'),
-    //             'purpose' => 'invoice',
-    //             'purpose_description' => 'invoice raised of sales order for customer',
-    //             'created_at' => date('Y-m-d H:i:s'),
-    //             'updated_at' => date('Y-m-d H:i:s'),
-    //         ]);
-    //     }
-    // }
-
     public function createPackingSlip()
     {
         $order = Order::find($this->order->id);
 
-        if (!$order) return;
-
-        //   $hasHoldItem = $order->items()->where('status', 'Hold')->exists();
-        // if ($hasHoldItem) {
-        //     // Flash error and redirect to the same slip page
-        //     session()->flash('error', 'Cannot approve order. Some items are on Hold.');
-        //     return redirect()->route('admin.order.add_order_slip', $order->id);
-        // }
-        // Fetch all items with status = 'Process'
-        $processableItems = $order->items()->where('status', 'Process')->where('tl_status','Approved')->get();
-
-        // Calculate total amount from processable items
-        $processedAmount = $processableItems->sum(fn($item) => $item->total_price + ($item->air_mail ?? 0));
-
-        DB::beginTransaction();
-        try {
-            // Always create a new Packing Slip
-            $packingSlip = PackingSlip::create([
-                'order_id' => $order->id,
+        if ($order) {
+          
+            // Calculate the remaining amount
+            $packingSlip=PackingSlip::create([
+                'order_id' => $this->order->id,
                 'customer_id' => $this->customer_id,
-                'slipno' => $order->order_number,
+                'slipno' => $this->order->order_number,
+                // 'is_disbursed' => ($remaining_amount == 0) ? 1 : 0,
                 'is_disbursed' => 0,
                 'created_by' => $this->staff_id,
                 'created_at' => now(),
                 'disbursed_by' => $this->staff_id,
+                // 'updated_by' => auth()->id(),
+                // 'updated_at' => now(),
             ]);
 
-            // Fetch existing invoice or create new one
-            $invoice = Invoice::where('order_id', $order->id)->latest()->first();
 
-            if (!$invoice) {
-                // Generate new invoice number
-                do {
-                    $lastInvoice = Invoice::orderBy('id', 'desc')->first();
-                    $invoice_no = str_pad(optional($lastInvoice)->id + 1, 6, '0', STR_PAD_LEFT);
-                } while (Invoice::where('invoice_no', $invoice_no)->exists());
+            do {
+                $lastInvoice = Invoice::orderBy('id', 'DESC')->first();
+                $invoice_no = str_pad(optional($lastInvoice)->id + 1, 6, '0', STR_PAD_LEFT);
+            } while (Invoice::where('invoice_no', $invoice_no)->exists()); // Ensure unique invoice_no
 
-                $invoice = Invoice::create([
-                    'order_id' => $order->id,
-                    'customer_id' => $this->customer_id,
-                    'user_id' => $this->staff_id,
-                    'packingslip_id' => $packingSlip->id,
-                    'invoice_no' => $invoice_no,
-                    'net_price' => $processedAmount,
-                    'required_payment_amount' => $processedAmount,
-                    'created_by' => $this->staff_id,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            } else {
-                $invoice_no = $invoice->invoice_no;
 
-                // Clear old invoice products
-                InvoiceProduct::where('invoice_id', $invoice->id)->delete();
+            $order->invoice_type = $this->document_type;
+            $invoice = Invoice::create([
+                'order_id' => $this->order->id,
+                'customer_id' => $this->customer_id,
+                'user_id' => $this->staff_id,
+                'packingslip_id' => $packingSlip->id,
+                'invoice_no' => $invoice_no,
+                // Previous
+                'net_price' => $order->total_amount,
+                'required_payment_amount' =>$order->total_amount,
+                'created_by' =>  $this->staff_id,
+                'created_at' => now(),
+                // 'updated_by' => auth()->id(),
+                'updated_at' => now(),
+            ]);
 
-                // Remove old ledger entries for this invoice
-                Ledger::where('transaction_id', $invoice_no)->delete();
-
-                // Update invoice totals
-                $invoice->update([
-                    'net_price' => $processedAmount,
-                    'required_payment_amount' => $processedAmount,
-                    'updated_at' => now(),
-                ]);
-            }
-
-            // Insert updated invoice products
-            foreach ($processableItems as $item) {
+            // Fetch Products from Order Items
+            $orderItems = $order->items;
+             // Insert Invoice Products
+             foreach ($orderItems as $key => $item) {
                 InvoiceProduct::create([
-                    'invoice_id' => $invoice->id,
-                    'order_item_id' => $item->id,
+                    'invoice_id' =>  $invoice->id,
                     'product_id' => $item->product_id,
-                    'product_name' => $item->product?->name ?? '',
+                    'order_item_id' => $item->id,
+                    'product_name'=> $item->product? $item->product->name : "",
                     'quantity' => $item->quantity,
-                    'single_product_price' => $item->piece_price,
+                    'single_product_price'=> $item->piece_price,
                     'total_price' => $item->total_price + ($item->air_mail ?? 0),
                     'is_store_address_outstation' => 0,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
-            }
+             }
 
-            // Insert updated ledger
-            Ledger::create([
+            Ledger::insert([
                 'user_type' => 'customer',
                 'transaction_id' => $invoice_no,
                 'customer_id' => $order->customer_id,
-                'transaction_amount' => $processedAmount,
+                'transaction_amount' => $order->total_amount,
                 'bank_cash' => 'cash',
                 'is_credit' => 0,
                 'is_debit' => 1,
-                'entry_date' => now(),
+                'entry_date' => date('Y-m-d H:i:s'),
                 'purpose' => 'invoice',
-                'purpose_description' => 'Updated invoice for Process items',
-                'created_at' => now(),
-                'updated_at' => now(),
+                'purpose_description' => 'invoice raised of sales order for customer',
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
             ]);
-
-            DB::commit();
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            throw $e;
         }
     }
+
+    // public function createPackingSlip()
+    // {
+    //     $order = Order::find($this->order->id);
+
+    //     if (!$order) return;
+
+    //     //   $hasHoldItem = $order->items()->where('status', 'Hold')->exists();
+    //     // if ($hasHoldItem) {
+    //     //     // Flash error and redirect to the same slip page
+    //     //     session()->flash('error', 'Cannot approve order. Some items are on Hold.');
+    //     //     return redirect()->route('admin.order.add_order_slip', $order->id);
+    //     // }
+    //     // Fetch all items with status = 'Process'
+    //     $processableItems = $order->items()->where('status', 'Process')->where('tl_status','Approved')->get();
+
+    //     // Calculate total amount from processable items
+    //     $processedAmount = $processableItems->sum(fn($item) => $item->total_price + ($item->air_mail ?? 0));
+    
+    //     DB::beginTransaction();
+    //     try {
+    //         // Always create a new Packing Slip
+    //         $packingSlip = PackingSlip::create([
+    //             'order_id' => $order->id,
+    //             'customer_id' => $this->customer_id,
+    //             'slipno' => $order->order_number,
+    //             'is_disbursed' => 0,
+    //             'created_by' => $this->staff_id,
+    //             'created_at' => now(),
+    //             'disbursed_by' => $this->staff_id,
+    //         ]);
+
+    //         // Fetch existing invoice or create new one
+    //         $invoice = Invoice::where('order_id', $order->id)->latest()->first();
+
+    //         if (!$invoice) {
+    //             // Generate new invoice number
+    //             do {
+    //                 $lastInvoice = Invoice::orderBy('id', 'desc')->first();
+    //                 $invoice_no = str_pad(optional($lastInvoice)->id + 1, 6, '0', STR_PAD_LEFT);
+    //             } while (Invoice::where('invoice_no', $invoice_no)->exists());
+
+    //             $invoice = Invoice::create([
+    //                 'order_id' => $order->id,
+    //                 'customer_id' => $this->customer_id,
+    //                 'user_id' => $this->staff_id,
+    //                 'packingslip_id' => $packingSlip->id,
+    //                 'invoice_no' => $invoice_no,
+    //                 'net_price' => $processedAmount,
+    //                 'required_payment_amount' => $processedAmount,
+    //                 'created_by' => $this->staff_id,
+    //                 'created_at' => now(),
+    //                 'updated_at' => now(),
+    //             ]);
+    //         } else {
+    //             $invoice_no = $invoice->invoice_no;
+
+    //             // Clear old invoice products
+    //             InvoiceProduct::where('invoice_id', $invoice->id)->delete();
+
+    //             // Remove old ledger entries for this invoice
+    //             Ledger::where('transaction_id', $invoice_no)->delete();
+
+    //             // Update invoice totals
+    //             $invoice->update([
+    //                 'net_price' => $processedAmount,
+    //                 'required_payment_amount' => $processedAmount,
+    //                 'updated_at' => now(),
+    //             ]);
+    //         }
+
+    //         // Insert updated invoice products
+    //         foreach ($processableItems as $item) {
+    //             InvoiceProduct::create([
+    //                 'invoice_id' => $invoice->id,
+    //                 'order_item_id' => $item->id,
+    //                 'product_id' => $item->product_id,
+    //                 'product_name' => $item->product?->name ?? '',
+    //                 'quantity' => $item->quantity,
+    //                 'single_product_price' => $item->piece_price,
+    //                 'total_price' => $item->total_price + ($item->air_mail ?? 0),
+    //                 'is_store_address_outstation' => 0,
+    //                 'created_at' => now(),
+    //                 'updated_at' => now(),
+    //             ]);
+    //         }
+
+    //         // Insert updated ledger
+    //         Ledger::create([
+    //             'user_type' => 'customer',
+    //             'transaction_id' => $invoice_no,
+    //             'customer_id' => $order->customer_id,
+    //             'transaction_amount' => $processedAmount,
+    //             'bank_cash' => 'cash',
+    //             'is_credit' => 0,
+    //             'is_debit' => 1,
+    //             'entry_date' => now(),
+    //             'purpose' => 'invoice',
+    //             'purpose_description' => 'Updated invoice for Process items',
+    //             'created_at' => now(),
+    //             'updated_at' => now(),
+    //         ]);
+
+    //         DB::commit();
+    //     } catch (\Throwable $e) {
+    //         DB::rollBack();
+    //         throw $e;
+    //     }
+    // }
 
 
 

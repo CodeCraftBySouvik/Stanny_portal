@@ -209,7 +209,13 @@ class ProductionOrderDetails extends Component
     }
 
     public function loadOrderItems(){
-        $this->orderItems = $this->order->items->map(function ($item) {
+        $this->orderItems = $this->order->items
+             ->filter(function($item){
+               return $item->status === 'Process' &&
+                      $item->tl_status === 'Approved' &&
+                      $item->admin_status === 'Approved';
+            })
+            ->map(function ($item) {
             $product = Product::find($item->product_id);
             $stockData = Helper::getStockEntryData(
                 $item->collection,

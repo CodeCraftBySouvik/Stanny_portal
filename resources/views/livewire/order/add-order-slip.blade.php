@@ -204,6 +204,7 @@
                                     @endif
                                     @php
                                         $isApprovedByTL = $order_item->status === 'Process' && $order_item->tl_status === 'Approved';
+                                         $isApprovedByAdmin = $order_item->status === 'Process' && $order_item->admin_status === 'Approved';
                                     @endphp
 
                                     {{-- <input type="text" class="form-control form-control-sm text-white fw-bold rounded-pill text-center {{$order_item->status == "Process" ? 'bg-success' : 'bg-danger'}}"
@@ -212,8 +213,8 @@
                                            {{$readonly}}> --}}
                                            <input type="text"
                                             class="form-control form-control-sm text-white fw-bold rounded-pill text-center
-                                                    {{ $isApprovedByTL ? 'bg-info' : ($order_item->status === 'Process' ? 'bg-success' : 'bg-danger') }}"
-                                            value="{{ $isApprovedByTL ? 'Approved by TL' : $order_item->status }}"
+                                                    {{ $isApprovedByAdmin ? 'bg-primary' : ($isApprovedByTL ? 'bg-info' : ($order_item->status === 'Process' ? 'bg-success' : 'bg-danger')) }}"
+                                           value="{{ $isApprovedByAdmin ? 'Approved by SuperAdmin' : ($isApprovedByTL ? 'Approved by TL' : $order_item->status) }}"
                                             disabled
                                             {{$readonly}}>
                                 </div>
@@ -223,8 +224,12 @@
                                     $userDesignationId = auth()->guard('admin')->user()->designation;
                                      $isApprovedByTL = $order_item->status === 'Process' && $order_item->tl_status === 'Approved';
                                 @endphp
-
-                                @if($userDesignationId == 4)
+                                 {{--  Admin checkbox when TL has approved --}}
+                                 @if ($userDesignationId == 1 && $isApprovedByTL)
+                                      <input type="checkbox" wire:model="order_item.{{$key}}.admin_approved"
+                                        wire:change="updateAdminStatus({{ $key }})">
+                                @elseif($userDesignationId == 4)
+                                {{--  TL checkbox for approving Process items --}}
                                     @if($order_item->status == 'Process')
                                         <input type="checkbox" wire:model="order_item.{{$key}}.tl_approved"
                                          wire:change="updateTlStatus({{ $key }})" >
@@ -232,6 +237,7 @@
                                         <span class="badge bg-secondary">N/A</span>
                                     @endif
                                 @else
+                                 {{--  For others: Show tl_status as badge --}}
                                     @if (!$isApprovedByTL)
                                         <span class="badge {{ $order_item->tl_status == 'Approved' ? 'bg-success' : ($order_item->tl_status == 'Hold' ? 'bg-danger' : 'bg-secondary') }}">
                                             {{ $order_item->tl_status ?? 'Pending' }}

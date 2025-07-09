@@ -70,6 +70,7 @@ class OrderRepository
                 InvoiceProduct::create([
                     'invoice_id' => $invoice->id,
                     'product_id' => $item->product_id,
+                    'order_item_id' => $item->id,
                     'product_name' => optional($item->product)->name ?? '',
                     'quantity' => $item->quantity,
                     'single_product_price' => $item->piece_price,

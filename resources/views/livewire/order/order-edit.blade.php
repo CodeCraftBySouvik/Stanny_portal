@@ -557,9 +557,14 @@
                                         @enderror
                                     </div>
                                     <div class="col-md-2">
+                                        @php
+                                              $status = $item['status'] ?? null;
+                                              $tlStatus = $item['tl_status'] ?? null;
+                                        @endphp
                                         <label class="form-label"><strong>Item Status</strong></label>
                                         <select class="form-control form-control-sm border border-1"
-                                                wire:model="items.{{ $index }}.item_status">
+                                                wire:model="items.{{ $index }}.item_status"
+                                                 @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
                                             <option value="" hidden>Select Item Status</option>
                                             <option value="Process">Process</option>
                                             <option value="Hold">Hold</option>
@@ -730,10 +735,15 @@
                                             </div>
                                         </div>
                                         <div class="row mb-4">
+                                            @php
+                                              $status = $item['status'] ?? null;
+                                              $tlStatus = $item['tl_status'] ?? null;
+                                            @endphp
                                             <div class="col-md-4" >
                                                 <label class="form-label"><strong>Item Status</strong></label>
                                                 <select class="form-control form-control-sm border border-1"
-                                                        wire:model="items.{{ $index }}.item_status">
+                                                        wire:model="items.{{ $index }}.item_status"  
+                                                        @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
                                                     <option value="" hidden>Select Item Status</option>
                                                     <option value="Process">Process</option>
                                                     <option value="Hold">Hold</option>

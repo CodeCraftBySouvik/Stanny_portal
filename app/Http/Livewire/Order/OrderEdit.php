@@ -191,8 +191,10 @@ class OrderEdit extends Component
                     'page_item' => $item->cat_page_item,
                     'expected_delivery_date' => $item->expected_delivery_date,
                     'fitting' => $item->collection == 1 ? $item->fittings : '',
-                    'priority' => $item->priority_level
-
+                    'priority' => $item->priority_level,
+                    'status'  =>  $item->status,
+                    'tl_status' => $item->tl_status,
+                    'item_status' => $item->status, 
 
                 ];
             })->toArray();
@@ -1020,6 +1022,26 @@ class OrderEdit extends Component
                     $orderItem->expected_delivery_date  = $item['expected_delivery_date'];
                     $orderItem->cat_page_number  = $item['page_number'] ?? null;
                     $orderItem->cat_page_item  = $item['page_item'] ?? null;
+                      $loggedInAdmin = auth()->guard('admin')->user();
+                    if ($orderItem->status === 'Process') {
+                        if ($loggedInAdmin->designation == 1) {
+                            // Admin is creating the order
+                            $orderItem->tl_status = 'Approved';
+                            $orderItem->admin_status = 'Approved';
+                        } elseif ($loggedInAdmin->designation == 4) {
+                            // Team Lead is creating the order
+                            $orderItem->tl_status = 'Approved';
+                            $orderItem->admin_status = 'Pending';
+                        } else {
+                            // For others
+                            $orderItem->tl_status = 'Pending';
+                            $orderItem->admin_status = 'Pending';
+                        }
+                    } else {
+                        // If status is not Process
+                        $orderItem->tl_status = 'Pending';
+                        $orderItem->admin_status = 'Pending';
+                    }
                     $orderItem->save();
 
                     if ($orderItem) {
