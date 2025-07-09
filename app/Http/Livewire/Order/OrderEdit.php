@@ -194,7 +194,6 @@ class OrderEdit extends Component
                     'priority' => $item->priority_level,
                     'status'  =>  $item->status,
                     'tl_status' => $item->tl_status,
-                    'item_status' => $item->status, 
 
                 ];
             })->toArray();
@@ -1023,7 +1022,8 @@ class OrderEdit extends Component
                     $orderItem->cat_page_number  = $item['page_number'] ?? null;
                     $orderItem->cat_page_item  = $item['page_item'] ?? null;
                       $loggedInAdmin = auth()->guard('admin')->user();
-                    if ($orderItem->status === 'Process') {
+                      $originalStatus = $orderItem->status;
+                    if ($orderItem->status === 'Process' && $originalStatus != 'Process') {
                         if ($loggedInAdmin->designation == 1) {
                             // Admin is creating the order
                             $orderItem->tl_status = 'Approved';
@@ -1037,11 +1037,16 @@ class OrderEdit extends Component
                             $orderItem->tl_status = 'Pending';
                             $orderItem->admin_status = 'Pending';
                         }
-                    } else {
-                        // If status is not Process
+                    } elseif ($orderItem->status !== 'Process' && $originalStatus === 'Process') {
+                        // Going back to Hold, reset approvals
                         $orderItem->tl_status = 'Pending';
                         $orderItem->admin_status = 'Pending';
                     }
+                    // else {
+                    //     // If status is not Process
+                    //     $orderItem->tl_status = 'Pending';
+                    //     $orderItem->admin_status = 'Pending';
+                    // }
                     $orderItem->save();
 
                     if ($orderItem) {
