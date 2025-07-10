@@ -208,7 +208,7 @@
                                             </button>
 
                                         @else
-                                            @if ($userDesignationId == 2)
+                                            @if ($userDesignationId == 2 && $order->hasHoldItemsWithApprovedTLStatus())
                                                 <a href="{{ route('admin.order.edit', $order->id) }}" class="btn btn-outline-success select-md btn_outline">
                                                     Edit
                                                 </a>
