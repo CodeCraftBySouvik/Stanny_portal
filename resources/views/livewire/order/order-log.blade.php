@@ -4,7 +4,7 @@
     </section>
     <section>
         <div class="search__filter">
-            <div class="row align-items-center justify-content-end">
+            {{-- <div class="row align-items-center justify-content-end">
                 <div class="col-auto">
                     <div class="row g-3 align-items-center">
                         <div class="col-auto" style="margin-top: -27px;">
@@ -40,13 +40,15 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> --}}
             <div class="row align-items-center justify-content-between">
                 <div class="col-auto">
                     <p class="text-sm font-weight-bold">{{ env('ORDER_PREFIX'). $order->order_number }}</p>
                 </div>
-
-                <div class="col-auto">
+                <div class="col-auto mt-3">
+                    <a href="{{route('admin.order.index')}}" class="btn btn-outline-danger select-md">Back</a>
+                </div>
+                {{-- <div class="col-auto">
                     <div class="row g-3 align-items-center mt-0">
                         <div class="col-auto mt-0">
                             <input type="text" wire:model="search" class="form-control select-md bg-white search-input" id="customer"
@@ -62,7 +64,7 @@
 
                         </div>
                     </div>
-                </div>
+                </div> --}}
             </div>
         </div>
     </section>

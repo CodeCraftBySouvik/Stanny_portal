@@ -230,11 +230,11 @@
                                                     Edit
                                                 </a>
                                             @endif
-                                            @if($userDesignationId == 1 && $order->hasHoldItemsWithApprovedByAdmin())
+                                            {{-- @if($userDesignationId == 1 && $order->hasHoldItemsWithApprovedByAdmin())
                                                 <a href="{{ route('admin.order.edit', $order->id) }}" class="btn btn-outline-success select-md btn_outline">
                                                     Edit
                                                 </a>
-                                            @endif
+                                            @endif --}}
 
                                             
                                             <a href="{{route('admin.order.download_invoice',$order->id)}}" target="_blank" class="btn btn-outline-primary select-md btn_outline">Invoice</a>    

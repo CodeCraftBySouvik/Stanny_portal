@@ -219,6 +219,7 @@ class OrderView extends Component
         ->where('id', '<', $id) // ensure it's before current order
         ->orderBy('id', 'desc') // get the most recent before current
         ->first();
+        
        //die($last_order->order_number);exit;
         $item_sold=[];
         $item_delivered=[];
@@ -256,7 +257,7 @@ class OrderView extends Component
         }
         $data = [
             'order_no' => $order['order_number'],
-            'last_order_no' =>$last_order->order_number,
+            'last_order_no' =>$last_order->order_number ?? 'N/A',
             'name' => $order['customer_name'],
             'rank' =>$order['customer']['employee_rank'],
             'address' =>$order['billing_address'],

@@ -386,6 +386,11 @@ class OrderEdit extends Component
         'items.*.price' => 'required|numeric|min:1',
         'items.*.selectedCatalogue' => 'required_if:items.*.selected_collection,1',
         'items.*.page_number' => 'required_if:items.*.selected_collection,1',
+        'items.*.quantity' => 'required|numeric|min:1',
+        'items.*.fitting' => 'required_if:items.*.collection,1',
+        'items.*.priority' => 'required',
+        'items.*.expected_delivery_date' => 'required',
+        'items.*.item_status' => 'required',
     ];
 
     protected function messages(){
@@ -396,6 +401,11 @@ class OrderEdit extends Component
              'items.*.page_number.required_if' => 'Please select a page for the item.',
              'items.*.price.required'  => 'Please enter a price for the item.',
              'items.*.selected_collection.required' =>  'Please enter a collection for the item.',
+             'items.*.quantity' => 'Please select a quantity for the item.',
+             'items.*.fitting.required_if'  => 'Please select a fittings for the item.',
+             'items.*.priority.required'  => 'Please select a priority for the item.',
+             'items.*.item_status.required'  => 'Please select a status for the item.',
+             'items.*.expected_delivery_date.required'  => 'Please select expected delivery date for the item.',
         ];
     }
 
@@ -973,7 +983,7 @@ class OrderEdit extends Component
                 $order->air_mail = $airMail;
                 $order->total_amount = $total_amount;
                 $order->last_payment_date = now();
-                $order->created_by = auth()->guard('admin')->user()->id;
+                // $order->created_by = auth()->guard('admin')->user()->id;
                 $order->save();
             }
 

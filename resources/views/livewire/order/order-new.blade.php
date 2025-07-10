@@ -243,7 +243,7 @@
                             @endif
                         </div>
                         <div class="mb-2 col-md-3">
-                            <label for="customer_image" class="form-label"> Image <span class="small text-danger">*</span></label>
+                            <label for="customer_image" class="form-label">Client Image <span class="small text-danger">*</span></label>
                             <input type="file" wire:model="customer_image" id="customer_image"
                                 class="form-control form-control-sm border border-1 p-2 {{ $errorClass['customer_image'] ?? '' }}">
                             @if(isset($errorMessage['customer_image']))
