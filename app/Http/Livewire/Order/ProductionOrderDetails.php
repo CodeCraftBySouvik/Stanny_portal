@@ -306,7 +306,10 @@ class ProductionOrderDetails extends Component
                 'is_delivered' => $isDelivered,
                 'delivered_quantity' => $deliveredQty,
                 'remaining_to_deliver' => $remainingQty,
-                'logs' => $logTooltip
+                'logs' => $logTooltip,
+                'remarks' => $item->remarks,
+                'catlogue_images' => $item->catlogue_image,
+                'voice_remarks' => $item->voice_remark,
             ];
         });
         

@@ -104,19 +104,64 @@ class AddOrderSlip extends Component
             ->update(['tl_status' => $newStatus]);
     }
 
-    public function updateAdminStatus($key){
-        $isApproved = !empty($this->order_item[$key]['admin_approved'])
-                    && $this->order_item[$key]['admin_approved'] == true;
+    // public function updateAdminStatus($key){
+    //     $isApproved = !empty($this->order_item[$key]['admin_approved'])
+    //                 && $this->order_item[$key]['admin_approved'] == true;
 
+    //     $newStatus = $isApproved ? 'Approved' : 'Hold';
+
+    //     // Update the array (Livewire state)
+    //     $this->order_item[$key]['admin_status'] = $newStatus;
+
+    //     // Update the database
+    //     OrderItem::where('id', $this->order_item[$key]['id'])
+    //         ->update(['admin_status' => $newStatus]);
+    // }
+
+    public function updateAdminStatus($key)
+    {
+        // Was the checkbox just CHECKED?
+        $isApproved = !empty($this->order_item[$key]['admin_approved'])
+                && $this->order_item[$key]['admin_approved'] == true;
+
+        // Load the row once so we can inspect / save it
+        $item = OrderItem::find($this->order_item[$key]['id']);
+        if (!$item) {
+            return;            // no record – exit early
+        }
+
+        /* -----------------------------------------------------------------
+        |  1. SPECIAL CASE ― the line is still on HOLD and the Admin has
+        |  checked the box. Promote it straight to production (Process)
+        |  and mark both TL + Admin approvals.
+        * -----------------------------------------------------------------*/
+        if ($item->status === 'Hold' && $isApproved) {
+            $item->status       = 'Process';   // ready to be produced
+            $item->tl_status    = 'Approved';  // TL step bypassed
+            $item->admin_status = 'Approved';  // Super‑Admin approval
+            $item->save();
+
+            // keep Livewire’s array in sync
+            $this->order_item[$key]['status']       = 'Process';
+            $this->order_item[$key]['tl_status']    = 'Approved';
+            $this->order_item[$key]['admin_status'] = 'Approved';
+
+            return;             // nothing else to do
+        }
+
+        /* -----------------------------------------------------------------
+        | 2. ORIGINAL BEHAVIOUR ― for normal Process rows just flip
+        |    admin_status between Approved / Hold
+        * -----------------------------------------------------------------*/
         $newStatus = $isApproved ? 'Approved' : 'Hold';
 
-        // Update the array (Livewire state)
+        // Update Livewire state
         $this->order_item[$key]['admin_status'] = $newStatus;
 
-        // Update the database
-        OrderItem::where('id', $this->order_item[$key]['id'])
-            ->update(['admin_status' => $newStatus]);
+        // Update DB
+        $item->update(['admin_status' => $newStatus]);
     }
+
 
 
     public function updateQuantity($value, $key,$price){
@@ -174,19 +219,46 @@ class AddOrderSlip extends Component
                        return redirect()->route('admin.order.add_order_slip', $this->order->id);
                    }
                 }
-
-                if($userDesignationId == 1){
-                     $hasProcessItem = OrderItem::where('order_id', $this->order->id)
-                       ->where('status', 'Process')
-                       ->where('tl_status', 'Approved')
-                       ->where('admin_status', 'Approved')
-                       ->exists();
+                // old
+                // if($userDesignationId == 1){
+                //      $hasProcessItem = OrderItem::where('order_id', $this->order->id)
+                //        ->where('status', 'Process')
+                //        ->where('tl_status', 'Approved')
+                //        ->where('admin_status', 'Approved')
+                //        ->exists();
    
-                   if (!$hasProcessItem) {
-                       session()->flash('error', 'Cannot approve order. No items are approved by Admin.');
-                       return redirect()->route('admin.order.add_order_slip', $this->order->id);
-                   }
+                //    if (!$hasProcessItem) {
+                //        session()->flash('error', 'Cannot approve order. No items are approved by Admin.');
+                //        return redirect()->route('admin.order.add_order_slip', $this->order->id);
+                //    }
+                // }
+                
+                // new
+                if ($userDesignationId == 1) {
+
+                // ⬇️ new – auto‑approve any remaining TL‑approved rows
+                OrderItem::where('order_id', $this->order->id)
+                    ->where('status', 'Process')
+                    ->where('tl_status', 'Approved')
+                    ->where(function($q){           // not yet approved by Admin
+                        $q->whereNull('admin_status')
+                        ->orWhere('admin_status', '!=', 'Approved');
+                    })
+                    ->update(['admin_status' => 'Approved']);
+
+                // now re‑run your guard
+                $hasProcessItem = OrderItem::where('order_id', $this->order->id)
+                    ->where('status', 'Process')
+                    ->where('tl_status', 'Approved')
+                    ->where('admin_status', 'Approved')
+                    ->exists();
+
+                if (!$hasProcessItem) {
+                    session()->flash('error', 'Cannot approve order. No items are approved by Admin.');
+                    return redirect()->route('admin.order.add_order_slip', $this->order->id);
                 }
+            }
+
 
                 DB::beginTransaction();
                 $this->updateOrder();

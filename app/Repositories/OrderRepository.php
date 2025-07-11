@@ -23,7 +23,7 @@ class OrderRepository
 
             $order->update([
                 'status' => 'Approved',
-                'created_by' => $staffId ?? $order->created_by,
+                // 'created_by' => $staffId ?? $order->created_by,
                 'last_payment_date' => now(),
             ]);
 

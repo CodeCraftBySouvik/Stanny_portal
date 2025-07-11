@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Livewire\Order;
+use App\Repositories\OrderRepository;
 
 use Livewire\Component;
 use App\Models\Order;
@@ -882,7 +883,7 @@ class OrderEdit extends Component
     }
 
 
-    public function update()
+    public function update(OrderRepository $orderRepo)
     {
         $this->validate();
         DB::beginTransaction();
@@ -1032,9 +1033,31 @@ class OrderEdit extends Component
                     $orderItem->cat_page_number  = $item['page_number'] ?? null;
                     $orderItem->cat_page_item  = $item['page_item'] ?? null;
                       $loggedInAdmin = auth()->guard('admin')->user();
-                      $originalStatus = $orderItem->status;
-                    if ($orderItem->status === 'Process' && $originalStatus != 'Process') {
-                        if ($loggedInAdmin->designation == 1) {
+                    //   old
+                    //   $originalStatus = $orderItem->status;
+                    // if ($orderItem->status === 'Process' && $originalStatus != 'Process') {
+                    //     if ($loggedInAdmin->designation == 1) {
+                    //         // Admin is creating the order
+                    //         $orderItem->tl_status = 'Approved';
+                    //         $orderItem->admin_status = 'Approved';
+                    //     } elseif ($loggedInAdmin->designation == 4) {
+                    //         // Team Lead is creating the order
+                    //         $orderItem->tl_status = 'Approved';
+                    //         $orderItem->admin_status = 'Pending';
+                    //     } else {
+                    //         // For others
+                    //         $orderItem->tl_status = 'Pending';
+                    //         $orderItem->admin_status = 'Pending';
+                    //     }
+                    // } elseif ($orderItem->status !== 'Process' && $originalStatus === 'Process') {
+                    //     // Going back to Hold, reset approvals
+                    //     $orderItem->tl_status = 'Pending';
+                    //     $orderItem->admin_status = 'Pending';
+                    // }
+                    
+                    // new
+                    if ($orderItem->status === 'Process') {
+                        if (in_array($loggedInAdmin->designation,[1,12])) {
                             // Admin is creating the order
                             $orderItem->tl_status = 'Approved';
                             $orderItem->admin_status = 'Approved';
@@ -1047,16 +1070,12 @@ class OrderEdit extends Component
                             $orderItem->tl_status = 'Pending';
                             $orderItem->admin_status = 'Pending';
                         }
-                    } elseif ($orderItem->status !== 'Process' && $originalStatus === 'Process') {
-                        // Going back to Hold, reset approvals
+                    } else {
+                        // If status is not Process
                         $orderItem->tl_status = 'Pending';
                         $orderItem->admin_status = 'Pending';
                     }
-                    // else {
-                    //     // If status is not Process
-                    //     $orderItem->tl_status = 'Pending';
-                    //     $orderItem->admin_status = 'Pending';
-                    // }
+
                     $orderItem->save();
 
                     if ($orderItem) {
@@ -1169,7 +1188,10 @@ class OrderEdit extends Component
 
             // Maintain Log
 
-
+            //  $staff = $loggedInAdmin;
+            // if ($staff && (in_array($staff->designation,[1,12]))) {
+            //     $orderRepo->approveOrder($order->id, $staff->id);
+            // }
 
 
             DB::commit();

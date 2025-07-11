@@ -78,8 +78,8 @@ class OrderView extends Component
                     : [],
                 'quantity' => $item->quantity,
                 'remarks' => $item->remarks,
-                'catlogue_image' => $item->catlogue_image,
-                'voice_remark' => $item->voice_remark,
+                'catlogue_images' => $item->catlogue_image,
+                'voice_remarks' => $item->voice_remark,
 
                 'product_image' => $product ? $product->product_image : null,
             ];

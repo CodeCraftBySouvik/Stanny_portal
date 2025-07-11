@@ -135,7 +135,7 @@
                                 <div class="text-danger">{{ $errorMessage['email'] }}</div>
                                 @endif
                             </div>
-
+                            
                              <div class="mb-2 col-md-3">
                                 <label for="customer_image" class="form-label">Client Image <span class="small text-danger">*</span></label>
                                 <input type="file" wire:model="customer_image" id="customer_image"
@@ -549,7 +549,8 @@
                                     <div class="col-md-2">
                                         <label for="">Expected Delivery Date</label>
                                         <input type="date" class="form-control form-control-sm border border-1" wire:model="items.{{$index}}.expected_delivery_date" 
-                                        @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                        @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif
+                                        min="{{ \Carbon\Carbon::today()->format('Y-m-d') }}">
                                         @error("items.$index.expected_delivery_date")
                                         <div class="text-danger">{{ $message }}</div>
                                         @enderror
@@ -714,7 +715,8 @@
                                             <div class="col-md-4">
                                                 <label for="">Expected Delivery Date</label>
                                                 <input type="date" class="form-control form-control-sm border border-1" wire:model="items.{{$index}}.expected_delivery_date"
-                                                @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                                @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif
+                                                min="{{ \Carbon\Carbon::today()->format('Y-m-d') }}">
                                                 @error("items.$index.expected_delivery_date")
                                                     <div class="text-danger">{{ $message }}</div>
                                                 @enderror

@@ -136,7 +136,7 @@ class Order extends Model
     // Admin can approve only if 'Process' + 'tl_status' = 'Approved'
     public function canAdminApprove()
     {
-        return $this->items()
+       return $this->items()
             ->where('status', 'Process')
             ->where('tl_status', 'Approved')
             ->where(function($q) {

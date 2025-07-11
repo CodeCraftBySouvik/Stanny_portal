@@ -220,15 +220,30 @@
                                 </div>
                             </div>
                             <div class="col-sm-1">
-                                @php
+                                {{-- @php
+                                    $isHold = $order_item->status === 'Hold';
                                     $userDesignationId = auth()->guard('admin')->user()->designation;
                                      $isApprovedByTL = $order_item->status === 'Process' && $order_item->tl_status === 'Approved';
+                                     
+                                @endphp --}}
+                                @php
+                                    // $isHold         = $order_item->status === 'Hold';
+
+                                    //  Get the full user object once
+                                    $user           = auth()->guard('admin')->user();
+
+                                    //  Compare against full user id
+                                    $createdByThisAdmin = $order->created_by == $user->id;
+
+                                    $isApprovedByTL = $order_item->status === 'Process' && $order_item->tl_status === 'Approved';
                                 @endphp
+
                                  {{--  Admin checkbox when TL has approved --}}
-                                 @if ($userDesignationId == 1 && $isApprovedByTL)
+                                 @if ($user->designation == 1 && $isApprovedByTL)
                                       <input type="checkbox" wire:model="order_item.{{$key}}.admin_approved"
-                                        wire:change="updateAdminStatus({{ $key }})">
-                                @elseif($userDesignationId == 4)
+                                        wire:change="updateAdminStatus({{ $key }})"
+                                        {{$isApprovedByAdmin ? 'disabled checked' : ''}}>
+                                @elseif($user->designation == 4)
                                 {{--  TL checkbox for approving Process items --}}
                                     @if($order_item->status == 'Process')
                                         <input type="checkbox" wire:model="order_item.{{$key}}.tl_approved"

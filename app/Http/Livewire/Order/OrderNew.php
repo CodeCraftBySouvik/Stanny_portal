@@ -1012,7 +1012,7 @@ class OrderNew extends Component
                 // }
 
                 if ($orderItem->status === 'Process') {
-                    if ($loggedInAdmin->designation == 1) {
+                    if (in_array($loggedInAdmin->designation,[1,12])) {
                         // Admin is creating the order
                         $orderItem->tl_status = 'Approved';
                         $orderItem->admin_status = 'Approved';
@@ -1159,6 +1159,7 @@ class OrderNew extends Component
                     }
                 }
 
+                // Auto Approve for Admin And Store Person
                  $staff = User::find($this->salesman);
                 if ($staff && (in_array($staff->designation,[1,12]))) {
                     $orderRepo->approveOrder($order->id, $staff->id);

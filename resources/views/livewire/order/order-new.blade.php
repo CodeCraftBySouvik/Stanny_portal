@@ -671,7 +671,8 @@
                             <div class="row mb-3">
                                  <div class="col-md-2">
                                     <label for="">Expected Delivery Date</label>
-                                    <input type="date" class="form-control form-control-sm border border-1" wire:model="items.{{$index}}.expected_delivery_date">
+                                    <input type="date" class="form-control form-control-sm border border-1" wire:model="items.{{$index}}.expected_delivery_date"
+                                     min="{{ \Carbon\Carbon::today()->format('Y-m-d') }}">
                                     @error("items.$index.expected_delivery_date")
                                     <div class="text-danger">{{ $message }}</div>
                                     @enderror
@@ -817,7 +818,8 @@
                                 <div class="row mb-3">
                                     <div class="col-md-4">
                                          <label for="">Expected Delivery Date</label>
-                                         <input type="date" class="form-control form-control-sm border border-1" wire:model="items.{{$index}}.expected_delivery_date">
+                                         <input type="date" class="form-control form-control-sm border border-1" wire:model="items.{{$index}}.expected_delivery_date"
+                                         min="{{ \Carbon\Carbon::today()->format('Y-m-d') }}">
                                          @error("items.$index.expected_delivery_date")
                                             <div class="text-danger">{{ $message }}</div>
                                         @enderror

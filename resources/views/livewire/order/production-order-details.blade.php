@@ -263,6 +263,38 @@
                                         }}</strong> (PAGE:
                                     <strong>{{$item['cat_page_number']}}</strong>)
                                 </p>
+
+                                 @if(!empty($item['remarks']))
+                                    <p>Remark :
+                                        <strong>{{$item['remarks']}}</strong>
+                                    </p>
+                                    @endif
+                                    
+                                    {{-- Catalogue images --}}
+                                    @if(!empty($item['catlogue_images']))
+                                        <p>CATALOGUE IMAGES :</p>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            @foreach ($item['catlogue_images'] as $img)
+                                                <a target="_blank" href="{{ asset('storage/'.$img->image_path) }}">
+                                                    <img src="{{ asset('storage/'.$img->image_path) }}"
+                                                        class="img-fluid rounded shadow border border-secondary"
+                                                        style="width:100px;height:100px;"
+                                                        alt="Catalogue image">
+                                                </a>
+                                            @endforeach
+                                        </div>
+                                    @endif
+
+                                    @if(!empty($item['voice_remarks']))
+                                    <p>VOICE REMARKS :
+                                        @foreach ($item['voice_remarks'] as $voice)
+                                            <audio controls>
+                                                <source src="{{ asset('storage/'.$voice->voice_path) }}" type="audio/mpeg">
+                                                Your browser does not support the audio element.
+                                            </audio>
+                                        @endforeach
+                                    </p>
+                                    @endif
                             </td>
                         </tr>
 

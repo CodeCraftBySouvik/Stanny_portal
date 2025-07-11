@@ -127,6 +127,27 @@
                                 <p class="small m-0">{{$order->billing_address}}</p>
                             </div>
                         </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-4">
+                                <p class="small m-0"><strong>Client Image :</strong></p>
+                            </div>
+
+                            <div class="col-sm-8">
+                                {{-- Fancybox hook: data-fancybox attribute --}}
+                                <a
+                                    target="_blank"
+                                    href="{{ asset($order->customer_image) }}"  {{-- full‑size image --}}
+                                >
+                                    <img
+                                        src="{{ asset($order->customer_image) }}"  {{-- same file or a thumbnail --}}
+                                        alt="client image"
+                                        class="img-thumbnail"
+                                        width="100"
+                                    >
+                                </a>
+                            </div>
+                        </div>
+
                         
 
                     </div>
@@ -302,22 +323,29 @@
                                         <strong>{{$item['remarks']}}</strong>
                                     </p>
                                     @endif
-                                    @if(!empty($item['catlogue_image']['image_path']))
-                                    <p>CATLOGUE IMAGE :
-                                        <div class="d-flex justify-content-center">
-                                            <a target="_blank" href="{{ asset('storage/'.$item['catlogue_image']['image_path']) }}">
-                                                <img src="{{ asset('storage/'.$item['catlogue_image']['image_path']) }}" style="width:150px;height:150px;" class="img-fluid rounded shadow border border-secondary" alt="Styled Image">
-
-                                            </a>
+                                   {{-- Catalogue images --}}
+                                    @if(!empty($item['catlogue_images']))
+                                        <p>CATALOGUE IMAGES :</p>
+                                        <div class="d-flex flex-wrap gap-2 z">
+                                            @foreach ($item['catlogue_images'] as $img)
+                                                <a target="_blank" href="{{ asset('storage/'.$img->image_path) }}">
+                                                    <img src="{{ asset('storage/'.$img->image_path) }}"
+                                                        class="img-fluid rounded shadow border border-secondary"
+                                                        style="width:100px;height:100px;"
+                                                        alt="Catalogue image">
+                                                </a>
+                                            @endforeach
                                         </div>
-                                    </p>
                                     @endif
-                                    @if(!empty($item['voice_remark']['voices_path']))
+
+                                    @if(!empty($item['voice_remarks']))
                                     <p>VOICE REMARKS :
-                                        <audio controls>
-                                            <source src="{{ asset('storage/'.$item['voice_remark']['voices_path']) }}" type="audio/mpeg">
-                                            Your browser does not support the audio element.
-                                        </audio>
+                                        @foreach ($item['voice_remarks'] as $voice)
+                                            <audio controls>
+                                                <source src="{{ asset('storage/'.$voice->voice_path) }}" type="audio/mpeg">
+                                                Your browser does not support the audio element.
+                                            </audio>
+                                        @endforeach
                                     </p>
                                     @endif
                                    
@@ -431,6 +459,7 @@
 
 
 @push('js')
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     // Initialize all tooltips on the page
@@ -488,6 +517,20 @@ window.addEventListener('delivered-to-customer', event => {
 
     });
 </script>
+{{-- <script>
+  Fancybox.bind('[data-fancybox]', {
+      Thumbs : false,          // hide bottom thumbnails
+      Toolbar: { display: [ 'close' ] }, // only show close icon
+      animated: true,          // smooth zoom (default true)
+      backdropClick : 'close', 
+      dragToClose: true,
+      Image: {
+          zoom: true,          // wheel/pinch zoom
+      },
+  });
+</script> --}}
+
+
 
 @endpush
 

@@ -91,11 +91,12 @@ class OrderItem extends Model
     }
     public function voice_remark()
     {
-        return $this->hasOne(OrderItemVoiceMessage::class, 'order_item_id', 'id');
+        return $this->hasMany(OrderItemVoiceMessage::class, 'order_item_id', 'id');
     }
+    
     public function catlogue_image()
     {
-        return $this->hasOne(OrderItemCatalogueImage::class, 'order_item_id', 'id');
+        return $this->hasMany(OrderItemCatalogueImage::class, 'order_item_id', 'id');
     }
     protected static function booted(): void
     {
