@@ -247,7 +247,8 @@
                                 {{--  TL checkbox for approving Process items --}}
                                     @if($order_item->status == 'Process')
                                         <input type="checkbox" wire:model="order_item.{{$key}}.tl_approved"
-                                         wire:change="updateTlStatus({{ $key }})" >
+                                         wire:change="updateTlStatus({{ $key }})" 
+                                         {{$isApprovedByAdmin ? 'disabled checked' : ''}}>
                                     @else
                                         <span class="badge bg-secondary">N/A</span>
                                     @endif

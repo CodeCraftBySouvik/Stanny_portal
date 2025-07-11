@@ -1033,7 +1033,7 @@ class OrderEdit extends Component
                     $orderItem->cat_page_number  = $item['page_number'] ?? null;
                     $orderItem->cat_page_item  = $item['page_item'] ?? null;
                       $loggedInAdmin = auth()->guard('admin')->user();
-                    //   old
+                    //   old working for sales person 
                     //   $originalStatus = $orderItem->status;
                     // if ($orderItem->status === 'Process' && $originalStatus != 'Process') {
                     //     if ($loggedInAdmin->designation == 1) {
@@ -1055,26 +1055,87 @@ class OrderEdit extends Component
                     //     $orderItem->admin_status = 'Pending';
                     // }
                     
-                    // new
-                    if ($orderItem->status === 'Process') {
-                        if (in_array($loggedInAdmin->designation,[1,12])) {
-                            // Admin is creating the order
-                            $orderItem->tl_status = 'Approved';
-                            $orderItem->admin_status = 'Approved';
-                        } elseif ($loggedInAdmin->designation == 4) {
-                            // Team Lead is creating the order
-                            $orderItem->tl_status = 'Approved';
-                            $orderItem->admin_status = 'Pending';
+                    // new working while admin
+                    // if ($orderItem->status === 'Process') {
+                    //     if (in_array($loggedInAdmin->designation,[1,12])) {
+                    //         // Admin is creating the order
+                    //         $orderItem->tl_status = 'Approved';
+                    //         $orderItem->admin_status = 'Approved';
+                    //     } elseif ($loggedInAdmin->designation == 4) {
+                    //         // Team Lead is creating the order
+                    //         $orderItem->tl_status = 'Approved';
+                    //         $orderItem->admin_status = 'Pending';
+                    //     } else {
+                    //         // For others
+                    //         $orderItem->tl_status = 'Pending';
+                    //         $orderItem->admin_status = 'Pending';
+                    //     }
+                    // } else {
+                    //     // If status is not Process
+                    //     $orderItem->tl_status = 'Pending';
+                    //     $orderItem->admin_status = 'Pending';
+                    // }
+
+                    // ------------------------------------------------------------------
+                    $previousStatus = $orderItem->getOriginal('status');   // null if new row
+                    $newStatus      = $item['item_status'] ?? null;
+                    $statusChanged  = $previousStatus !== $newStatus;
+
+                    $orderItem->status = $newStatus;
+
+                    if ($statusChanged) {
+
+                        // ── 1. Item is (now) Process ──────────────────────────────────
+                        if ($newStatus === 'Process') {
+
+                            // 1A. Brand‑new row (previousStatus == null)
+                            if (is_null($previousStatus)) {
+                                if (in_array($loggedInAdmin->designation, [1, 12])) {
+                                    $orderItem->tl_status    = 'Approved';
+                                    $orderItem->admin_status = 'Approved';
+                                } elseif ($loggedInAdmin->designation == 4) {
+                                    $orderItem->tl_status    = 'Approved';
+                                    $orderItem->admin_status = 'Pending';
+                                } else {
+                                    $orderItem->tl_status    = 'Pending';
+                                    $orderItem->admin_status = 'Pending';
+                                }
+
+                            // 1B. Hold → Process (existing row)
+                            } else {
+                                if (in_array($loggedInAdmin->designation, [1, 12])) {      // ★
+                                    // Admin re‑activates the item ➜ Approved / Approved   // ★
+                                    $orderItem->tl_status    = 'Approved';                 // ★
+                                    $orderItem->admin_status = 'Approved';                 // ★
+                                } elseif ($loggedInAdmin->designation == 4) {
+                                    $orderItem->tl_status    = 'Approved';
+                                    $orderItem->admin_status = 'Pending';
+                                } else {
+                                    $orderItem->tl_status    = 'Pending';
+                                    $orderItem->admin_status = 'Pending';
+                                }
+                                $order->status = 'Approved'; //enable mark as received
+                            }
+
+                        // ── 2. Item is leaving Process (Process → Hold or other) ──────
                         } else {
-                            // For others
-                            $orderItem->tl_status = 'Pending';
+                            $orderItem->tl_status    = 'Pending';
                             $orderItem->admin_status = 'Pending';
                         }
-                    } else {
-                        // If status is not Process
-                        $orderItem->tl_status = 'Pending';
-                        $orderItem->admin_status = 'Pending';
                     }
+
+                    // ✅ If Admin updated any item from Hold → Process, approve order again
+                        if (
+                            $previousStatus !== 'Process' &&
+                            $newStatus === 'Process' &&
+                            in_array($loggedInAdmin->designation, [1, 12])
+                        ) {
+                            $order->status = 'Approved'; // enable mark as received
+                            $order->save();
+                        }
+                    // ------------------------------------------------------------------
+
+
 
                     $orderItem->save();
 
