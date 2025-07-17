@@ -41,6 +41,28 @@
                                 <p class="small m-0">{{ $order->created_at->format('d M Y h:i A') }}</p>
                             </div>
                         </div>
+                        {{-- Client Image --}}
+                        <div class="row">
+                            <div class="col-sm-4">
+                                <p class="small m-0"><strong>Client Image :</strong></p>
+                            </div>
+                            <div class="col-sm-8">
+                                <a href="{{asset($order->customer_image)}}" target="_blank">
+                                    <img src="{{asset($order->customer_image)}}" alt="no-img" width="100">
+                                </a>
+                            </div>
+                        </div>
+                        {{-- Fittings --}}
+                        {{-- <div class="row">
+                            <div class="col-sm-4">
+                                <p class="small m-0"><strong>Fittings :</strong></p>
+                            </div>
+                            <div class="col-sm-8">
+                                <a href="{{asset($order->customer_image)}}" target="_blank">
+                                    <img src="{{asset($order->customer_image)}}" alt="no-img" width="100">
+                                </a>
+                            </div>
+                        </div> --}}
 
 
 
@@ -263,6 +285,9 @@
                                         }}</strong> (PAGE:
                                     <strong>{{$item['cat_page_number']}}</strong>)
                                 </p>
+                                <p>Expected Delivery Date : <strong>{{$item['expected_delivery_date']}}</strong></p>
+                                <p>Fittings : <strong>{{$item['fittings']}}</strong></p>
+                                <p>Priority Level: <strong>{{$item['priority']}}</strong></p>
 
                                  @if(!empty($item['remarks']))
                                     <p>Remark :
@@ -297,8 +322,13 @@
                                     @endif
                             </td>
                         </tr>
-
-
+                        @else
+                            <tr>
+                                <td colspan="4" class="pt-4" style="vertical-align: text-top !important;"> 
+                                        <p>Expected Delivery Date : <strong>{{$item['expected_delivery_date']}}</strong></p>
+                                         <p>Priority Level: <strong>{{$item['priority']}}</strong></p>
+                                </td>
+                            </tr>
                         @endif
                        
                         @endforeach

@@ -110,7 +110,7 @@
                 </a>
                 <a class="nav-link text-white {{ Request::is('admin/orders/invoice/add') ? 'active ' : '' }}"
                     href="{{route('admin.order.invoice.add')}}">
-                    Generate Invoices
+                    Instant Invoices
                 </a>
                  <a class="nav-link text-white {{ Request::is('admin/orders/proformas') ? 'active ' : '' }}"
                     href="{{route('admin.order.proformas.index')}}">

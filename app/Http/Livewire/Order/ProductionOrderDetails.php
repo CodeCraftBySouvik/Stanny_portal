@@ -310,6 +310,9 @@ class ProductionOrderDetails extends Component
                 'remarks' => $item->remarks,
                 'catlogue_images' => $item->catlogue_image,
                 'voice_remarks' => $item->voice_remark,
+                'expected_delivery_date' => $item->expected_delivery_date,
+                'fittings' => $item->fittings,
+                'priority' => $item->priority_level,
             ];
         });
         
