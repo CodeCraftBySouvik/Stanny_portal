@@ -37,7 +37,7 @@ use Illuminate\Support\Str;
 class OrderNew extends Component
 {
     use WithFileUploads;
-
+    public $skip_order_reason;
     public $searchTerm = '';
     public $prefix;
     public $searchResults = [];
@@ -215,6 +215,23 @@ class OrderNew extends Component
         $this->Business_type = BusinessType::all();
         $this->selectedBusinessType = BusinessType::where('title','TEXTILES')->value('id');
         $this->countries = Country::where('status',1)->get();
+    }
+
+    public function skipOrder(){
+        dd('hi');
+        try {
+            $this->validate([
+                'skip_order_reason' => 'required',
+            ]);
+         }catch (\Exception $e) {
+            dd($e->getMessage());
+         }
+    }
+
+
+    // Skip Order Bill open modal
+    public function skipOrderBill(){
+        $this->dispatch('open-skip-modal');
     }
 
    public function updatedItems($value, $key)
