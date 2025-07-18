@@ -77,6 +77,7 @@
                             <x-table-th>Customer</x-table-th>
                             <x-table-th>Products</x-table-th>
                             <x-table-th>Amount</x-table-th>
+                            <x-table-th>Due Amount</x-table-th>
                             <x-table-th>Action</x-table-th>
                         </tr>
                     </thead>
@@ -163,6 +164,8 @@
                                 </div>
                             </x-table-td>
                             <x-table-td>{{number_format($item->net_price,2)}} </x-table-td>
+                            <x-table-td>{{number_format($item->due_amnt,2)}} </x-table-td>
+
                             <x-table-td>
                                 {{-- <a href="#" class="btn btn-outline-success select-md btn_outline">Edit</a> --}}
                                 <button wire:click="downloadOrderInvoice({{ $item->order_id }})"

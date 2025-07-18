@@ -29,11 +29,11 @@ class PaymentCollectionIndex extends Component
     public $active_details = 0;
     public $auth;
     protected $listeners = ['revoke-payment-confirmed' => 'revokePayment'];
-    protected $paginationTheme = 'bootstrap'; 
+    protected $paginationTheme = 'bootstrap';
 
      public function updatingSearch()
     {
-        $this->resetPage(); 
+        $this->resetPage();
     }
     public function mount(){
         $this->auth = Auth::guard('admin')->user();
@@ -148,7 +148,7 @@ class PaymentCollectionIndex extends Component
 
         # Delete Payment Collection
         PaymentCollection::where('id',$id)->delete();
-        session()->flash('success', 'Payment revoked successfully'); 
+        session()->flash('success', 'Payment revoked successfully');
     }
 
     private function resetInvoicePayments($customer_id, $collection_data){
@@ -191,7 +191,7 @@ class PaymentCollectionIndex extends Component
                                 'required_payment_amount'=>0,
                                 'payment_status' => 2,
                                 'is_paid'=>1
-                            ]);    
+                            ]);
                             InvoicePayment::insert([
                                 'invoice_id' => $inv->id,
                                 'payment_collection_id' => $payment_collection_id,
@@ -222,8 +222,8 @@ class PaymentCollectionIndex extends Component
                                 'rest_amount' => $rest_payment_amount,
                                 'created_at' => $payments['created_at'],
                                 'updated_at' => $payments['created_at']
-                            ]);    
-                            $amount_after_settlement = 0;                                            
+                            ]);
+                            $amount_after_settlement = 0;
                         }else{
 
                         }
@@ -244,12 +244,12 @@ class PaymentCollectionIndex extends Component
         }
         // Generate PDF
         $pdf = PDF::loadView('invoice.pdf', compact('data','invoice_payments'));
-    
+
         // Download the PDF
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
         },  $data->voucher_no . '.pdf');
-    } 
+    }
     public function render()
     {
         $paginatedData = $this->CollectionData();
