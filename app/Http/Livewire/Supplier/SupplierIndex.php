@@ -4,17 +4,22 @@ namespace App\Http\Livewire\Supplier;
 
 use App\Models\Supplier;
 use Livewire\Component;
+use Livewire\WithPagination;
+
 
 class SupplierIndex extends Component
 {
+    use WithPagination;
+    
     public $suppliers;
     public $search;
     protected $updatesQueryString = ['search'];
+    protected $paginationTheme = 'bootstrap'; 
 
-    // public function mount()
-    // {
-        
-    // }
+    public function updatingSearch()
+    {
+        $this->resetPage(); 
+    }
     public function confirmDelete($id){
         $this->dispatch('showDeleteConfirm',['itemId' => $id]);
     }
@@ -34,11 +39,13 @@ class SupplierIndex extends Component
     }
     public function render()
     {
-        $this->suppliers = Supplier::where('deleted_at',NULL)
+        $supplier_data = Supplier::where('deleted_at',NULL)
         ->when($this->search, function ($query) {
                 $query->where('name', 'like', '%' . $this->search . '%');
-            })->get();
-        return view('livewire.supplier.supplier-index');
+            })->paginate(10);
+        return view('livewire.supplier.supplier-index',[
+                'supplier_data' => $supplier_data
+            ]);
     }
 
     public function deleteSupplier($id)

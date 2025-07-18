@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\OrderController;
 */
 Route::get('/country-list', [AuthController::class, 'CountryList']);
 Route::get('/country/details/{id}', [AuthController::class, 'CountryDetailsByID']);
+Route::get('/business-type', [BusinessTypeController::class, 'index']);
 Route::post('/check-device', [AuthController::class, 'checkDevice']);
 Route::post('/user-login', [AuthController::class, 'userLogin']);
 Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
@@ -46,8 +47,8 @@ Route::middleware('auth:sanctum', 'token.session')->group(function () {
     Route::get('/customer/filter', [AuthController::class, 'customer_filter']);
     Route::post('/customer/store', [AuthController::class, 'customer_store']);
     Route::post('/customer/update/{id}', [AuthController::class, 'customer_update']);
-    Route::get('/customer/order/list', [AuthController::class, 'order_list']);
-    
+    Route::get('/customer/order/list', [OrderController::class, 'customer_order_list']);
+    Route::get('/customer/order/detail', [OrderController::class, 'customer_order_detail']);
 
 
 
@@ -66,18 +67,35 @@ Route::middleware('auth:sanctum', 'token.session')->group(function () {
     });
     
     Route::get('/collection', [CollectionController::class, 'index']);
-    Route::get('/fabric', [FabricController::class, 'index']);
-    Route::get('/business-type', [BusinessTypeController::class, 'index']);
+    
+    
    
     Route::prefix('product')->group(function () {
         Route::get('/products-category-collection-wise', [ProductController::class, 'getProductsByCategoryAndCollection']);
         Route::get('/products-collection-wise', [ProductController::class, 'getProductsByCollection']);
+        Route::get('/fabric/{id}', [FabricController::class, 'index']);
+        Route::get('/check/price', [ProductController::class, 'checkPrice']);
+        Route::get('/measurement-product-wise', [ProductController::class, 'getMeasurementProductwise']);
+        
+    });
+    
+    Route::prefix('catalogue')->group(function () {
+        Route::get('/list', [ProductController::class, 'catalogueList']);
+        Route::get('/pages', [ProductController::class, 'pages']);
+        Route::get('/page/item', [ProductController::class, 'pageItem']);
+        Route::get('/products-collection-wise', [ProductController::class, 'getProductsByCollection']);
+       
+        
     });
     
     
     Route::prefix('order')->group(function () { 
         Route::post('/store', [OrderController::class, 'createOrder']);
+        Route::post('/video/store', [OrderController::class, 'createVideo']);
         Route::get('/list', [OrderController::class, 'index']);
+        Route::get('/detail', [OrderController::class, 'detail']);
+        Route::get('/ledger-view', [OrderController::class, 'ledgerView']);
+        Route::post('/payment-receipt-save', [OrderController::class, 'paymentReceiptSave']);
     });
     
     // More routes related to products can be added here

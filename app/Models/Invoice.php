@@ -30,6 +30,13 @@ class Invoice extends Model
     {
         return $this->belongsTo(PackingSlip::class, 'packingslip_id', 'id');
     }
+    
+    public function billingAddressLatest()
+    {
+        return $this->hasOneThrough(UserAddress::class, User::class, 'id', 'user_id', 'customer_id', 'id')
+                    ->where('address_type', 1)
+                    ->latestOfMany();
+    }
 
 
 }

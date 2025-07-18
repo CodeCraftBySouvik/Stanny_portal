@@ -19,7 +19,7 @@
             <div class="col-auto">
                 <div class="row g-3 align-items-center">
                     <div class="col-auto mt-0">
-                        <input type="text" wire:model="search" class="form-control select-md bg-white" id="customer"
+                        <input type="text" wire:model="search" class="form-control select-md bg-white search-input" id="customer"
                             placeholder="Search by supplier name or PO number" value=""
                             style="width: 350px;"  wire:keyup="FindCustomer($event.target.value)">
                     </div>

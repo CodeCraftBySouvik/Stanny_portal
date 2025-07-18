@@ -98,26 +98,7 @@ class SupplierEdit extends Component
         }
     }
 
-    // public function FindCountry($term){
-    //     $this->searchTerm = $term;
-    //     if (!empty($this->searchTerm)) {
-    //         $this->filteredCountries = Country::where('title', 'LIKE', '%' . $this->searchTerm . '%')->get();
-    //     }else{
-    //         $this->filteredCountries = [];
-    //     }
-    // }
-
-    // public function selectCountry($countryId){
-    //     $country = Country::find($countryId);
-    //     if($country){
-    //         $this->selectedCountryId = $country->id;
-    //         $this->country_code = $country->country_code;
-    //         $this->searchTerm = $country->title;
-    //         $this->mobileLength = $country->mobile_length;
-    //     }
-
-    //     $this->filteredCountries = [];
-    // }
+    
 
  
     public function updateSupplier()
@@ -132,10 +113,10 @@ class SupplierEdit extends Component
                 'required',
                 'regex:/^\d{'. $this->mobileLengthPhone .'}$/',
             ],
-            'whatsapp_no' => [
-                'required',
-                'regex:/^\d{'. $this->mobileLengthWhatsapp .'}$/',
-            ],
+            // 'whatsapp_no' => [
+            //     'required',
+            //     'regex:/^\d{'. $this->mobileLengthWhatsapp .'}$/',
+            // ],
             'alternative_phone_number_1' => [
                 'nullable',
                 'regex:/^\d{'. $this->mobileLengthAlt1 .'}$/',
@@ -162,8 +143,8 @@ class SupplierEdit extends Component
             'email.unique' => 'This email is already registered.',
             'mobile.required' => 'Mobile number is required.',
             'mobile.regex' => 'Mobile number must be exactly ' . $this->mobileLengthPhone . ' digits.',
-            'whatsapp_no.required' => 'WhatsApp number is required.',
-            'whatsapp_no.regex' => 'WhatsApp number must be exactly ' . $this->mobileLengthWhatsapp . ' digits.',
+            // 'whatsapp_no.required' => 'WhatsApp number is required.',
+            // 'whatsapp_no.regex' => 'WhatsApp number must be exactly ' . $this->mobileLengthWhatsapp . ' digits.',
             'alternative_phone_number_1.regex' => 'Alternative phone number 1 must be exactly ' . $this->mobileLengthAlt1 . ' digits.',
             'alternative_phone_number_2.regex' => 'Alternative phone number 2 must be exactly ' . $this->mobileLengthAlt2 . ' digits.',
             'billing_address.required' => 'Billing address is required.',
@@ -187,8 +168,8 @@ class SupplierEdit extends Component
             'email' => $this->email,
             'country_code_mobile' => $this->selectedCountryPhone,
             'mobile' => $this->mobile,
-            'country_code_whatsapp' => $this->selectedCountryWhatsapp,
-            'whatsapp_no' => $this->whatsapp_no,
+            // 'country_code_whatsapp' => $this->selectedCountryWhatsapp,
+            // 'whatsapp_no' => $this->whatsapp_no,
             'billing_address' => $this->billing_address,
             'billing_landmark' => $this->billing_landmark,
             'billing_state' => $this->billing_state,

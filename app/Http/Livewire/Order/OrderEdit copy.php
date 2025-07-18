@@ -373,20 +373,8 @@ class OrderEdit extends Component
         }
     
     }
-    // public function updatedSelectedCollection($collectionId)
-    // {
-    //     // Load categories for the selected collection
-    //     $this->categories = Category::where('collection_id', $collectionId)->get();
-    //     $this->products = Product::where('category_id', $categoryId)->get();
-    //     $this->selectedCategory = null; // Reset category and product selections
-    // }
-
-    // public function updatedSelectedCategory($categoryId)
-    // {
-    //     // Load products for the selected category
-    //     $this->products = Product::where('category_id', $categoryId)->get();
-    //     $this->selectedProduct = null; // Reset product selection
-    // }
+    
+    
 
     public function toggleShippingAddress()
     {

@@ -126,9 +126,9 @@
                                                         </div>
                                                             <div class="row">
                                                                 @foreach($fabrics as $fabric)
-                                                                    <div class="col-md-2">
+                                                                    <div class="col-md-3">
                                                                         <div class="form-check ps-0 custom-checkbox">
-                                                                            <input class="form-check-input" type="checkbox" id="role{{$fabric->id}}" wire:model="selectedFabrics" class="form-check-input" value="{{$fabric->id}}" style="position: absolute;">
+                                                                            <input class="form-check-input" type="checkbox" id="role{{$fabric->id}}" wire:model="selectedFabrics" class="form-check-input" value="{{$fabric->id}}">
                                                                             <i></i>
                                                                             <label class="form-check-label text-uppercase text-sm" for="role{{$fabric->id}}">
                                                                             {{$fabric->title}}

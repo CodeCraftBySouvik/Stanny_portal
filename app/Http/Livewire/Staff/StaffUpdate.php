@@ -9,6 +9,7 @@ use App\Models\Designation;
 use App\Models\BusinessType;
 use App\Models\Branch;
 use App\Models\UserWhatsapp;
+use App\Models\ChangeLog;
 use Livewire\WithFileUploads;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
@@ -43,7 +44,7 @@ class StaffUpdate extends Component
 
 
     public function mount($staff_id){
-        $this->staff = User::with(['branch','businessType','bank','address','designationDetails'])->find($staff_id);
+        $this->staff = User::with(['branch','businessType','bank','address','designationDetails','userWhatsapp'])->find($staff_id);
         $this->countries = Country::where('status',1)->get();
         $this->Business_type = BusinessType::all();
         $this->branchNames = Branch::all();
@@ -65,7 +66,7 @@ class StaffUpdate extends Component
             $this->email = $this->staff->email;
             $this->mobile = $this->staff->phone;
             $this->aadhaar_number = $this->staff->aadhar_name;
-            $this->whatsapp_no = $this->staff->whatsapp_no;
+            // $this->whatsapp_no = $this->staff->whatsapp_no;
            
             $this->image = $this->staff->image;
             $this->passport_id_front = $this->staff->passport_id_front;
@@ -168,7 +169,7 @@ class StaffUpdate extends Component
             ],
             'prof_name' => 'required',
             'surname'  => 'required',
-            'dob'  => 'required',
+            'dob'  => 'nullable',
             'person_name' => 'required|string|max:255',
             'email' => 'nullable|email',
             'alternative_phone_number_1' => [
@@ -183,18 +184,18 @@ class StaffUpdate extends Component
                 'required',
                 'regex:/^\d{'. $this->mobileLengthPhone .'}$/',
             ],
-            'whatsapp_no' => [
-                'required',
-                'regex:/^\d{'. $this->mobileLengthWhatsapp .'}$/',
-            ],
+            // 'whatsapp_no' => [
+            //     'required',
+            //     'regex:/^\d{'. $this->mobileLengthWhatsapp .'}$/',
+            // ],
             'emergency_mobile'=> [
                 'nullable',
                 'regex:/^\d{'. $this->mobileLengthEmergencyContact .'}$/', // At least VALIDATE_MOBILE digits
             ],
-            'emergency_whatsapp'=>[
-                'nullable',
-                'regex:/^\d{'. $this->mobileLengthEmergencyWhatsapp .'}$/',
-            ],
+            // 'emergency_whatsapp'=>[
+            //     'nullable',
+            //     'regex:/^\d{'. $this->mobileLengthEmergencyWhatsapp .'}$/',
+            // ],
             'emergency_contact_person' => 'nullable|string',
             'emergency_address' => 'nullable|string',
             'aadhaar_number' =>  'nullable|numeric',
@@ -226,18 +227,18 @@ class StaffUpdate extends Component
             'designation.required' => 'The designation field is required.',
             'prof_name.required' => 'The professional name is required.',
             'surname.required' => 'The surname field is required.',
-            'dob.required' => 'The date of birth is required.',
+            // 'dob.required' => 'The date of birth is required.',
             'person_name.required' => 'The person name is required.',
             'person_name.max' => 'The person name may not be greater than 255 characters.',
             'email.email' => 'Please enter a valid email address.',
             'mobile.required' => 'The mobile number is required.',
             'mobile.regex' => 'The mobile number must be exactly ' . $this->mobileLengthPhone . ' digits.',
-            'whatsapp_no.required' => 'The WhatsApp number is required.',
-            'whatsapp_no.regex' => 'The WhatsApp number must be exactly ' . $this->mobileLengthWhatsapp . ' digits.',
+            // 'whatsapp_no.required' => 'The WhatsApp number is required.',
+            // 'whatsapp_no.regex' => 'The WhatsApp number must be exactly ' . $this->mobileLengthWhatsapp . ' digits.',
             'alternative_phone_number_1.regex' => 'The alternative phone number must be exactly ' . $this->mobileLengthAlt1 . ' digits.',
             'alternative_phone_number_2.regex' => 'The alternative phone number must be exactly ' . $this->mobileLengthAlt2 . ' digits.',
             'emergency_mobile.regex' => 'The emergency mobile number must be exactly ' . $this->mobileLengthEmergencyContact . ' digits.',
-            'emergency_whatsapp.regex' => 'The emergency WhatsApp number must be exactly ' . $this->mobileLengthEmergencyWhatsapp . ' digits.',
+            // 'emergency_whatsapp.regex' => 'The emergency WhatsApp number must be exactly ' . $this->mobileLengthEmergencyWhatsapp . ' digits.',
             'aadhaar_number.numeric' => 'The Aadhaar number must be a valid number.',
             'passport_no.numeric' => 'The passport number must be a valid number.',
             'visa_no.numeric' => 'The visa number must be a valid number.',
@@ -259,11 +260,79 @@ class StaffUpdate extends Component
         $this->validate();
 
         try {
-        // Store the files
-        $imagePath = $this->image && $this->image instanceof \Illuminate\Http\UploadedFile ? $this->image->store('images', 'public') : $this->staff->image;
-        $passportIdFrontPath = $this->passport_id_front && $this->passport_id_front instanceof \Illuminate\Http\UploadedFile ? $this->passport_id_front->store('user_ids', 'public') : $this->staff->passport_id_front;
-        $passportIdBackPath = $this->passport_id_back && $this->passport_id_back instanceof \Illuminate\Http\UploadedFile ? $this->passport_id_back->store('user_ids', 'public') : $this->staff->passport_id_back;
-        
+            // Capture OLD data before update
+            $oldStaffData = $this->staff->toArray();
+            $oldBankData = $this->staff->bank ? $this->staff->bank->toArray() : [];
+            $oldAddressData = $this->staff->address ? $this->staff->address->toArray() : [];
+            $oldWhatsappNumbers = $this->staff->userWhatsapp ? $this->staff->userWhatsapp->toArray() : [];
+               // Prepare old data for changelog
+            $oldData = [
+                'old_staff' => $oldStaffData,
+                'old_bank' => $oldBankData,
+                'old_address' => $oldAddressData,
+                'old_whatsapp_numbers' => $oldWhatsappNumbers,
+                'form_data_before_update' => [
+                    'branch_id' => $this->staff->branch_id,
+                    'designation' => $this->staff->designation,
+                    'team_lead' => $this->staff->parent_id,
+                    'prefix' => $this->staff->prefix,
+                    'person_name' => $this->staff->name.' '.$this->staff->surname,
+                    'emp_code' => $this->staff->emp_code,
+                    'prof_name' => $this->staff->prof_name,
+                    'email' => $this->staff->email,
+                    'mobile' => $this->staff->phone,
+                    'aadhaar_number' => $this->staff->aadhar_name,
+                    'passport_no' => $this->staff->passport_no,
+                    'dob' => $this->staff->dob,
+                    'passport_issued_date' => $this->staff->passport_issued_date,
+                    'visa_no' => $this->staff->visa_no,
+                    'emergency_contact_person' => $this->staff->emergency_contact_person,
+                    'emergency_mobile' => $this->staff->emergency_mobile,
+                    'emergency_whatsapp' => $this->staff->emergency_whatsapp,
+                    'emergency_address' => $this->staff->emergency_address,
+                    'alternative_phone_number_1' => $this->staff->alternative_phone_number_1,
+                    'alternative_phone_number_2' => $this->staff->alternative_phone_number_2,
+                    'selectedCountryPhone' => $this->staff->country_code_phone,
+                    'selectedCountryWhatsapp' => $this->staff->country_code_whatsapp,
+                    'selectedCountryAlt1' => $this->staff->country_code_alt_1,
+                    'selectedCountryAlt2' => $this->staff->country_code_alt_2,
+                    'selectedCountryEmergencyContact' => $this->staff->country_code_emergency_mobile,
+                    'selectedCountryEmergencyWhatsapp' => $this->staff->country_code_emergency_whatsapp,
+                    'image' => $this->staff->image,
+                    'passport_id_front' => $this->staff->passport_id_front,
+                    'passport_id_back' => $this->staff->passport_id_back,
+                    'passport_expiry_date' => $this->staff->passport_expiry_date,
+                    'account_holder_name' => $this->account_holder_name,
+                    'bank_name' => $this->bank_name,
+                    'branch_name' => $this->branch_name,
+                    'account_no' => $this->account_no,
+                    'ifsc' => $this->ifsc,
+                    'monthly_salary' => $this->monthly_salary,
+                    'daily_salary' => $this->daily_salary,
+                    'travel_allowance' => $this->travel_allowance,
+                    'address' => $this->address,
+                    'landmark' => $this->landmark,
+                    'state' => $this->state,
+                    'city' => $this->city,
+                    'pincode' => $this->pincode,
+                    'country' => $this->country,
+                    'selectedCountryId' => $this->selectedCountryId,
+                    'selectedBusinessType' => $this->selectedBusinessType,
+                    'isWhatsappPhone' => $this->isWhatsappPhone,
+                    'isWhatsappAlt1' => $this->isWhatsappAlt1,
+                    'isWhatsappAlt2' => $this->isWhatsappAlt2,
+                    'isWhatsappEmergency' => $this->isWhatsappEmergency,
+                ]
+            ];
+
+             $teamLead = User::find($this->team_lead);
+            $oldData['team_lead_name'] = $teamLead ? $teamLead->name : 'N/A';
+
+            // Store the files
+            $imagePath = $this->image && $this->image instanceof \Illuminate\Http\UploadedFile ? $this->image->store('images', 'public') : $this->staff->image;
+            $passportIdFrontPath = $this->passport_id_front && $this->passport_id_front instanceof \Illuminate\Http\UploadedFile ? $this->passport_id_front->store('user_ids', 'public') : $this->staff->passport_id_front;
+            $passportIdBackPath = $this->passport_id_back && $this->passport_id_back instanceof \Illuminate\Http\UploadedFile ? $this->passport_id_back->store('user_ids', 'public') : $this->staff->passport_id_back;
+            
             // Update the staff record
             $this->staff->update([
                 'country_id'=> $this->selectedCountryId,
@@ -275,14 +344,14 @@ class StaffUpdate extends Component
                 'emp_code' => $this->emp_code ?? '',
                 'surname' => $this->surname ?? '',
                 'prof_name' => $this->prof_name ?? '',
-                'dob' => $this->dob ?? '',
+                'dob' => $this->dob ?: null,
                 'business_type' => $this->selectedBusinessType ?? '',
                 'email' => $this->email ?? '',
                 'country_code_phone' => $this->selectedCountryPhone,
                 'phone' => $this->mobile ?? '',
                 'aadhar_name' => $this->aadhaar_number ?? '',
-                'country_code_whatsapp' => $this->selectedCountryWhatsapp,
-                'whatsapp_no' => $this->whatsapp_no ?? '',
+                // 'country_code_whatsapp' => $this->selectedCountryWhatsapp,
+                // 'whatsapp_no' => $this->whatsapp_no ?? '',
                 'image' => $imagePath ?? '',
                 'passport_id_front' => $passportIdFrontPath ?? '',
                 'passport_id_back' => $passportIdBackPath ?? '',
@@ -293,8 +362,8 @@ class StaffUpdate extends Component
                 'emergency_contact_person'=> $this->emergency_contact_person,
                 'country_code_emergency_mobile' => $this->selectedCountryEmergencyContact,
                 'emergency_mobile' => $this->emergency_mobile,
-                'country_code_emergency_whatsapp' => $this->selectedCountryEmergencyWhatsapp,
-                'emergency_whatsapp' => $this->emergency_whatsapp,
+                // 'country_code_emergency_whatsapp' => $this->selectedCountryEmergencyWhatsapp,
+                // 'emergency_whatsapp' => $this->emergency_whatsapp,
                 'emergency_address' => $this->emergency_address,
                 // 'country_code' => $this->country_code,
                 'country_code_alt_1' => $this->selectedCountryAlt1,
@@ -421,6 +490,13 @@ class StaffUpdate extends Component
                 ]);
             }
 
+            // Create changelog with OLD data
+            ChangeLog::create([
+                'done_by' => auth()->guard('admin')->user()->id,
+                'purpose' => 'staff_update',
+                'data_details' => json_encode($oldData)
+            ]);
+
             session()->flash('message', 'Staff updated successfully');
             return redirect()->route('staff.index');
         } catch (\Exception $e) {
@@ -435,15 +511,15 @@ class StaffUpdate extends Component
         }
     }
 
-    public function SameAsMobile(){
-        if($this->is_wa_same == 0){
-            $this->whatsapp_no = $this->mobile;
-            $this->is_wa_same =1;
-        }else{
-            $this->whatsapp_no = '';
-            $this->is_wa_same = 0;
-        }
-    }
+    // public function SameAsMobile(){
+    //     if($this->is_wa_same == 0){
+    //         $this->whatsapp_no = $this->mobile;
+    //         $this->is_wa_same =1;
+    //     }else{
+    //         $this->whatsapp_no = '';
+    //         $this->is_wa_same = 0;
+    //     }
+    // }
 
     public function sameAsContact(){
         if($this->same_as_contact){

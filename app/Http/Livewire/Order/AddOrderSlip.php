@@ -19,7 +19,7 @@ use App\Interfaces\AccountingRepositoryInterface;
 class AddOrderSlip extends Component
 {
     protected $accountingRepository;
-    public $order;
+    public $order,$orderId;
     public $errorMessage = [];
     public $order_item = [];
     public $activePayementMode = 'cash';
@@ -30,35 +30,139 @@ class AddOrderSlip extends Component
     public $payment_collection_id = "";
     public $readonly = "readonly";
     public $customer,$customer_id, $staff_id,$staff_name, $total_amount, $actual_amount, $voucher_no, $payment_date, $payment_mode, $chq_utr_no, $bank_name, $receipt_for = "Customer",$amount;
+    public $air_mail;
 
     public function boot(AccountingRepositoryInterface $accountingRepository)
     {
         $this->accountingRepository = $accountingRepository;
     }
     public function mount($id){
-
-        $this->order = Order::with('items','customer','createdBy')->where('id', $id)->first();
+        $this->orderId=$id;
+        $this->order = Order::with('items.measurements','items.fabric','customer','createdBy')->where('id', $id)->first();
         if($this->order){
             foreach($this->order->items as $key=>$order_item){
-                $this->order_item[$key]['id']= $order_item->id;
-                $this->order_item[$key]['piece_price']= (int)$order_item->piece_price;
-                $this->order_item[$key]['quantity']= $order_item->quantity;
-                $this->order_item[$key]['air_mail'] = $order_item->air_mail ?? 0;
+               $product =  $order_item->product ?? null;
+
+               $this->order_item[$key] = [
+                'id' => $order_item->id,
+                'product_name' => $order_item->product_name ?? $product?->name,
+                'collection_id' => $order_item->collection,
+                'collection_title' => $order_item->collectionType?->title ?? '',
+                'fabrics' => $order_item->fabric,
+                'tl_approved' => $order_item->tl_status == 'Approved',
+                'admin_approved' => $order_item->admin_status == 'Approved',
+               'measurements' => $order_item->measurements->map(function ($m) {
+                    return [
+                        'measurement_name' => $m->name,
+                        'measurement_title_prefix' => $m->title_prefix,
+                        'measurement_value' => $m->value,
+                    ];
+                })->toArray(),
+                'catalogue' => $order_item->catalogue_id ? $order_item->catalogue : '',
+                'catalogue_id' => $order_item->catalogue_id,
+                'cat_page_number' => $order_item->cat_page_number,
+                'piece_price' => (int) $order_item->piece_price,
+                'quantity' => $order_item->quantity,
+                'remarks' => $order_item->remarks,
+                'catlogue_image' => $order_item->catlogue_image,
+                'voice_remark' => $order_item->voice_remark,
+             ];
+                // $this->order_item[$key]['id']= $order_item->id;
+                // $this->order_item[$key]['piece_price']= (int)$order_item->piece_price;
+                // $this->order_item[$key]['quantity']= $order_item->quantity;
+                // $this->order_item[$key]['measurements']= $order_item->measurements->toArray();
+
             }
             $this->total_amount = $this->order->total_amount;
             $this->actual_amount = $this->order->total_amount;
-            $this->customer = $this->order->customer->name;
-            $this->customer_id = $this->order->customer->id;
-            $this->staff_id = $this->order->createdBy->id;
-            $this->staff_name = $this->order->createdBy->name;
+            $this->air_mail = $this->order->air_mail;
+            $this->customer = optional($this->order->customer)->name;
+            $this->customer_id = optional($this->order->customer)->id;
+            $this->staff_id = optional($this->order->createdBy)->id;
+            $this->staff_name = optional($this->order->createdBy)->name;
             $this->payment_date = date('Y-m-d');
         }else{
             abort(404);
         }
-        
+
         $this->voucher_no = 'PAYRECEIPT'.time();
         $this->staffs = User::where('user_type', 0)->where('designation', 2)->select('name', 'id')->orderBy('name', 'ASC')->get();
     }
+
+   public function updateTlStatus($key)
+    {
+        $isApproved = !empty($this->order_item[$key]['tl_approved'])
+                    && $this->order_item[$key]['tl_approved'] == true;
+
+        $newStatus = $isApproved ? 'Approved' : 'Hold';
+
+        // Update the array (Livewire state)
+        $this->order_item[$key]['tl_status'] = $newStatus;
+
+        // Update the database
+        OrderItem::where('id', $this->order_item[$key]['id'])
+            ->update(['tl_status' => $newStatus]);
+    }
+
+    // public function updateAdminStatus($key){
+    //     $isApproved = !empty($this->order_item[$key]['admin_approved'])
+    //                 && $this->order_item[$key]['admin_approved'] == true;
+
+    //     $newStatus = $isApproved ? 'Approved' : 'Hold';
+
+    //     // Update the array (Livewire state)
+    //     $this->order_item[$key]['admin_status'] = $newStatus;
+
+    //     // Update the database
+    //     OrderItem::where('id', $this->order_item[$key]['id'])
+    //         ->update(['admin_status' => $newStatus]);
+    // }
+
+    public function updateAdminStatus($key)
+    {
+        // Was the checkbox just CHECKED?
+        $isApproved = !empty($this->order_item[$key]['admin_approved'])
+                && $this->order_item[$key]['admin_approved'] == true;
+
+        // Load the row once so we can inspect / save it
+        $item = OrderItem::find($this->order_item[$key]['id']);
+        if (!$item) {
+            return;            // no record – exit early
+        }
+
+        /* -----------------------------------------------------------------
+        |  1. SPECIAL CASE ― the line is still on HOLD and the Admin has
+        |  checked the box. Promote it straight to production (Process)
+        |  and mark both TL + Admin approvals.
+        * -----------------------------------------------------------------*/
+        if ($item->status === 'Hold' && $isApproved) {
+            $item->status       = 'Process';   // ready to be produced
+            $item->tl_status    = 'Approved';  // TL step bypassed
+            $item->admin_status = 'Approved';  // Super‑Admin approval
+            $item->save();
+
+            // keep Livewire’s array in sync
+            $this->order_item[$key]['status']       = 'Process';
+            $this->order_item[$key]['tl_status']    = 'Approved';
+            $this->order_item[$key]['admin_status'] = 'Approved';
+
+            return;             // nothing else to do
+        }
+
+        /* -----------------------------------------------------------------
+        | 2. ORIGINAL BEHAVIOUR ― for normal Process rows just flip
+        |    admin_status between Approved / Hold
+        * -----------------------------------------------------------------*/
+        $newStatus = $isApproved ? 'Approved' : 'Hold';
+
+        // Update Livewire state
+        $this->order_item[$key]['admin_status'] = $newStatus;
+
+        // Update DB
+        $item->update(['admin_status' => $newStatus]);
+    }
+
+
 
     public function updateQuantity($value, $key,$price){
         if(!empty($value)){
@@ -66,28 +170,13 @@ class AddOrderSlip extends Component
             $base_price = $price * $value;
             $this->order_item[$key]['price'] = $base_price;
 
-            $this->actual_amount = 0;
-            $air_mail_added = false;
-            $air_mail_total = 0;
-
-            // $air_mail = $this->order_item[$key]['air_mail'] ?? 0;
-            // $this->order_item[$key]['total'] = $base_price + $air_mail;
-
-            // $this->actual_amount = 0;
-            // foreach($this->order_item as $key=>$item){
-            //     $air_mail = $item['air_mail'] ?? 0;
-            //     $this->actual_amount +=$item['price'] + $air_mail;
-            // }
+            $subtotal = 0;
             foreach ($this->order_item as $item) {
-                $this->actual_amount += $item['price'];
-    
-                if (!$air_mail_added && !empty($item['air_mail']) && is_numeric($item['air_mail'])) {
-                    $air_mail_total = floatval($item['air_mail']);
-                    $air_mail_added = true;
-                }
+                $subtotal += $item['price'];
             }
-    
-            $this->actual_amount += $air_mail_total;
+
+            // Add the air_mail from the Order, not items
+           $this->actual_amount = $subtotal + $this->air_mail;
         }
     }
 
@@ -107,69 +196,91 @@ class AddOrderSlip extends Component
         if (empty($this->customer_id)) {
            $this->errorMessage['customer_id'] = 'Please select a customer.';
         }
-        
+
         // Validate collected by
         if (empty($this->staff_id)) {
            $this->errorMessage['staff_id'] = 'Please select a staff member.';
         }
 
-        // Validate amount
-        // if (empty($this->amount) || !is_numeric($this->amount)) {
-        //    $this->errorMessage['amount'] = 'Please enter a valid amount.';
-        // }
-        // Validate amount
-        // if (empty($this->actual_amount) || !is_numeric($this->actual_amount)) {
-        //    $this->errorMessage['actual_amount'] = 'Please enter a valid amount.';
-        // }
 
-        // Validate voucher no
-        // if (empty($this->voucher_no)) {
-        //    $this->errorMessage['voucher_no'] = 'Please enter a voucher number.';
-        // }
-
-        // Validate payment date
-        // if (empty($this->payment_date) || !$this->is_valid_date($this->payment_date)) {
-        //    $this->errorMessage['payment_date'] = 'Please select a valid payment date.';
-        // }
-
-        // Validate payment mode
-        // if (empty($this->payment_mode)) {
-        //    $this->errorMessage['payment_mode'] = 'Please select a payment mode.';
-        // }
-
-        // Validate cheque no / UTR no
-        // if ($this->payment_mode != 'cash' && empty($this->chq_utr_no)) {
-        //    $this->errorMessage['chq_utr_no'] = 'Please enter a cheque no / UTR no.';
-        // }
-
-        // Validate bank name
-        // if ($this->payment_mode != 'cash' && empty($this->bank_name)) {
-        //    $this->errorMessage['bank_name'] = 'Please enter a bank name.';
-        // }
         if(count($this->errorMessage)>0){
             return $this->errorMessage;
         }else{
             try {
+                $userDesignationId = auth()->guard('admin')->user()->designation;
+                if($userDesignationId == 4){
+                    $hasProcessItem = OrderItem::where('order_id', $this->order->id)
+                       ->where('status', 'Process')
+                       ->where('tl_status', 'Approved')
+                       ->exists();
+   
+                   if (!$hasProcessItem) {
+                       session()->flash('error', 'Cannot approve order. No items are approved by Team Leader.');
+                       return redirect()->route('admin.order.add_order_slip', $this->order->id);
+                   }
+                }
+                // old
+                // if($userDesignationId == 1){
+                //      $hasProcessItem = OrderItem::where('order_id', $this->order->id)
+                //        ->where('status', 'Process')
+                //        ->where('tl_status', 'Approved')
+                //        ->where('admin_status', 'Approved')
+                //        ->exists();
+   
+                //    if (!$hasProcessItem) {
+                //        session()->flash('error', 'Cannot approve order. No items are approved by Admin.');
+                //        return redirect()->route('admin.order.add_order_slip', $this->order->id);
+                //    }
+                // }
+                
+                // new
+                if ($userDesignationId == 1) {
+
+                // ⬇️ new – auto‑approve any remaining TL‑approved rows
+                OrderItem::where('order_id', $this->order->id)
+                    ->where('status', 'Process')
+                    ->where('tl_status', 'Approved')
+                    ->where(function($q){           // not yet approved by Admin
+                        $q->whereNull('admin_status')
+                        ->orWhere('admin_status', '!=', 'Approved');
+                    })
+                    ->update(['admin_status' => 'Approved']);
+
+                // now re‑run your guard
+                $hasProcessItem = OrderItem::where('order_id', $this->order->id)
+                    ->where('status', 'Process')
+                    ->where('tl_status', 'Approved')
+                    ->where('admin_status', 'Approved')
+                    ->exists();
+
+                if (!$hasProcessItem) {
+                    session()->flash('error', 'Cannot approve order. No items are approved by Admin.');
+                    return redirect()->route('admin.order.add_order_slip', $this->order->id);
+                }
+            }
+
+
                 DB::beginTransaction();
                 $this->updateOrder();
 
                 $this->updateOrderItems();
 
-                $this->createPackingSlip();
-
-                // $this->accountingRepository->StorePaymentReceipt($this->all());
-              
+                 // Only create packing slip, invoice, ledger if admin approves
+                // $userDesignationId = auth()->guard('admin')->user()->designation;
+                // if($userDesignationId == 1){
+                    $this->createPackingSlip();
+                // }
 
                 DB::commit();
 
-                session()->flash('success', 'Payment receipt added successfully.');
+                session()->flash('success', 'Order Approved successfully.');
                 return redirect()->route('admin.order.index');
             } catch (\Exception $e) {
                 DB::rollBack();
                 session()->flash('error', $e->getMessage());
             }
         }
-       
+
     }
     public function updateOrder()
     {
@@ -179,127 +290,233 @@ class AddOrderSlip extends Component
             'staff_id' => 'required|exists:users,id',
         ]);
 
-        $order = Order::find($this->order->id); 
+        $order = Order::find($this->order->id);
+        $userDesignationId = auth()->guard('admin')->user()->designation;
+        if($userDesignationId==4)
+        {
+            $status="Approved By TL";
+        }
+        else{
 
+            $status="Approved";
+        }
         if ($order) {
             $order->update([
                 'customer_id' => $this->customer_id,
                 'created_by' => $this->staff_id,
-                'status' => "Confirmed",
+                'status' => $status,
                 'last_payment_date' => $this->payment_date,
             ]);
         }
     }
     public function updateOrderItems()
     {
-        $total_amount = 0;
-        $air_mail_added = false;
-        $air_mail_total = 0;
-        foreach ($this->order_item as $item) {
-            $airMail = $item['air_mail'] ?? 0;
-            $piecePrice = (float)$item['piece_price']; 
-            $quantity = (int)$item['quantity'];
-            $base_total = $piecePrice * $quantity;
-            if (!$air_mail_added && $airMail > 0) {
-                $air_mail_total = floatval($airMail);
-                $air_mail_added = true;
-            }
-            $totalPrice = $base_total;
-            // $totalPrice = ($piecePrice * $quantity) + $airMail;
-            OrderItem::where('id', $item['id'])->update([
-                'total_price' =>  $totalPrice,
-                'quantity' => $quantity,
-                'air_mail' => $airMail,
-                'piece_price' => $piecePrice,
-            ]);
-            $total_amount += $totalPrice; 
+            $subtotal = 0;
+            foreach ($this->order_item as $item) {
+                $piecePrice = (float)$item['piece_price'];
+                $quantity = (int)$item['quantity'];
+                $totalPrice = $piecePrice * $quantity;
 
-        }
-        $total_amount += $air_mail_total;
-        $order = Order::find($this->order->id);
-        if ($order) {
-            // $totalAmount  = $order->items()->sum('total_price');
-            $order->update([
-                'total_amount' => $total_amount,
-            ]);
-        }
+                OrderItem::where('id', $item['id'])->update([
+                    'total_price' => $totalPrice,
+                    'quantity' => $quantity,
+                    'piece_price' => $piecePrice,
+
+                ]);
+
+                $subtotal += $totalPrice;
+            }
+
+            // Get the Order's air_mail
+            $order = Order::find($this->order->id);
+            $air_mail = $order->air_mail ?? 0;
+            $total_amount = $subtotal + $air_mail;
+
+            // Update the Order's total_amount
+            $order->update(['total_amount' => $total_amount]);
     }
+    // public function createPackingSlip()
+    // {
+    //     $order = Order::find($this->order->id);
+
+    //     if ($order) {
+          
+    //         // Calculate the remaining amount
+    //         $packingSlip=PackingSlip::create([
+    //             'order_id' => $this->order->id,
+    //             'customer_id' => $this->customer_id,
+    //             'slipno' => $this->order->order_number,
+    //             // 'is_disbursed' => ($remaining_amount == 0) ? 1 : 0,
+    //             'is_disbursed' => 0,
+    //             'created_by' => $this->staff_id,
+    //             'created_at' => now(),
+    //             'disbursed_by' => $this->staff_id,
+    //             // 'updated_by' => auth()->id(),
+    //             // 'updated_at' => now(),
+    //         ]);
+
+
+    //         do {
+    //             $lastInvoice = Invoice::orderBy('id', 'DESC')->first();
+    //             $invoice_no = str_pad(optional($lastInvoice)->id + 1, 6, '0', STR_PAD_LEFT);
+    //         } while (Invoice::where('invoice_no', $invoice_no)->exists()); // Ensure unique invoice_no
+
+
+    //         $order->invoice_type = $this->document_type;
+    //         $invoice = Invoice::create([
+    //             'order_id' => $this->order->id,
+    //             'customer_id' => $this->customer_id,
+    //             'user_id' => $this->staff_id,
+    //             'packingslip_id' => $packingSlip->id,
+    //             'invoice_no' => $invoice_no,
+    //             // Previous
+    //             'net_price' => $order->total_amount,
+    //             'required_payment_amount' =>$order->total_amount,
+    //             'created_by' =>  $this->staff_id,
+    //             'created_at' => now(),
+    //             // 'updated_by' => auth()->id(),
+    //             'updated_at' => now(),
+    //         ]);
+
+    //         // Fetch Products from Order Items
+    //         $orderItems = $order->items;
+    //          // Insert Invoice Products
+    //          foreach ($orderItems as $key => $item) {
+    //             InvoiceProduct::create([
+    //                 'invoice_id' =>  $invoice->id,
+    //                 'product_id' => $item->product_id,
+    //                 'order_item_id' => $item->id,
+    //                 'product_name'=> $item->product? $item->product->name : "",
+    //                 'quantity' => $item->quantity,
+    //                 'single_product_price'=> $item->piece_price,
+    //                 'total_price' => $item->total_price + ($item->air_mail ?? 0),
+    //                 'is_store_address_outstation' => 0,
+    //                 'created_at' => now(),
+    //                 'updated_at' => now(),
+    //             ]);
+    //          }
+
+    //         Ledger::insert([
+    //             'user_type' => 'customer',
+    //             'transaction_id' => $invoice_no,
+    //             'customer_id' => $order->customer_id,
+    //             'transaction_amount' => $order->total_amount,
+    //             'bank_cash' => 'cash',
+    //             'is_credit' => 0,
+    //             'is_debit' => 1,
+    //             'entry_date' => date('Y-m-d H:i:s'),
+    //             'purpose' => 'invoice',
+    //             'purpose_description' => 'invoice raised of sales order for customer',
+    //             'created_at' => date('Y-m-d H:i:s'),
+    //             'updated_at' => date('Y-m-d H:i:s'),
+    //         ]);
+    //     }
+    // }
+
     public function createPackingSlip()
     {
         $order = Order::find($this->order->id);
-        $remaining_amount = (is_numeric($this->actual_amount) ? (double) $this->actual_amount : 0) - 
-            (is_numeric($this->amount) ? (double) $this->amount : 0);
-            // $required_payment_amount = is_numeric($remaining_amount) ? $remaining_amount : 0;
 
         if ($order) {
-            // Calculate the remaining amount
-            $packingSlip=PackingSlip::create([
-                'order_id' => $this->order->id,
-                'customer_id' => $this->customer_id,
-                'slipno' => $this->order->order_number, 
-                // 'is_disbursed' => ($remaining_amount == 0) ? 1 : 0,
-                'is_disbursed' => 0,
-                'created_by' => $this->staff_id,
-                'created_at' => now(),
-                'disbursed_by' => $this->staff_id,
-                // 'updated_by' => auth()->id(),
-                // 'updated_at' => now(),
-            ]);
+            // 1. Check if a packing slip already exists for this order
+            $packingSlip = PackingSlip::where('order_id', $order->id)->first();
 
-            
-            do {
-                $lastInvoice = Invoice::orderBy('id', 'DESC')->first();
-                $invoice_no = str_pad(optional($lastInvoice)->id + 1, 6, '0', STR_PAD_LEFT);
-            } while (Invoice::where('invoice_no', $invoice_no)->exists()); // Ensure unique invoice_no
-            
+            if (!$packingSlip) {
+                // If not exists, create new
+                $packingSlip = PackingSlip::create([
+                    'order_id' => $order->id,
+                    'customer_id' => $this->customer_id,
+                    'slipno' => $order->order_number,
+                    'is_disbursed' => 0,
+                    'created_by' => $this->staff_id,
+                    'disbursed_by' => $this->staff_id,
+                    'created_at' => now(),
+                ]);
+            } else {
+                // Update existing packing slip
+                $packingSlip->update([
+                    'customer_id' => $this->customer_id,
+                    'is_disbursed' => 0,
+                    'disbursed_by' => $this->staff_id,
+                    'updated_at' => now(),
+                ]);
+            }
 
-            $order->invoice_type = $this->document_type;
-            $invoice = Invoice::create([
-                'order_id' => $this->order->id,
-                'customer_id' => $this->customer_id,
-                'user_id' => $this->staff_id,
-                'packingslip_id' => $packingSlip->id,
-                'invoice_no' => $invoice_no,
-                'net_price' => $order->total_amount,
-                'required_payment_amount' =>$order->total_amount,
-                'created_by' =>  $this->staff_id,
-                'created_at' => now(),
-                // 'updated_by' => auth()->id(),
-                'updated_at' => now(),
-            ]);
+            // 2. Check if invoice already exists
+            $invoice = Invoice::where('order_id', $order->id)->first();
 
-            // Fetch Products from Order Items
+            if (!$invoice) {
+                do {
+                    $lastInvoice = Invoice::orderBy('id', 'DESC')->first();
+                    $invoice_no = str_pad(optional($lastInvoice)->id + 1, 6, '0', STR_PAD_LEFT);
+                } while (Invoice::where('invoice_no', $invoice_no)->exists());
+
+                $order->invoice_type = $this->document_type;
+
+                $invoice = Invoice::create([
+                    'order_id' => $order->id,
+                    'customer_id' => $this->customer_id,
+                    'user_id' => $this->staff_id,
+                    'packingslip_id' => $packingSlip->id,
+                    'invoice_no' => $invoice_no,
+                    'net_price' => $order->total_amount,
+                    'required_payment_amount' => $order->total_amount,
+                    'created_by' => $this->staff_id,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            } else {
+                // Update existing invoice
+                $invoice->update([
+                    'customer_id' => $this->customer_id,
+                    'user_id' => $this->staff_id,
+                    'packingslip_id' => $packingSlip->id,
+                    'net_price' => $order->total_amount,
+                    'required_payment_amount' => $order->total_amount,
+                    'updated_at' => now(),
+                ]);
+            }
+
+            // 3. Update invoice products
+            InvoiceProduct::where('invoice_id', $invoice->id)->delete();
+
             $orderItems = $order->items;
-             // Insert Invoice Products
-             foreach ($orderItems as $key => $item) {
+
+            foreach ($orderItems as $item) {
                 InvoiceProduct::create([
-                    'invoice_id' =>  $invoice->id,
+                    'invoice_id' => $invoice->id,
                     'product_id' => $item->product_id,
-                    'product_name'=> $item->product? $item->product->name : "",
+                    'order_item_id' => $item->id,
+                    'product_name' => $item->product?->name ?? '',
                     'quantity' => $item->quantity,
-                    'single_product_price'=> $item->piece_price,
+                    'single_product_price' => $item->piece_price,
                     'total_price' => $item->total_price + ($item->air_mail ?? 0),
                     'is_store_address_outstation' => 0,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
-             }
+            }
 
-            Ledger::insert([
-                'user_type' => 'customer',
-                'transaction_id' => $invoice_no,
-                'customer_id' => $order->customer_id,
-                'transaction_amount' => $order->total_amount,
-                'bank_cash' => 'cash',
-                'is_credit' => 0,
-                'is_debit' => 1,
-                'entry_date' => date('Y-m-d H:i:s'),
-                'purpose' => 'invoice',
-                'purpose_description' => 'invoice raised of sales order for customer',
-                'created_at' => date('Y-m-d H:i:s'),
-                'updated_at' => date('Y-m-d H:i:s'),
-            ]);
-        }  
+            // 4. Update or create ledger entry
+            Ledger::updateOrCreate(
+                [
+                    'user_type' => 'customer',
+                    'transaction_id' => $invoice->invoice_no,
+                    'customer_id' => $order->customer_id,
+                    'purpose' => 'invoice',
+                ],
+                [
+                    'transaction_amount' => $order->total_amount,
+                    'bank_cash' => 'cash',
+                    'is_credit' => 0,
+                    'is_debit' => 1,
+                    'entry_date' => now(),
+                    'purpose_description' => 'invoice raised of sales order for customer',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
+        }
     }
 
 
@@ -319,6 +536,52 @@ class AddOrderSlip extends Component
     }
     public function render()
     {
-        return view('livewire.order.add-order-slip');
+        // Fetch the order and its related items
+        $order = Order::with([
+            'items.deliveries' => fn($q) => $q->with('user:id,name'),
+            'items.voice_remark','items.catlogue_image'
+        ])->findOrFail($this->orderId);
+        //echo "<pre>";print_r($order->toArray());exit;
+         $orderItems = $order->items->map(function ($item) use($order) {
+
+            $product = \App\Models\Product::find($item->product_id);
+            return [
+                'product_name' => $item->product_name ?? $product->name,
+                'collection_id' => $item->collection,
+                'collection_title' => $item->collectionType ?  $item->collectionType->title : "",
+                'fabrics' => $item->fabric,
+                'measurements' => $item->measurements,
+                'catalogue' => $item->catalogue_id?$item->catalogue:"",
+                'catalogue_id' => $item->catalogue_id,
+                'cat_page_number' => $item->cat_page_number,
+                'price' => $item->piece_price,
+                // 'deliveries' => !empty($item->deliveries)?
+                //     $item->deliveries:"",
+                'deliveries' => !empty($item->deliveries)
+                    ? $item->deliveries->map(function ($delivery) use ($item) {
+                        return [
+                            'id' => $delivery->id,
+                            'delivered_at' => $delivery->delivered_at,
+                            'status' => $delivery->status,
+                            'remarks' => $delivery->remarks,
+                            'fabric_quantity' => $delivery->fabric_quantity,
+                            'delivered_quantity' => $delivery->delivered_quantity,
+                            'user' => $delivery->user ? ['name' => $delivery->user->name] : ['name' => 'N/A'],
+                            'collection_id' => $item->collection, // inject here for later use
+                        ];
+                    })
+                    : [],
+                'quantity' => $item->quantity,
+                'remarks' => $item->remarks,
+                'catlogue_image' => $item->catlogue_image,
+                'voice_remark' => $item->voice_remark,
+
+                'product_image' => $product ? $product->product_image : null,
+            ];
+        });
+        return view('livewire.order.add-order-slip',[
+            'order_detail' => $order,
+            'orderItemsNew' => $orderItems,
+        ]);
     }
 }

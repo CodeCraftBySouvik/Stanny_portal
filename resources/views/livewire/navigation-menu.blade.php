@@ -56,6 +56,28 @@
                 </a>
             </li>
             @endif
+            {{-- Production management --}}
+            @if ($this->hasPermissionByParent('production_management'))
+                <li class="nav-item">
+                    <a class="nav-link text-white {{ Request::is('admin/production*') ? 'active ' : '' }}"
+                        href="#OrderManagementSubmenu" data-bs-toggle="collapse"
+                        aria-expanded="{{ Request::is('admin/orders*') ? 'true' : 'false' }}">
+                        <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
+                            <i class="material-icons opacity-10">shopping_cart</i>
+                        </div>
+                        <span class="nav-link-text ms-1">Production Management</span>
+                    </a>
+                </li>
+                <ul id="OrderManagementSubmenu"
+                class="collapse list-unstyled ms-4 {{ Request::is('admin/production*') ? 'show' : '' }}">
+                <li class="nav-item">
+                    <a class="nav-link text-white {{ Request::is('admin/production') ? 'active ' : '' }}"
+                        href="{{route('production.order.index')}}">
+                        Production Orders
+                    </a>
+                </li>
+            </ul>
+            @endif
             @if ($this->hasPermissionByParent('order_management'))
             {{-- Order Management --}}
             <li class="nav-item">
@@ -88,7 +110,11 @@
                 </a>
                 <a class="nav-link text-white {{ Request::is('admin/orders/invoice/add') ? 'active ' : '' }}"
                     href="{{route('admin.order.invoice.add')}}">
-                    Generate Invoices
+                    Instant Invoices
+                </a>
+                 <a class="nav-link text-white {{ Request::is('admin/orders/proformas') ? 'active ' : '' }}"
+                    href="{{route('admin.order.proformas.index')}}">
+                    Proformas
                 </a>
                 <a class="nav-link text-white {{ Request::is('admin/orders/cancel-order') ? 'active ' : '' }}"
                     href="{{route('admin.order.cancel-order.index')}}">
@@ -133,6 +159,12 @@
                     <a class="nav-link text-white {{ request()->is('admin/accounting/list-opening-balance') ? 'active' : '' }}"
                         href="{{ route('admin.accounting.list_opening_balance') }}">
                         Customer Opening Balance
+                    </a>
+                </li>
+                 <li class="nav-item">
+                    <a class="nav-link text-white {{ request()->is('admin/accounting/cashbook-module') ? 'active' : '' }}"
+                        href="{{ route('admin.accounting.cashbook_module') }}">
+                       Cashbook Module
                     </a>
                 </li>
             </ul>

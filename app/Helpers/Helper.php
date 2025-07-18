@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\SalesmanBilling;
 use App\Models\Order;
 use App\Models\User;
+use App\Models\StockFabric;
+use App\Models\StockProduct;
+use App\Models\OrderStockEntry;
 
 class Helper
 {
@@ -42,6 +45,17 @@ class Helper
         }
         // Return the relative path of the uploaded file
         return 'uploads/' . $folderName . '/' . $filename;
+    }
+
+    public static function handleFileUpload($file, $folder)
+    {
+        if ($file && $file instanceof \Illuminate\Http\UploadedFile) {
+            $timestamp = now()->timestamp;
+            $fileName = $timestamp . '.' . $file->getClientOriginalExtension();
+            $storedPath = $file->storeAs($folder, $fileName, 'public');
+            return "storage/" . $storedPath;
+        }
+        return null;
     }
 
     public static function generateInvoiceBill($salesManId)
@@ -155,5 +169,48 @@ class Helper
     public static function getNamePrefixes(){
         return ['Mr.', 'Mrs.', 'Ms.', 'Dr.', 'Adv.', 'Me.'];
     }
+
+  
+
+    public static function getStockEntryData($collectionId, $fabricId = null, $productId = null, $orderId = null, $orderItemId = null)
+    {
+        if ($collectionId == 1) {
+            $fabricStock = StockFabric::where('fabric_id', $fabricId)->first();
+            $globalAvailable = $fabricStock ? (int)$fabricStock->qty_in_meter : 0;
+
+            // Compute how much has been reserved for this fabric in this order
+            $reserved = OrderStockEntry::where('order_id', $orderId)
+                ->where('fabric_id', $fabricId)
+                ->when($orderItemId, fn($q) => $q->where('order_item_id', '!=', $orderItemId)) 
+                ->sum('quantity');
+
+            return [
+                'available_label' => 'Available Meter',
+                'updated_label'   => 'Required Meter',
+                'available_value' => max($globalAvailable - $reserved, 0),
+                'input_name'      => 'updated_meter',
+                'type'            => 'meter'
+            ];
+        } elseif ($collectionId == 2) {
+            $productStock = StockProduct::where('product_id', $productId)->first();
+            $globalAvailable = $productStock ? (int)$productStock->qty_in_pieces : 0;
+
+            $reserved = OrderStockEntry::where('order_id', $orderId)
+                ->where('product_id', $productId)
+                ->when($orderItemId, fn($q) => $q->where('order_item_id', '!=', $orderItemId))
+                ->sum('quantity');
+
+            return [
+                'available_label' => 'Available Pcs',
+                'updated_label'   => 'Required Pcs',
+                'available_value' => max($globalAvailable - $reserved, 0),
+                'input_name'      => 'updated_pcs',
+                'type'            => 'pcs'
+            ];
+        }
+
+        return null;
+    }
+
 
 }

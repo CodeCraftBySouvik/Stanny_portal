@@ -88,7 +88,7 @@
                     {{ optional($data->customer)->country_code_phone ?? '' }} {{ optional($data->customer)->phone ?? 'N/A' }}
                 </p>
                 <p style="text-align: left;"><strong>Company Name:</strong> {{ optional($data->customer)->company_name ?? 'N/A' }}</p>
-                <p style="text-align: left;"><strong>Address:</strong> {{ optional($data->order)->billing_address ?? 'N/A' }}</p>
+                <p style="text-align: left;"><strong>Address:</strong> {{ optional($data->order)->billing_address ?? $data->customer->location ?? 'N/A' }}</p>
             </div>
 
         </div> 

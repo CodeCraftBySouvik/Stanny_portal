@@ -18,7 +18,7 @@
                     <div class="col-auto">
                         <div class="row g-3 align-items-center">
                             <div class="col-md-auto mt-3">
-                                <a href="{{ route('admin.accounting.add_depot_expense') }}" class="btn btn-outline-success select-md">Add Expense</a>
+                                <a href="{{ route('admin.accounting.add_depot_expense') }}" class="btn btn-outline-success select-md"><i class="material-icons">add</i>Add Expense</a>
                             </div>
                         </div>
                     </div>

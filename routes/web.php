@@ -19,13 +19,13 @@ use App\Http\Livewire\StaticSignUp;
 use App\Http\Livewire\Tables;
 use App\Http\Livewire\{VirtualReality,CustomerIndex,DesignationWisePermissions};
 use GuzzleHttp\Middleware;
-use App\Http\Livewire\Order\{OrderIndex, OrderNew, OrderInvoice,OrderEdit,OrderView,LedgerView,AddOrderSlip,InvoiceList,CancelOrderList,InvoiceEdit,AddInvoice};
+use App\Http\Livewire\Order\{OrderIndex, OrderNew, OrderInvoice,OrderEdit,OrderView,LedgerView,AddOrderSlip,InvoiceList,CancelOrderList,InvoiceEdit,AddInvoice,ProformaIndex,ProformaAdd,ProductionOrderIndex,ProductionOrderDetails,OrderLog};
 use App\Http\Livewire\Product\{MasterProduct,AddProduct,UpdateProduct,MasterCategory,MasterSubCategory,FabricIndex,CollectionIndex,GalleryIndex,MasterCatalogue,CataloguePages};
 use App\Http\Livewire\Staff\{DesignationIndex,StaffIndex,StaffAdd,StaffUpdate,StaffView,StaffTask,StaffTaskAdd,StaffCities,SalesmanBillingIndex,MasterBranch};
 use App\Http\Livewire\Expense\{ExpenseIndex,DepotExpanse,DailyExpenses,DailyCollection};
-use App\Http\Livewire\UserAddressForm; 
-use App\Http\Livewire\CustomerEdit; 
-use App\Http\Livewire\CustomerDetails; 
+use App\Http\Livewire\UserAddressForm;
+use App\Http\Livewire\CustomerEdit;
+use App\Http\Livewire\CustomerDetails;
 use App\Http\Livewire\Supplier\SupplierIndex;
 use App\Http\Livewire\Supplier\SupplierAdd;
 use App\Http\Livewire\Supplier\SupplierEdit;
@@ -37,7 +37,7 @@ use App\Http\Livewire\Stock\{StockIndex,UserLedger};
 use App\Http\Livewire\Report\{UserLedgerReport};
 use App\Http\Livewire\BusinessType\BusinessTypeIndex;
 use App\Http\Livewire\Country\CountryIndex;
-use App\Http\Livewire\Accounting\{AddPaymentReceipt,PaymentCollectionIndex,AddOpeningBalance,ListOpeningBalance,IndexExpense,AddExpense,EditExpense};
+use App\Http\Livewire\Accounting\{AddPaymentReceipt,PaymentCollectionIndex,AddOpeningBalance,ListOpeningBalance,IndexExpense,AddExpense,EditExpense,CashBookModule};
 // purchase Order pdf
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\PurchaseOrder;
@@ -95,7 +95,7 @@ Route::group(['prefix' => 'admin','middleware' => 'admin'], function () {
         }
         return redirect()->route('admin.login'); // Redirect to login if not authenticated
     });
-    
+
     Route::get('dashboard', Dashboard::class)->name('admin.dashboard');
     Route::get('billing', Billing::class)->name('billing');
     Route::get('profile', Profile::class)->name('admin.profile');
@@ -106,8 +106,8 @@ Route::group(['prefix' => 'admin','middleware' => 'admin'], function () {
     Route::get('static-sign-up', StaticSignUp::class)->name('static-sign-up');
     Route::get('rtl', RTL::class)->name('rtl');
 
-    
-    
+
+
     Route::group(['prefix' => 'products'], function () {
         Route::get('/', MasterProduct::class)->name('product.view')->middleware('check.permission');
         Route::get('/products/import', MasterProduct::class)->name('product.import');
@@ -160,7 +160,7 @@ Route::group(['prefix' => 'admin','middleware' => 'admin'], function () {
     Route::get('/branch',MasterBranch::class)->name('branch.index')->middleware('check.permission');
     Route::get('/designation',DesignationIndex::class)->name('staff.designation')->middleware('check.permission');
     Route::get('/designation-wise-permission/{id}',DesignationWisePermissions::class)->name('admin.staff.designation_wise_permission');
-    
+
     // Staff
     Route::prefix('staff')->group(function() {
         Route::get('/',StaffIndex::class)->name('staff.index')->middleware('check.permission');
@@ -171,12 +171,12 @@ Route::group(['prefix' => 'admin','middleware' => 'admin'], function () {
         Route::get('/task/add/{staff_id}',StaffTaskAdd::class)->name('staff.task.add');
         Route::get('cities/add/{salesman_id}',StaffCities::class)->name('staff.cities.add');
     });
-    
+
      // Salesman
     Route::prefix('staff/bill-books')->group(function() {
         Route::get('/',SalesmanBillingIndex::class)->name('salesman.index')->middleware('check.permission');
     });
-    
+
     Route::group(['prefix' => 'customers'], function () {
         Route::get('/', CustomerIndex::class)->name('customers.index')->middleware('check.permission');
         Route::get('/add', UserAddressForm::class)->name('admin.user-address-form')->middleware('check.permission');
@@ -205,6 +205,7 @@ Route::group(['prefix' => 'admin','middleware' => 'admin'], function () {
         Route::get('/list/depot-expense', IndexExpense::class)->name('admin.accounting.list.depot_expense')->middleware('check.permission');
         Route::get('/add-depot-expense', AddExpense::class)->name('admin.accounting.add_depot_expense')->middleware('check.permission');
         Route::get('/edit-depot-expense/{expenseId}', EditExpense::class)->name('admin.accounting.edit_depot_expense')->middleware('check.permission');
+        Route::get('/cashbook-module', CashBookModule::class)->name('admin.accounting.cashbook_module');
     });
 
     Route::prefix('report')->group(function() {
@@ -217,7 +218,7 @@ Route::group(['prefix' => 'admin','middleware' => 'admin'], function () {
 
     });
 
-    
+
     // Route::get('/measurements/add', MeasurementAdd::class)->name('measurements.add');
     // Route::get('/measurements/edit/{id}', MeasurementEdit::class)->name('measurements.edit');
     // Route::get('/measurements/details/{id}', MeasurementDetails::class)->name('measurements.details');
@@ -228,10 +229,26 @@ Route::group(['prefix' => 'admin','middleware' => 'admin'], function () {
         Route::get('/invoice/{id}', OrderInvoice::class)->name('admin.order.invoice');
         Route::get('/new', OrderNew::class)->name('admin.order.new')->middleware('check.permission');
         Route::get('/edit/{id}', OrderEdit::class)->name('admin.order.edit')->middleware('check.permission');
-        Route::get('/view/{id}', OrderView::class)->name('admin.order.view')->middleware('check.permission');
+        Route::get('/view/{id}', action: OrderView::class)->name('admin.order.view')->middleware('check.permission');
         Route::get('/ledger/{id}', LedgerView::class)->name('admin.order.ledger.view');
         Route::get('/invoice', InvoiceList::class)->name('admin.order.invoice.index')->middleware('check.permission');
         Route::get('/add-invoice', AddInvoice::class)->name('admin.order.invoice.add');
         Route::get('/cancel-order', CancelOrderList::class)->name('admin.order.cancel-order.index')->middleware('check.permission');
+        Route::get('/proformas', ProformaIndex::class)->name('admin.order.proformas.index');
+        Route::get('/proformas/add', ProformaAdd::class)->name('admin.order.proformas.add');
+        // order invoice and bill
+        Route::get('{order}/invoice', [OrderIndex::class, 'downloadOrderInvoice'])->name('admin.order.download_invoice');
+        Route::get('{order}/bill', [OrderIndex::class, 'downloadOrderBill']) ->name('admin.order.download_bill');
+        Route::get('/generate-order-pdf/{id}', [OrderView::class, 'generatePdf'])->name('orders.generatePdf');
+        Route::get('/log/{id}', OrderLog::class)->name('admin.order.log');
+
+    });
+
+    // Production
+    Route::group(['prefix' => 'production'], function () {
+        Route::get('/list/{user_id?}', ProductionOrderIndex::class)->name('production.order.index')->middleware('check.permission');
+        Route::get('/details/{id}', ProductionOrderDetails::class)->name('production.order.details');
+        Route::get('{orderid}/production-acceptance-pdf', [ProductionOrderIndex::class, 'downloadOrderPdf'])->name('production.order.download_pdf');
+
     });
 });

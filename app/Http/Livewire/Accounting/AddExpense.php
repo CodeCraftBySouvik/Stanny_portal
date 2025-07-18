@@ -255,7 +255,7 @@ class AddExpense extends Component
 
             // Flash success message and redirect
             Session::flash('message', "Expense added successfully for " . $this->user_type);
-            return redirect()->route('admin.accounting.add_depot_expense');
+            return redirect()->route('admin.accounting.cashbook_module');
         } catch (\Exception $e) {
             // dd($e);
             // Rollback the transaction in case of an error

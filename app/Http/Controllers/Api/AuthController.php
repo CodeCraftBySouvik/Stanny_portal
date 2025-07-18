@@ -10,6 +10,7 @@ use App\Models\UserAddress;
 use App\Models\Otp;
 use App\Models\Order;
 use App\Models\UserLogin;
+use App\Models\Ledger;
 use App\Models\Country;
 use App\Models\BusinessType;
 use App\Models\PaymentCollection;
@@ -78,9 +79,22 @@ class AuthController extends Controller
     }
 
     public function userLogin(Request $request){
+       // dd('hi');
         $validator = Validator::make($request->all(),[
             'country_code' => 'required',
-            'mobile' => 'required|numeric|exists:users,phone',
+            'mobile' => [
+            'required',
+            'numeric',
+            function ($attribute, $value, $fail) {
+                $exists = User::where('phone', $value)
+                            ->where('user_type', 1)
+                            ->exists();
+
+                if (! $exists) {
+                    $fail('The selected mobile number is invalid or does not belong to a valid user.');
+                }
+            },
+        ],
             'device_id' => 'required'
         ]);
         if ($validator->fails()) {
@@ -538,9 +552,14 @@ class AuthController extends Controller
             }
         }
        
+        $ledgerCredit=Ledger::where('customer_id',$id)->where('is_credit',1)->sum('transaction_amount');
+        $ledgerDebit=Ledger::where('customer_id',$id)->where('is_debit',1)->sum('transaction_amount');
+        
         $data = [];
         $data['details']=$details;
         $data['latest_orders']=$orders;
+        $data['wallet']=$ledgerCredit;
+        $data['collectionAmount']=$ledgerDebit;
         return response()->json([
             'status' => true,
             'message' => 'Customer data retrieved successfully',
@@ -555,7 +574,7 @@ class AuthController extends Controller
             return $user; // Return the response if the user is not authenticated
         }
         $filter = $request->keyword;
-
+        
         // Fetch filtered users
         $users = User::with('billingAddress')->where('user_type', 1)
             ->where('status', 1)
@@ -585,18 +604,18 @@ class AuthController extends Controller
                 $users->prepend($order->customer);
             }
             
-            $data = $users->map(function ($user) {
-                return [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'phone' => $user->phone,
-                ];
-            });
+            // $data = $users->map(function ($user) {
+            //     return [
+            //         'id' => $user->id,
+            //         'name' => $user->name,
+            //         'email' => $user->email,
+            //         'phone' => $user->phone,
+            //     ];
+            // });
         return response()->json([
             'status' => true,
             'message' => 'Data fetched successfully!',
-            'data' => $data,
+            'data' => $users,
         ],200);
     }
     public function customer_store(Request $request){
@@ -608,17 +627,13 @@ class AuthController extends Controller
         $rules = [
             'prefix' => 'required|string|max:255',
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
+            'email' => 'nullable|email|unique:users,email',
             'phone_code' => 'required|string|max:255',
             'phone' => [
                 'required',
                 'regex:/^\d{'. $phone_code_length .'}$/',
             ],
-            'whatsapp_code' => 'required|string|max:255',
-            'whatsapp_no' => [
-                'required',
-                'regex:/^\d{'. $whatsapp_code_length .'}$/',
-            ],
+            
             'country_code_alt_1' => 'nullable|string|max:255',
             'alternative_phone_number_1' => [
                 'nullable',
@@ -631,7 +646,7 @@ class AuthController extends Controller
                 'regex:/^\d{'. $alternative_phone_2_code_length .'}$/',
             ],
             
-            'dob' => 'required|date',
+            'dob' => 'nullable|date',
             'company_name' => 'nullable|string|max:255',
             'employee_rank' => 'nullable|string|max:255',
            
@@ -640,7 +655,7 @@ class AuthController extends Controller
             'billing_city' => 'required|string|max:255',
             'billing_country' => 'required|string|max:255',
             'billing_pin' => 'nullable|string|max:10',
-            'profile_image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'verified_video' => 'nullable|file|mimes:mp4,avi,mkv|max:10240',
         ];
 
@@ -672,6 +687,7 @@ class AuthController extends Controller
                 'email' => $request->email,
                 'country_code_phone' => $request->phone_code,
                 'phone' => $request->phone,
+                'country_code_whatsapp' => $request->whatsapp_code,
                 'whatsapp_no' => $request->whatsapp_no,
                 'country_code_alt_1' => $request->country_code_alternative_1,
                 'alternative_phone_number_1' => $request->alternative_phone_number_1,
@@ -721,17 +737,13 @@ class AuthController extends Controller
         $rules = [
             'prefix' => 'required|string|max:255',
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $id,
+            'email' => 'nullable|email|unique:users,email,' . $id,
             'phone_code' => 'required|string|max:10',
             'phone' => [
                 'required',
                 "regex:/^\d{{$phone_code_length}}$/",
             ],
-            'whatsapp_code' => 'required|string|max:10',
-            'whatsapp_no' => [
-                'required',
-                "regex:/^\d{{$whatsapp_code_length}}$/",
-            ],
+           
             'country_code_alt_1' => 'nullable|string|max:255',
             'alternative_phone_number_1' => [
                 'nullable',
@@ -744,7 +756,7 @@ class AuthController extends Controller
                 'regex:/^\d{'. $alternative_phone_2_code_length .'}$/',
             ],
             
-            'dob' => 'required|date',
+            'dob' => 'nullable|date',
             'company_name' => 'nullable|string|max:255',
             'employee_rank' => 'nullable|string|max:255',
             'billing_address' => 'required|string',
@@ -848,60 +860,5 @@ class AuthController extends Controller
         }
     }
 
-    public function order_list(Request $request){
-        $filter = $request->filter;
-        $start_date = !empty($request->start_date) ? $request->start_date . ' 00:00:00' : null;
-        $end_date = !empty($request->end_date) ? $request->end_date . ' 23:59:59' : null;
-        $user = $this->getAuthenticatedUser();
-        // dd($filter);
-        if ($user instanceof \Illuminate\Http\JsonResponse) {
-            return $user; // Return the response if the user is not authenticated
-        }
-         // Start Query
-        $ordersQuery = Order::where('created_by', $user->id);
-
-        // Apply keyword search filter (on order_number or customer name)
-        if (!empty($filter)) {
-            
-            $ordersQuery->where(function ($query) use ($filter) {
-                $query->where('order_number', 'like', "%{$filter}%")
-                ->orWhere('customer_name', 'like', "%{$filter}%");
-            });
-        }
-
-        // Apply date filter (only if both start & end dates are provided)
-        if (!empty($start_date) && !empty($end_date)) {
-            $ordersQuery->whereBetween('created_at', [$start_date, $end_date]);
-        }
-
-        // Fetch the filtered orders
-        $orders = $ordersQuery->orderBy('id', 'DESC')->get();
-
-        $data = [];
-        if(count($orders)>0){
-            foreach($orders as $key=>$item){
-                // Convert order time to Carbon instance
-                $orderTime = Carbon::parse($item->created_at);
-                
-                // Determine the formatted order time
-                if ($orderTime->isToday()) {
-                    $formattedOrderTime = "Today " . $orderTime->format('h:i A');
-                } elseif ($orderTime->isYesterday()) {
-                    $formattedOrderTime = "Yesterday " . $orderTime->format('h:i A');
-                } else {
-                    $formattedOrderTime = $orderTime->format('d M y h:i A'); // Example: "12 Jan 25 14:25"
-                }
-                $data[$key]['order_id'] = $item->id;
-                $data[$key]['customer_name'] = $item->prefix.' '.$item->customer_name;
-                $data[$key]['order_number'] = $item->order_number;
-                $data[$key]['order_amount'] = $item->total_amount;
-                $data[$key]['order_time'] = $formattedOrderTime;
-            }
-        }
-        return response()->json([
-            'status' => true,
-            'message' => 'order information fetch successfully!',
-            'orders' => $data,
-        ]);
-    }
+   
 }

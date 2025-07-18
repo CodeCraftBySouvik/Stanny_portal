@@ -96,7 +96,7 @@ class EditExpense extends Component
             DB::commit();
 
             Session::flash('message', "Expense updated successfully for " . $this->user_type);
-            return redirect()->route('admin.accounting.list.depot_expense');
+            return redirect()->route('admin.accounting.cashbook_module');
         } catch (\Exception $e) {
             DB::rollBack();
             Session::flash('error', 'Something went wrong: ' . $e->getMessage());

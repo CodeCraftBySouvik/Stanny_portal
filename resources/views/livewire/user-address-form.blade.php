@@ -21,12 +21,13 @@
             <div class="card-header pb-0 p-3">
                 <div class="row justify-content-between">
                     {{-- Customer Details --}}
-                    <div class="col-md-8">
+                    <div class="col-12">
                         <h6 class="badge bg-danger custom_danger_badge">Basic Information</h6>
                     </div>
                     {{-- customer badge --}}
-                    <div class="col-md-4 text-end">
-                        <div class="form-check form-check-inline">
+                    <div class="col-12">
+                        <label class="form-label">Customer Category: &nbsp;</label>
+                        <div class="form-check form-check-inline ps-0">
                             <input class="form-check-input" type="radio" wire:model="badge_type" id="badgeGeneral" value="general">
                             <label class="form-check-label" for="badgeGeneral">General</label>
                         </div>
@@ -46,7 +47,7 @@
                         <div class="mb-3 col-md-3">
                             <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <select wire:model="prefix" class="form-control form-control-sm border border-1 prefix_select">
+                                <select wire:model="prefix" class="form-control form-control-sm border border-1 prefix_select flex-30">
                                     <option value="" selected hidden>Prefix</option>
                                     @foreach (App\Helpers\Helper::getNamePrefixes() as $prefix)
                                     <option value="{{$prefix}}">{{ $prefix }}</option>
@@ -107,7 +108,7 @@
                             <div class="extention-group">
                                 <select wire:model="selectedCountryPhone"
                                     wire:change="GetCountryDetails($event.target.selectedOptions[0].getAttribute('data-length'), 'phone')"
-                                    class="form-control form-control-sm prefix_select">
+                                    class="form-control form-control-sm prefix_select flex-30">
                                     <option value="" selected hidden>Code</option>
                                     @foreach($countries as $country)
                                     <option value="{{ $country->country_code }}"
@@ -123,9 +124,9 @@
                             @error('phone')
                             <div class="text-danger">{{ $message }}</div>
                             @enderror
-                            <div>
+                            <div class="form-check-label-group">
                                 <input type="checkbox" id="is_whatsapp1" wire:model="isWhatsappPhone">
-                                <label for="is_whatsapp1" class="form-check-label ms-2">Is Whatsapp</label>
+                                <label for="is_whatsapp1" class="form-check-label ms-1">Is Whatsapp</label>
                             </div>
                         </div>
 
@@ -160,7 +161,7 @@
                             <div class="extention-group">
                                 <select wire:model="selectedCountryAlt1"
                                     wire:change="GetCountryDetails($event.target.selectedOptions[0].getAttribute('data-length'), 'alt_phone_1')"
-                                    class="form-control form-control-sm prefix_select">
+                                    class="form-control form-control-sm prefix_select flex-30">
                                     <option value="" selected hidden>Code</option>
                                     @foreach($countries as $country)
                                     <option value="{{ $country->country_code }}" data-length="{{$country->mobile_length}}">{{
@@ -176,9 +177,9 @@
                             <div class="text-danger">{{ $message }}</div>
                             @enderror
                             {{-- is this also a whatsapp --}}
-                            <div>
+                            <div class="form-check-label-group">
                                 <input type="checkbox" id="is_whatsapp2" wire:model="isWhatsappAlt1">
-                                <label for="is_whatsapp2" class="form-check-label ms-2">Is Whatsapp</label>
+                                <label for="is_whatsapp2" class="form-check-label ms-1">Is Whatsapp</label>
                             </div>
                         </div>
 
@@ -187,7 +188,7 @@
                             <div class="extention-group">
                                 <select wire:model="selectedCountryAlt2"
                                     wire:change="GetCountryDetails($event.target.selectedOptions[0].getAttribute('data-length'), 'alt_phone_2')"
-                                    class="form-control form-control-sm prefix_select">
+                                    class="form-control form-control-sm prefix_select flex-30">
                                     <option value="" selected hidden>Code </option>
                                     @foreach($countries as $country)
                                     <option value="{{ $country->country_code }}" data-length="{{$country->mobile_length}}">{{
@@ -203,9 +204,9 @@
                             <div class="text-danger">{{ $message }}</div>
                             @enderror
                             {{-- is this also a whatsapp --}}
-                            <div>
+                            <div class="form-check-label-group">
                                 <input type="checkbox" id="is_whatsapp3" wire:model="isWhatsappAlt2">
-                                <label for="is_whatsapp3" class="form-check-label ms-2">Is Whatsapp</label>
+                                <label for="is_whatsapp3" class="form-check-label ms-1">Is Whatsapp</label>
                             </div>
                         </div>
 

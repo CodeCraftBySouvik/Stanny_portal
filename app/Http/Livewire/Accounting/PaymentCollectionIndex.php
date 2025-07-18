@@ -28,7 +28,13 @@ class PaymentCollectionIndex extends Component
     public $selected_customer_id;
     public $active_details = 0;
     public $auth;
+    protected $listeners = ['revoke-payment-confirmed' => 'revokePayment'];
+    protected $paginationTheme = 'bootstrap';
 
+     public function updatingSearch()
+    {
+        $this->resetPage();
+    }
     public function mount(){
         $this->auth = Auth::guard('admin')->user();
         $this->staffs = User::where('user_type', 0)
@@ -72,10 +78,12 @@ class PaymentCollectionIndex extends Component
             $this->reset(['selected_customer','selected_customer_id']);
         }
         $this->searchResults = [];
+        $this->resetPage();
     }
 
     public function CollectedBy($value){
         $this->staff_id = $value;
+        $this->resetPage();
     }
 
     public function customerDetails($id){
@@ -140,7 +148,7 @@ class PaymentCollectionIndex extends Component
 
         # Delete Payment Collection
         PaymentCollection::where('id',$id)->delete();
-        session()->flash('success', 'Payment revoked successfully'); 
+        session()->flash('success', 'Payment revoked successfully');
     }
 
     private function resetInvoicePayments($customer_id, $collection_data){
@@ -158,7 +166,7 @@ class PaymentCollectionIndex extends Component
                     if($amount == $payment_amount){
                         // die('Full Covered');
                         Invoice::where('id',$inv->id)->update([
-                            'required_payment_amount'=>'',
+                            'required_payment_amount'=>0,
                             'payment_status' => 2,
                             'is_paid'=>1
                         ]);
@@ -166,11 +174,11 @@ class PaymentCollectionIndex extends Component
                             'invoice_id' => $inv->id,
                             'payment_collection_id' => $payment_collection_id,
                             'invoice_no' => $inv->invoice_no,
-                            'voucher_no' => $payments['vouchar_no'],
+                            'voucher_no' => $payments['voucher_no'],
                             'invoice_amount' => $inv->net_price,
                             'vouchar_amount' => $payment_amount,
                             'paid_amount' => $amount,
-                            'rest_amount' => '',
+                            'rest_amount' => 0,
                             'created_at' => $payments['created_at'],
                             'updated_at' => $payments['created_at']
                         ]);
@@ -180,19 +188,19 @@ class PaymentCollectionIndex extends Component
                         if($amount_after_settlement>$amount && $amount_after_settlement>0){
                             $amount_after_settlement=$amount_after_settlement-$amount;
                             Invoice::where('id',$inv->id)->update([
-                                'required_payment_amount'=>'',
+                                'required_payment_amount'=>0,
                                 'payment_status' => 2,
                                 'is_paid'=>1
-                            ]);    
+                            ]);
                             InvoicePayment::insert([
                                 'invoice_id' => $inv->id,
                                 'payment_collection_id' => $payment_collection_id,
                                 'invoice_no' => $inv->invoice_no,
-                                'voucher_no' => $payments['vouchar_no'],
+                                'voucher_no' => $payments['voucher_no'],
                                 'invoice_amount' => $inv->net_price,
                                 'vouchar_amount' => $payment_amount,
                                 'paid_amount' => $amount,
-                                'rest_amount' => '',
+                                'rest_amount' => 0,
                                 'created_at' => $payments['created_at'],
                                 'updated_at' => $payments['created_at']
                             ]);
@@ -207,15 +215,15 @@ class PaymentCollectionIndex extends Component
                                 'invoice_id' => $inv->id,
                                 'payment_collection_id' => $payment_collection_id,
                                 'invoice_no' => $inv->invoice_no,
-                                'voucher_no' => $payments['vouchar_no'],
+                                'voucher_no' => $payments['voucher_no'],
                                 'invoice_amount' => $inv->net_price,
                                 'vouchar_amount' => $payment_amount,
                                 'paid_amount' => $amount_after_settlement,
                                 'rest_amount' => $rest_payment_amount,
                                 'created_at' => $payments['created_at'],
                                 'updated_at' => $payments['created_at']
-                            ]);    
-                            $amount_after_settlement = 0;                                            
+                            ]);
+                            $amount_after_settlement = 0;
                         }else{
 
                         }
@@ -228,7 +236,7 @@ class PaymentCollectionIndex extends Component
     public function downloadInvoice($payment_id)
     {
         $invoice_payments = [];
-        $data = PaymentCollection::with(['customer', 'user'])
+        $data = PaymentCollection::with(['customer.billingAddressLatest', 'user'])
                     ->where('id', $payment_id)
                     ->firstOrFail();
         if($data){
@@ -236,12 +244,12 @@ class PaymentCollectionIndex extends Component
         }
         // Generate PDF
         $pdf = PDF::loadView('invoice.pdf', compact('data','invoice_payments'));
-    
+
         // Download the PDF
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
         },  $data->voucher_no . '.pdf');
-    } 
+    }
     public function render()
     {
         $paginatedData = $this->CollectionData();

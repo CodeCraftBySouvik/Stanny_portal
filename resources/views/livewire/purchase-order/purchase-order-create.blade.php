@@ -8,7 +8,10 @@
             <li><a href="{{route('purchase_order.create')}}">PO</a></li>
             <li>Create Purchase Order</li>
             <li class="back-button">
-                <a href="{{ route('purchase_order.index') }}" class="btn btn-sm btn-danger select-md text-light font-weight-bold mb-0">Back to PO </a>
+                <a href="{{ route('purchase_order.index') }}" class="btn btn-sm btn-danger select-md text-light font-weight-bold mb-0">
+                    <i class="material-icons text-white" style="font-size: 15px;">chevron_left</i>
+                    Back to PO 
+                </a>
             </li>
           </ul>
     </section>
@@ -169,7 +172,8 @@
                         <div class="col-md-12 text-end">
                             {{-- <button type="reset" class="btn btn-warning" wire:click="resetForm">Reset Form</button>
                             <button type="reset" class="btn btn-danger" wire:click="resetItems">Reset Items</button> --}}
-                            <button type="submit" class="btn btn-cta">Add</button>
+                            <button type="submit" class="btn btn-sm btn-success"><i class="material-icons text-white"
+                            style="font-size: 15px;">add</i>Add</button>
                         </div>
                     </div>
                     @endif

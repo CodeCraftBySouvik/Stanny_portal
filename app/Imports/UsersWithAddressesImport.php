@@ -38,8 +38,7 @@ class UsersWithAddressesImport implements ToModel, WithHeadingRow
             $countryCodeAlt2 = Country::where('country_code', $row['country_code_alternet_phone_two'])->first();
             $mobileLength2 = $countryCodeAlt2->mobile_length ?? 10;
 
-            // $countryCodeWhats = Country::where('country_code', $row['country_code_whatsapp'])->first();
-            // $mobileLengthWhats = $countryCodeWhats->mobile_length ?? 10;
+         
             // Perform validation
             $validator = Validator::make($row, [
                 'phone' => "nullable|numeric|digits:$mobileLength",
@@ -64,14 +63,15 @@ class UsersWithAddressesImport implements ToModel, WithHeadingRow
             $auth = Auth::guard('admin')->user();
             // Convert DOB format
             // $dob = isset($row['dob']) ? Carbon::createFromFormat('m/d/Y', $row['dob'])->format('Y-m-d') : null;
-            $dob = isset($row['dob']) ? Carbon::createFromFormat('d-m-Y', $row['dob'])->format('Y-m-d') : null;
+           $dob = isset($row['dob']) ? Carbon::parse($row['dob'])->format('Y-m-d') : null;
+
             // Create or update user
             $user = User::updateOrCreate(
                 ['email' => $row['email']],
                 [
                     'prefix' => $row['prefix'] ?? null,
                     'name' => $row['customer_name'] ?? null,
-                    'dob' => $dob,
+                    'dob' => $dob ?? null,
                     'user_type' => strtolower(trim($row['user_type'])) == 'staff' ? 0 : 1,
                     'company_name' => $row['company_name'] ?? null,
                     'employee_rank' => $row['rank'] ?? null,
@@ -83,8 +83,7 @@ class UsersWithAddressesImport implements ToModel, WithHeadingRow
                     'alternative_phone_number_2' => $row['alternet_phone_two'] ?? null,
                     'created_by' => $auth->id,
                     
-                    // 'country_code_whatsapp' => $row['country_code_whatsapp'] ?? null,
-                    // 'whatsapp_no' => $row['whatsapp_number'] ?? null,
+                    
                 ]
             );
            

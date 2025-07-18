@@ -25,6 +25,10 @@ class StockIndex extends Component
     public $searchProduct  = '';
     public $searchFabric  = '';
    
+     public function updatingSearch()
+    {
+        $this->resetPage(); 
+    }
     
     public function setActiveTab($tab)
     {

@@ -34,6 +34,10 @@ class CustomerIndex extends Component
     public function confirmDelete($id){
         $this->dispatch('showDeleteConfirm',['itemId' => $id]);
     }
+    public function updatingSearch()
+    {
+        $this->resetPage(); 
+    }
 
     public function deleteCustomer($id)
     {
@@ -53,9 +57,9 @@ class CustomerIndex extends Component
         $user->save();
         session()->flash('success','Customer status updated successfully');
     }
-    public function FindCustomer($keywords){
-        $this->search = $keywords;
-    }
+    // public function FindCustomer($keywords){
+    //     $this->search = $keywords;
+    // }
     public function resetForm(){
         $this->reset(['search']);
     }
@@ -135,12 +139,6 @@ class CustomerIndex extends Component
                       ->orWhere('whatsapp_no', 'like', '%' . $this->search . '%')
                       ->orWhere('email', 'like', '%' . $this->search . '%');
             })
-            
-            // ->orWhereHas('orders', function ($q) {
-            //     $q->where('order_number', 'like', '%' . $this->search . '%')
-            //       ->orWhere('customer_name', 'like', '%' . $this->search . '%')
-            //       ->orWhere('customer_email', 'like', '%' . $this->search . '%');
-            // })
             ->when(!$auth->is_super_admin, fn($query) => $query->where('created_by', $auth->id)) // Restrict non-admins
             ->orderBy('created_at', 'desc') // Sort by latest
             ->paginate(10);

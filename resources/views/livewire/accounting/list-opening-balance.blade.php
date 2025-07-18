@@ -7,7 +7,7 @@
             <li>Report</li>
             <li><a href="{{route('admin.accounting.list_opening_balance')}}">Customer Opening Balance</a></li>
             <li class=" back-button btn btn-success btn-sm text-decoration-none text-light font-weight-bold mb-0">
-                <a href="{{route('admin.accounting.add_opening_balance')}}" class="text-white">
+                <a href="{{route('admin.accounting.add_opening_balance')}}" class="text-white d-flex align-items-center">
                     <i class="material-icons text-white" style="font-size: 15px;">add</i>
                     Add</a>
             </li>

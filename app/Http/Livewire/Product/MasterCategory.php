@@ -17,7 +17,10 @@ class MasterCategory extends Component
     public $collection_id;
     public $title, $status = 1, $categoryId, $image, $search = '',$short_code;
 
-
+    public function updatingSearch()
+    {
+        $this->resetPage(); 
+    }
     public function confirmDelete($id){
         $this->dispatch('showDeleteConfirm',['itemId' => $id]);
     }

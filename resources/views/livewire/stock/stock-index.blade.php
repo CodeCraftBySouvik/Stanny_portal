@@ -181,6 +181,10 @@
                                 @endforelse
                             </tbody>
                         </table>
+                        {{-- pagination --}}
+                        <div class="mt-4">
+                            {{$fabrics->links()}}
+                        </div>
                     </div>
                 </div>
             </div>

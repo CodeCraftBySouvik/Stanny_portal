@@ -5,11 +5,11 @@
             <div class="row">
                 {{-- Supplier Information --}}
                 <div class="col-md-6 d-flex align-items-center">
-                    <h6 class="badge bg-danger custom_danger_badge">Basic Information</h6>
+                    <h6 class="badge bg-danger custom_danger_badge mb-0">Basic Information</h6>
                 </div>
                 <div class="col-md-6 text-end">
-                    <div class="row">
-                        <div class="col-10">
+                    <div class="row align-items-center justify-content-end">
+                        <div class="col-md-5 col-12">
                             <select wire:model="selectedBusinessType" class="form-select me-2 form-control"
                                 aria-label="Default select example">
                                 <option selected hidden>Select Domain</option>
@@ -22,8 +22,8 @@
                             <div class="text-danger error-message">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-2">
-                            <a href="{{ route('staff.index') }}" class="btn btn-cta btn-sm">
+                        <div class="col-md-3 col-12">
+                            <a href="{{ route('staff.index') }}" class="btn btn-cta btn-sm mb-0">
                                 <i class="material-icons text-white" style="font-size: 15px;">chevron_left</i> Back
                             </a>
                         </div>
@@ -92,7 +92,7 @@
                         <label for="person_name" class="form-label">Person Name <span
                                 class="text-danger">*</span></label>
                         <div class="input-group">
-                            <select wire:model="prefix" class="form-control form-control-sm border border-1" style="max-width: 60px;">
+                            <select wire:model="prefix" class="form-control form-control-sm border border-1 flex-30">
                                 <option value="" selected hidden>Prefix</option>
                                 @foreach (App\Helpers\Helper::getNamePrefixes() as $prefix)
                                     <option value="{{$prefix}}">{{ $prefix }}</option>
@@ -159,9 +159,9 @@
                         @error('mobile')
                         <div class="text-danger error-message">{{ $message }}</div>
                         @enderror
-                        <div>
+                        <div class="form-check-label-group">
                             <input type="checkbox" id="is_whatsapp1" wire:model="isWhatsappPhone">
-                            <label for="is_whatsapp1" class="form-check-label ms-2">Is Whatsapp</label>
+                            <label for="is_whatsapp1" class="form-check-label ms-1">Is Whatsapp</label>
                         </div>
                     </div>
 
@@ -179,7 +179,7 @@
                         @enderror
                     </div>
 
-                    <div class="mb-3 col-md-3">
+                    {{-- <div class="mb-3 col-md-3">
                         <label for="whatsapp_no" class="form-label">WhatsApp <span class="text-danger">*</span></label>
                         <div class=" align-items-center">
 
@@ -201,7 +201,7 @@
                         @error('whatsapp_no')
                         <div class="text-danger error-message">{{ $message }}</div>
                         @enderror
-                    </div>
+                    </div> --}}
                     <div class="mb-3 col-md-3">
                         <label for="mobile" class="form-label">alternative phone number 1 </label>
                         <div class="extention-group">
@@ -220,9 +220,9 @@
                         @error('alternative_phone_number_1')
                         <div class="text-danger error-message">{{ $message }}</div>
                         @enderror
-                        <div>
+                        <div class="form-check-label-group">
                             <input type="checkbox" id="is_whatsapp2" wire:model="isWhatsappAlt1">
-                            <label for="is_whatsapp2" class="form-check-label ms-2">Is Whatsapp</label>
+                            <label for="is_whatsapp2" class="form-check-label ms-1">Is Whatsapp</label>
                         </div>
                     </div>
                     <div class="mb-3 col-md-3">
@@ -243,9 +243,9 @@
                         @error('alternative_phone_number_2')
                         <div class="text-danger error-message">{{ $message }}</div>
                         @enderror
-                        <div>
+                        <div class="form-check-label-group">
                             <input type="checkbox" id="is_whatsapp3" wire:model="isWhatsappAlt2">
-                            <label for="is_whatsapp3" class="form-check-label ms-2">Is Whatsapp</label>
+                            <label for="is_whatsapp3" class="form-check-label ms-1">Is Whatsapp</label>
                         </div>
                     </div>
                 </div>
@@ -317,9 +317,9 @@
                         <div class="text-danger error-message">{{ $message }}</div>
                         @enderror
                     </div>
-
+                    
                     <div class="col-md-3">
-                        <label for="dob" class="form-label">D.O.B <span class="text-danger">*</span></label>
+                        <label for="dob" class="form-label">D.O.B </label>
                         <input type="date" wire:model="dob" id="dob"
                             class="form-control form-control-sm border border-1 p-2" max="{{now()->format('Y-m-d')}}">
                         @error('dob')
@@ -386,9 +386,9 @@
                         @error('emergency_mobile')
                         <div class="text-danger error-message">{{ $message }}</div>
                         @enderror
-                        <div>
+                        <div class="form-check-label-group">
                             <input type="checkbox" id="is_whatsapp4" wire:model="isWhatsappEmergency">
-                            <label for="is_whatsapp4" class="form-check-label ms-2">Is Whatsapp</label>
+                            <label for="is_whatsapp4" class="form-check-label ms-1">Is Whatsapp</label>
                         </div>
                     </div>
 
@@ -398,7 +398,7 @@
                     </div> --}}
 
                     <!-- WhatsApp Number -->
-                    <div class="col-md-4">
+                    {{-- <div class="col-md-4">
                         <label class="form-label">WhatsApp Number</label>
                         <div class=" align-items-center">
                             <div class="extention-group">
@@ -420,7 +420,7 @@
                         @error('emergency_whatsapp')
                         <div class="text-danger error-message">{{ $message }}</div>
                         @enderror
-                    </div>
+                    </div> --}} 
 
                     <!-- Contact Address -->
                     <div class="col-md-4">

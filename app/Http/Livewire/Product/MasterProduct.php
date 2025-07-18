@@ -35,6 +35,11 @@ class MasterProduct extends Component
     public function mount(){
         $this->collection = Collection::all();
     }
+    
+    public function updatingSearch()
+    {
+        $this->resetPage(); 
+    }
 
     public function confirmDelete($id){
         $this->dispatch('showDeleteConfirm',['itemId' => $id]);

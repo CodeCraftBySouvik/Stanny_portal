@@ -86,7 +86,7 @@ class AddProduct extends Component
             'description' => 'nullable|string',
             'gst_details' => 'nullable|numeric',
             'product_image' => 'nullable|image|max:1024', // 1MB max image size
-            'multipleImages.*' => 'nullable|image|max:2024|mimes:jpg,jpeg,png,webp', // Validation for multiple images
+            'multipleImages.*' => 'nullable|image|mimes:jpg,jpeg,png,webp', // Validation for multiple images
         ]);
         try {
             // Validate input

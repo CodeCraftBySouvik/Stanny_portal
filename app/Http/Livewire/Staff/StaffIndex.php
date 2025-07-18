@@ -6,9 +6,14 @@ use Livewire\Component;
 use App\Models\User;
 use App\Models\Branch;
 use App\Models\Designation;
+use Livewire\WithPagination;
+use Illuminate\Support\Facades\Auth;
+
 
 class StaffIndex extends Component
 {
+    use WithPagination;
+
     public $staff,$user_id;
     public $search, $branch_name, $designation_name;
     public $branches, $designationList;
@@ -18,6 +23,11 @@ class StaffIndex extends Component
         $this->branches = Branch::orderBy('name','ASC')->get();
         $this->designationList = Designation::orderBy('name','ASC')->get();
 
+    }
+
+     public function updatingSearch()
+    {
+        $this->resetPage(); 
     }
 
     public function toggleStatus($user_id){
@@ -58,7 +68,18 @@ class StaffIndex extends Component
             ->where('user_type', 0)
             ->orderBy('name', 'ASC');
 
-        // Apply search filter (Search by name, email, phone)
+            $auth = Auth::guard('admin')->user();
+
+            // Apply self + team filter only if not super admin
+            if (!$auth->is_super_admin) {
+                $query->where(function ($q) use ($auth) {
+                    $q->where('id', $auth->id)
+                    ->orWhere('parent_id', $auth->id);
+                });
+            }
+
+            $query->orderBy('name', 'ASC');
+            // Apply search filter (Search by name, email, phone)
         if (!empty($this->search)) {
             $query->where(function ($q) {
                 $q->where('name', 'like', '%' . $this->search . '%')
@@ -76,10 +97,10 @@ class StaffIndex extends Component
             $query->where('designation',$this->designation_name);
         }
 
-        $this->staff = $query->get();
+        $staff_data = $query->paginate(20);
 
         return view('livewire.staff.staff-index', [
-            'staff' => $this->staff,
+            'staff_data' => $staff_data,
             'branches' => $this->branches,
             'designationList' => $this->designationList
         ]);

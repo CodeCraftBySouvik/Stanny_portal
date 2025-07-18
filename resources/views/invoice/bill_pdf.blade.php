@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         body {
             font-family: "Roboto", sans-serif;
@@ -21,18 +22,22 @@
             height: auto;
             border-collapse: collapse;
         }
+
+
         .table-container {
             display: flex;
             flex-direction: column;
             height: 100vh;
             position: relative;
             z-index: 3;
-            background-image: url("./assets/img/watermark-logo.png");
+            background-image: url("./assets/img/stanny_full_page.png");
             background-position: 50% 100%;
             background-attachment: scroll;
             background-repeat: no-repeat;
             background-size: 60%;
         }
+
+
 
         .table-container table {
             flex-grow: 1;
@@ -41,7 +46,7 @@
 
         }
 
-        .footer {
+        /* .footer {
             position: absolute;
             bottom: 0;
             left: 0;
@@ -52,7 +57,34 @@
             justify-content: flex-end;
             align-items: flex-end;
 
+        } */
+        .footer {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            padding: 0 20px;
+            box-sizing: border-box;
         }
+
+        .footer strong {
+            font-family: "Roboto", sans-serif;
+            font-weight: 700;
+        }
+
+        .footer div {
+            font-family: "Roboto", sans-serif;
+            letter-spacing: 0.5px;
+        }
+
+
+
+        html,
+        body {
+            height: 100%;
+        }
+
+
 
         h4,
         h1,
@@ -68,137 +100,225 @@
 </head>
 
 <body>
-<div class="table-container">
-    <table class="table-custom">
-        <tr>
-            <td style="width:60%;">
-                <img src="{{  public_path('assets/img/pdf_logo.png')}}" style="width:210px; height:auto;">
-            </td>
-            <td style="width:40%;">
-                < <h3 style="text-transform: uppercase; font-size: 15px; margin-bottom: 3px;">STE RADHEY'S SARL</h3>
-                    <h3 style="text-transform: uppercase; font-size: 15px; margin-bottom: 3px;">CAPITAL: 1.000.000 FCFA
+    <div class="table-container">
+        <table class="table-custom">
+            <tr>
+                <td style="width:60%;">
+                    <img src="{{  public_path('assets/img/pdf_logo.png')}}"
+                        style="width:250px; height:auto; margin-top:0px;">
+                    <h2 style="font-size: 20px; color:#2d1e1e; font-weight: 400; margin-top:15px;">Order No: {{
+                        $invoice->order->order_number }}</h2>
+                </td>
+                <td style="width:40%;">
+                    <h3 
+                        style="font-size: 15px; margin-bottom:5px;display:block; vertical-align:middle; line-height:15px;">
+                        <span style="line-height: 0;">
+                            <img src="{{public_path('assets/img/phone.svg')}}" alt=""
+                                style="width: 14px; height:12px; display:inline-block;">
+                        </span>
+                        <span style="display:inline-block;"> (+242) 05 554 7777 </span>
                     </h3>
-                    <h3 style="text-transform: uppercase; font-size: 15px; margin-bottom: 3px;">NIU M24000000659298E
+                    <h3
+                        style="font-size: 15px; margin-bottom:9px;display:block; vertical-align:middle; line-height:15px;">
+                        <span class="line-height: 0;">
+                            <img src="{{public_path('assets/img/phone.svg')}}" alt=""
+                                style="width: 14px; height:12px; display:inline-block;">
+                        </span>
+                        <span class="display:inline-block;">
+                            (+242) 05 582 5555
+                        </span>
                     </h3>
-                    <h3 style="font-size: 15px; margin-bottom: 3px;">RCCM CG-PNR-01-2024-B12-00203</h3>
-            </td>
-            </td>
-        </tr>
+                    <h3
+                        style="font-size: 15px; margin-bottom:5px;display:block; vertical-align:middle; line-height:15px;">
+                        <span style="line-height: 0;">
+                            <img src="{{public_path('assets/img/mail.svg')}}" alt=""
+                                style="width: 12px; height:12px; display:inline-block;">
+                        </span>
+                        <span style="display:inline-block;">contact@stannys.com</span>
+                    </h3>
+                    <h3
+                        style="font-size: 15px; margin-bottom:5px; display:block; vertical-align:middle; line-height:15px;">
+                        <span style="line-height: 0;">
+                            <img src="{{ public_path('assets/img/globe.svg')}}" alt=""
+                                style="width: 12px; height:12px; display:inline-block;"
+                                style="width: 14px; height:12px; display:inline-block;">
+                        </span>
+                        <span style="display:inline-block;">www.stannys.com</span>
+                    </h3>
+                    <h3 style="font-size: 15px; margin-bottom:5px;
+                    display:inline-block; vertical-align:middle; line-height:15px; position:relative;">
+                        <span style="line-height: 0; position: absolute; top:0; left:0;">
+                            <img src="{{public_path('assets/img/map-pin.svg')}}" alt=""
+                                style="width: 14px; height:14px; display:inline-block;">
+                        </span>
+                        <span style="display:block; padding-left:20px;">
+                            18, Blv. Denis Sassou N'guesso,<br>
+                            Brazzaville, République du Congo
+                        </span>
+                    </h3>
+                    <div style="border: 1px solid #000; padding: 10px 10px 0px; border-radius: 5px; margin-top: 10px;">
+                        <h3 style="font-size: 15px; margin-bottom:12px;
+                            display:block; line-height:15px;">
+                            <span style="line-height: 0;">
+                                <img src="{{ public_path('assets/img/user.svg')}}" alt=""
+                                    style="width: 14px; height:12px; display:inline-block;">
+                            </span>
+                            <span>
+                                {{$invoice->customer ?
+                                $invoice->customer->name : ""}}
+                            </span>
+                        </h3>
+                        <h3 style="font-size: 15px; margin-bottom:12px;
+                            display:block; vertical-align:middle; line-height:15px; position:relative;">
+                            <span style="line-height: 0; position: absolute; top:0; left:0;">
+                                <img src="{{ public_path('assets/img/map-pin.svg')}}" alt=""
+                                    style="width: 14px; height:12px; display:inline-block;">
+                            </span>
+                            <span style="display:block; padding-left:20px;">
+                                @if($invoice->customer &&
+                                $invoice->customer->billingAddressLatest)
+                                {{ $invoice->customer->billingAddressLatest->address }},
+                                {{ $invoice->customer->billingAddressLatest->landmark ?
+                                $invoice->customer->billingAddressLatest->landmark . ',' : '' }}
+                                {{ $invoice->customer->billingAddressLatest->city }},
+                                {{ $invoice->customer->billingAddressLatest->state }},
+                                {{ $invoice->customer->billingAddressLatest->country }},
+                                {{ $invoice->customer->billingAddressLatest->zip_code }}
+                                @else
+                                 N/A
+                                @endif
+                            </span>
+                        </h3>
+                        <h3 style="font-size: 15px;
+                            display:block; vertical-align:middle; line-height:15px;">
+                            <span style="line-height: 0;">
+                                <img src="{{public_path('assets/img/phone.svg')}}" alt=""
+                                    style="width: 14px; height:12px; display:inline-block;">
+                            </span>
+                            <span style="display:inline-block;">
+                                @if($invoice->customer && $invoice->customer->phone)
+                                 {{$invoice->customer->country_code_phone.' '.$invoice->customer->phone}}
+                                @else
+                                  N/A 
+                                @endif
+                            </span>
+                        </h3>
+                    </div>
 
-        <tr>
-            <td colspan="2">
-                <h2 style="font-size: 30px; color:#acacac; font-weight: 400;">Order: {{ $invoice->order->order_number }}
-                </h2>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="2" style="border-bottom: 1px solid #ccc; padding-bottom: 25px;">
-                <table>
-                    <tr>
-                        <td style="width:50%;">
-                            <h5 style="color:#000; font-size: 16px; font-weight: 600; margin-bottom: 6px;">Order Date:
-                            </h5>
-                            <p style="color:#000; font-size: 14px;">{{
-                                \Carbon\Carbon::parse($invoice->order->created_at)->format('d-m-Y') }}</p>
-                        </td>
-                        <td style="width:50%;">
-                            <h5 style="color:#000; font-size: 16px; font-weight: 600; margin-bottom: 6px;">Name:
-                            </h5>
-                            <p style="color:#000; word-break: break-word; white-space: normal; max-width: 200px; font-size: 14px;"> {{ $invoice->customer ?$invoice->customer->name :  "N/A" }}
-                            </p>
-                        </td>
-                        <td style="width:50%;">
-                            <h5 style="color:#000; font-size: 16px; font-weight: 600; margin-bottom: 6px;">Sales Person:
-                            </h5>
-                            <p style="color:#000; font-size: 14px;"> {{ $invoice->order?->createdBy?->name ?? "N/A" }}
-                            </p>
-                        </td>
-
-                    </tr>
-                </table>
-            </td>
-        </tr>
-
-        <tr>
-            <td colspan="2">
-                <table>
-                    <thead style="text-align: left;">
-                        <th style="padding:8px 0; font-size: 14px; text-align:left;">Decriptions</th>
-                        <th style="padding:8px 0; font-size: 14px; text-align:left;">Quantity</th>
-                        <th style="padding:8px 0; font-size: 14px; text-align:left;">Unit Price</th>
-                        {{-- <th style="padding:8px 0; font-size: 14px;">Discount %</th>
-                        <th style="padding:8px 0; font-size: 14px;">Taxes</th> --}}
-                        <th style="padding:8px 0; font-size: 14px; text-align:left;">Total Price</th>
-                    </thead>
-                    <tbody>
-                        @php
-                        $totalQuantity = 0;
-                        $totalPrice = 0;
-                        @endphp
-                        @if($invoice->order)
-                        @foreach($invoice->order->items as $item)
-                        @php
-                        $totalQuantity += $item->quantity;
-                        $totalPrice += $item->total_price;
-                        @endphp
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="vertical-align:top; margin-top:35px;">
+                    {{--<h2 style="font-size: 20px; color:#2d1e1e; font-weight: 400;">Invoice No: INV/{{ date('Y') }}/{{
+                        $invoice->invoice_no }}</h2>--}}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="border-bottom: 1px solid #ccc; padding-bottom: 25px;">
+                    <table>
                         <tr>
-                            <td style="width:50%; line-height: 1.6; font-size: 13px; vertical-align: top;">
-                                <p>{{ $item->product_name }}</p>
-                                <!-- <p>Coulour: Marron</p> -->
-                            <td style="font-size: 13px; vertical-align: top;">{{ $item->quantity }} pcs</td>
-                            <td style="font-size: 13px; vertical-align: top;">{{ number_format(
-                                ($item->total_price)/($item->quantity) ) }}</td>
-                            {{-- <td style="font-size: 13px; vertical-align: top;">0.00%</td>
-                            <td style="font-size: 13px; vertical-align: top;">--</td> --}}
-                            <td style="font-size: 13px; vertical-align: top;">{{ number_format( $item->total_price ) }}
-                                FCFA</td>
+                            <td>
+                                <h5 style="color:#000; font-size: 16px; font-weight: 600; margin-bottom: 6px;">Order
+                                    Date:
+                                </h5>
+                                <p
+                                    style="color:#000; word-break: break-word; white-space: normal; max-width: 200px; font-size: 14px;">
+                                    {{ \Carbon\Carbon::parse($invoice->order->created_at)->format('d-m-Y') }}
+                                </p>
+                            </td>
+                            <td>
+                                <h5 style="color:#000; font-size: 16px; font-weight: 600; margin-bottom: 6px;">Sales
+                                    Person:</h5>
+                                <p style="color:#000; font-size: 14px;">{{$invoice->user ? $invoice->user->name : ""}}
+                                </p>
+                            </td>
                         </tr>
-                        @endforeach
-                        @endif
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <table>
+                        <thead style="text-align: left;">
+                            <th style="padding:8px 0; font-size: 14px; text-align: left;">Decriptions</th>
+                            <th style="padding:8px 0; font-size: 14px; text-align: left;">Quantity</th>
+                            <th style="padding:8px 0; font-size: 14px; text-align: left;">Unit Price</th>
+                            {{-- <th style="padding:8px 0; font-size: 14px;">Taxes</th> --}}
+                            <th style="padding:8px 0; font-size: 14px; text-align: left;">Total Price</th>
+                        </thead>
+                        <tbody>
+                            @php
+                            $totalQuantity = 0;
+                            @endphp
+                            @if($invoice->order)
+                            @foreach($invoice->order->items as $item)
+                            @php
+                            $totalQuantity += $item->quantity;
+                            @endphp
+                            <tr>
+                                <td style="width:60%; line-height: 1.6; font-size: 13px;">{{ $item->product_name }}</td>
+                                <td style="font-size: 13px;">{{ $item->quantity }} set</td>
+                                <td style="font-size: 13px;">{{ number_format($item->piece_price)
+                                    }}</td>
+                                {{-- <td style="font-size: 13px;">0.00</td> --}}
+                                <td style="font-size: 13px;">{{ number_format($item->quantity * $item->piece_price ) }} FCFA</td>
+                            </tr>
 
+                            @endforeach
+                            @if ($invoice->order->air_mail > 0)
+                            @php
+                            $airMail = $invoice->order->air_mail;
+                            @endphp
+                            <tr>
+                                <td style="width:60%; line-height: 1.6; font-size: 13px;">Air Mail</td>
+                                <td style="font-size: 13px;">1</td>
+                                <td style="font-size: 13px;">{{ number_format($airMail)}}</td>
+                                {{-- <td style="font-size: 13px;">0.00</td> --}}
+                                <td style="font-size: 13px;">{{ number_format( $airMail ) }} FCFA</td>
+                            </tr>
+                            @endif
+                            @endif
+                        </tbody>
+                    </table>
+                    <table style="margin-top: 45px;">
+                        <tr>
+                            <td style="width:50%;"></td>
+                            <td>
+                                <table style="border-top: 1px solid #ccc;">
+                                    <tr>
+                                        <td
+                                            style="font-weight: 600; padding: 6px; border-bottom: 1px solid #ccc; font-size: 13px;">
+                                            Total</td>
+                                        <td
+                                            style="text-align: right; padding: 6px; border-bottom: 1px solid #ccc; font-size: 13px;">
+                                            {{ number_format($invoice->net_price) }} FCFA</td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
 
-                    </tbody>
-                </table>
-                <table style="margin-top: 45px;">
-                    <tr>
-                        <td style="width:50%;"></td>
-                        <td>
-                            <table style="border-top: 1px solid #ccc;">
-                                <tr>
-                                    <td
-                                        style="font-weight: 600; padding: 6px; border-bottom: 1px solid #ccc; font-size: 13px;">
-                                        Total</td>
-                                    <td
-                                        style="text-align: right; padding: 6px; border-bottom: 1px solid #ccc; font-size: 13px;">
-                                        {{ number_format( $totalPrice ) }} FCFA</td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-
-    </table>
-    <div class="footer">
-    <table
-        style="border-color:#000; border-style: double; border-bottom: 0; border-right: 0; border-left:0; margin-top: 35px; height:100vh;">
-        <tr>
-            <td style="font-size: 13px; padding: 4px;">PNR: Lorem Ipsum is simply dummy text of the printing</td>
-            <td style="font-size: 13px; padding: 4px;">Mobile: +148 15265978</td>
-            <td style="font-size: 13px; padding: 4px;">Email: info-pro@gmail.com</td>
-        </tr>
-        <tr>
-            <td style="font-size: 13px; padding: 4px;">PNR: Lorem Ipsum is simply dummy text of the printing</td>
-            <td style="font-size: 13px; padding: 4px;">Mobile: +148 15265978</td>
-            <td style="font-size: 13px; padding: 4px;">Email: info-pro@gmail.com</td>
-        </tr>
-    </table>
-</div>
-</div>
-
-
-
+        <div class="footer">
+            <div style="border-top: 1px solid #000; text-align: center; padding-top: 2px;">
+                <div style="margin-top: -18px; font-weight: bold; text-transform: uppercase; font-size: 14px;">
+                    STE RADHEY'S SARL
+                </div>
+                <div style="font-size: 13px; margin-top: 2px;">
+                    CAPITAL: 1.000.000 FCFA<br>
+                    NIU M24000000659298E<br>
+                    RCCM: CG-BZV-01-2025-B20-00004
+                </div>
+                <div style="font-size: 12px; margin-bottom: 5px;">
+                    <span style="margin-right: 15px;"><strong>Coordonnées Bancaires :</strong></span>
+                    <span style="padding-left: 10px;">
+                        <strong> BSCA Bank : 30020 88101 10125540000 08 </strong>
+                    </span>
+                </div>
+            </div>
+        </div>
 </body>
 
 </html

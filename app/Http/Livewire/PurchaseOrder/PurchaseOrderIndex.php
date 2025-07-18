@@ -15,6 +15,10 @@ class PurchaseOrderIndex extends Component
     public function mount(){
         
     }
+      public function updatingSearch()
+    {
+        $this->resetPage(); 
+    }
     public function FindCustomer($keywords){
         $this->search = $keywords;
     }

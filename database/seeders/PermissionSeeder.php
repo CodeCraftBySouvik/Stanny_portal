@@ -65,13 +65,15 @@ class PermissionSeeder extends Seeder
 
 
             ['parent_name' => 'report_management', 'name' => 'user_ledger_listing', 'route' => 'admin.report.user_ledger'],
-            ['parent_name' => 'sales_management', 'name' => 'order_listing', 'route' => 'admin.order.index'],
-            ['parent_name' => 'sales_management', 'name' => 'order_create', 'route' => 'admin.order.new'],
-            ['parent_name' => 'sales_management', 'name' => 'order_update', 'route' => 'admin.order.edit'],
-            ['parent_name' => 'sales_management', 'name' => 'order_detail', 'route' => 'admin.order.view'],
-            ['parent_name' => 'sales_management', 'name' => 'order_confirm', 'route' => 'admin.order.add_order_slip'],
-            ['parent_name' => 'sales_management', 'name' => 'order_invoice_listing', 'route' => 'admin.order.invoice.index'],
-            ['parent_name' => 'sales_management', 'name' => 'order_cancel_listing', 'route' => 'admin.order.cancel-order.index'],
+            ['parent_name' => 'order_management', 'name' => 'order_listing', 'route' => 'admin.order.index'],
+            ['parent_name' => 'order_management', 'name' => 'order_create', 'route' => 'admin.order.new'],
+            ['parent_name' => 'order_management', 'name' => 'order_update', 'route' => 'admin.order.edit'],
+            ['parent_name' => 'order_management', 'name' => 'order_detail', 'route' => 'admin.order.view'],
+            ['parent_name' => 'order_management', 'name' => 'order_confirm', 'route' => 'admin.order.add_order_slip'],
+            ['parent_name' => 'order_management', 'name' => 'order_invoice_listing', 'route' => 'admin.order.invoice.index'],
+            ['parent_name' => 'order_management', 'name' => 'order_cancel_listing', 'route' => 'admin.order.cancel-order.index'],
+
+            ['parent_name' => 'production_management', 'name' => 'production_order_listing', 'route' => 'production.order.index'],
         ];
 
         foreach ($permissions as $permission) {

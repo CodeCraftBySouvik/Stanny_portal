@@ -8,7 +8,7 @@ class InvoiceProduct extends Model
 {
     protected $table = "invoice_products";
     protected $fillable =[
-         'invoice_id', 'product_id', 'product_name', 'quantity', 'single_product_price', 'total_price', 'is_store_address_outstation'
+         'invoice_id', 'product_id','order_item_id', 'product_name', 'quantity', 'single_product_price', 'total_price', 'is_store_address_outstation'
     ];
 
     public function invoice(){

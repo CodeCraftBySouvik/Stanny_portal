@@ -51,7 +51,7 @@
                                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Title</th>
                                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Short Code</th>
                                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Status</th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Actions</th>
+                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10 text-center">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody id="sortable">

@@ -70,12 +70,7 @@ class OrderEdit extends Component
     public $search;
     public $country_code;
     public $country_id;
-    // public $countries;
-    // public $selectedCountryPhone,$selectedCountryWhatsapp,$selectedCountryAlt1,$selectedCountryAlt2;
-    // public $selectedCountryPhone;
-    // public $mobileLengthPhone;
-    // public $isWhatsappPhone;
-    // public $mobileLengthPhone,$mobileLengthWhatsapp,$mobileLengthAlt1,$mobileLengthAlt2;
+    
     public function mount($id)
     {
         $this->orders = Order::with(['items.measurements'])->findOrFail($id); // Fetch the order by ID
@@ -106,19 +101,12 @@ class OrderEdit extends Component
             
             $this->isWhatsappPhone = UserWhatsapp::where('user_id',$this->orders->customer->id)->where('whatsapp_number',$this->phone)->exists();
             $this->isWhatsappAlt1 = UserWhatsapp::where('user_id',$this->orders->customer->id)->where('whatsapp_number',$this->alternative_phone_number_1)->exists();
-            // dd( $this->phone);
+          
 
             $this->isWhatsappAlt2 = UserWhatsapp::where('user_id',$this->orders->customer->id)->where('whatsapp_number',$this->alternative_phone_number_2)->exists();
-            // $this->whatsapp_no = $this->orders->customer->whatsapp_no;
-            // $this->is_wa_same  = ($this->phone == $this->whatsapp_no);
+           
             $this->catalogues = Catalogue::with('catalogueTitle')->get()->toArray();
-            // $country = Country::find($this->orders->customer->country_id);
-            // // $country = Country::find($customer->country_id);
-            // if ($country) {
-            //     $this->selectedCountryPhone = $country->country_code;
-            //     $this->mobileLengthPhone = $country->mobile_length;
-            // }
-            // dd($this->catalogues);
+           
             $this->items = $this->orders->items->map(function ($item) {
                
                 $selected_titles = OrderMeasurement::where('order_item_id', $item->id)->pluck('measurement_name')->toArray();
@@ -211,12 +199,7 @@ class OrderEdit extends Component
         $this->Business_type = BusinessType::all();
         $this->selectedCountryId = $this->orders->customer->country_id;
         $this->search = Country::where('id',$this->orders->customer->country_id)->pluck('title');
-        // $country = Country::find($this->selectedCountryId);
-
-        // if($country){
-        //     $this->country_code = $country->country_code;
-        //     $this->mobileLength = $country->mobile_length;
-        // }
+       
        
         $this->selectedBusinessType = $this->orders->customer->business_type;
         $this->customer_id = $this->orders->customer_id;
@@ -226,7 +209,6 @@ class OrderEdit extends Component
         $this->employee_rank = $this->orders->customer->employee_rank;
         $this->email = $this->orders->customer_email;
         $this->dob = $this->orders->customer->dob;
-        // $this->phone = $this->orders->customer->phone;
         $this->whatsapp_no = $this->orders->customer->whatsapp_no;
 
         $this->customers = User::where('user_type', 1)->where('status', 1)->orderBy('name', 'ASC')->get();
@@ -237,8 +219,7 @@ class OrderEdit extends Component
         $this->billing_amount =  $this->orders->total_amount;
         $this->remaining_amount =  $this->orders->remaining_amount;
         $this->payment_mode = $this->orders->payment_mode;
-        // $this->addItem();
-        // $this->countries = Country::all();
+       
         $this->salesmanBill = SalesmanBilling::where('salesman_id',auth()->guard('admin')->user()->id)->first();
 
 
@@ -362,10 +343,9 @@ class OrderEdit extends Component
         'items.*.selected_collection' => 'required',
         'items.*.selected_category' => 'required',
         'items.*.searchproduct' => 'required',
-        // 'items.*.product_id' => 'required|integer',
+       
         'items.*.price' => 'required|numeric|min:1',  // Ensuring that price is a valid number (and greater than or equal to 0).
-        // 'paid_amount' => 'required|numeric|min:1',   // Ensuring that price is a valid number (and greater than or equal to 0).
-        // 'payment_mode' => 'required|string',  // Ensuring that price is a valid number (and greater than or equal to 0).
+       
         'items.*.measurements.*' => 'nullable',
         'items.*.selectedCatalogue' => 'required_if:items.*.selected_collection,1', 
         'items.*.page_number' => 'required_if:items.*.selected_collection,1'
@@ -408,7 +388,6 @@ class OrderEdit extends Component
 
     public function GetRemainingAmount($paid_amount)
     {
-       // Remove leading zeros if present in the paid amount
         
         // Ensure the values are numeric before performing subtraction
         $billingAmount =  floatval($this->billing_amount);
@@ -772,14 +751,6 @@ class OrderEdit extends Component
                 $this->errorMessage['shipping_country'] = null;
             }
     
-            // if (strlen($this->shipping_pin) != env('VALIDATE_PIN', 6)) {  // Assuming pin should be 6 digits
-            //     $this->errorClass['shipping_pin'] = 'border-danger';
-            //     $this->errorMessage['shipping_pin'] = 'Shipping pin must be '.env('VALIDATE_PIN', 6).' digits';
-            // } else {
-            //     $this->errorClass['shipping_pin'] = null;
-            //     $this->errorMessage['shipping_pin'] = null;
-            // }
-    
            
             // Check if both errorClass and errorMessage arrays are empty
 
@@ -837,32 +808,7 @@ class OrderEdit extends Component
             $this->is_wa_same = 0;
         }
     }
-    // public function copyMeasurements($index){
-    //     if ($index > 0) {
-    //         if (!empty($this->items[$index]['copy_previous_measurements'])) {
-    //             // If checkbox is checked, copy measurements from the previous item
-    //             if (!empty($this->items[$index - 1]['get_measurements'])) {
-    //                 $this->items[$index]['get_measurements'] = $this->items[$index - 1]['get_measurements'];
-    //             }
-    //         } else {
-    //             // If checkbox is unchecked, clear measurements
-    //             $this->items[$index]['get_measurements'] = [];
-    //         }
-    //     }
-    // }
-
-    // public function copyMeasurements($index) {
-    //     if ($index > 0) {
-    //         if (!empty($this->items[$index]['copy_previous_measurements'])) {
-    //             if (!empty($this->items[$index - 1]['measurements'])) {
-    //                 // Convert Collection to Array
-    //                 $this->items[$index]['measurements'] = $this->items[$index - 1]['measurements']->toArray();
-    //             }
-    //         } else {
-    //             $this->items[$index]['measurements'] = [];
-    //         }
-    //     }
-    // }
+  
     public function copyMeasurements($index) {
         if ($index > 0) {
             $currentProductId = $this->items[$index]['product_id'] ?? null;
@@ -935,10 +881,7 @@ class OrderEdit extends Component
                     'employee_rank' => $this->employee_rank,
                     'email' => $this->email,
                     'dob' => $this->dob,
-                    // 'phone' => $this->phone,
-                    // 'whatsapp_no' => $this->whatsapp_no,
-                    // 'alternative_phone_number_1' => $this->alternative_phone_number_1,
-                    // 'alternative_phone_number_2' => $this->alternative_phone_number_2,
+                   
                     'user_type' => 1, // Customer (if needed, or update as appropriate)
                     'business_type' => $this->selectedBusinessType,
                     'country_id' => $this->selectedCountryId,
@@ -1027,11 +970,6 @@ class OrderEdit extends Component
            
 
             foreach ($this->items as $key=>$item) {
-                // $orderItem = OrderItem::where('order_id', $order->id)->where('product_id', $item['product_id'])->first();
-                // $orderItem = OrderItem::firstOrNew([
-                //     'order_id' => $order->id,
-                //     'product_id' => $item['product_id']
-                // ]);
                 if (!empty($item['order_item_id'])) {
                     // Find the existing OrderItem by its ID
                     $orderItem = OrderItem::find($item['order_item_id']);
@@ -1068,12 +1006,7 @@ class OrderEdit extends Component
                                                             ->where('measurement_name', $measurementName)
                                                             ->first();
                         
-                        // if ($orderMeasurement) {
-                        //     // If the OrderMeasurement exists, update it
-                        //     $orderMeasurement->measurement_value = $measurement['value'] ?? null;
-                        //     $orderMeasurement->measurement_name = $measurement['title'];
-                        //     $orderMeasurement->save();
-                        // } 
+                        
                         if ($orderMeasurement) {
                             $orderMeasurement->update([
                                 'measurement_value' => $measurementValue,

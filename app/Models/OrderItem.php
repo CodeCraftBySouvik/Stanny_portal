@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Services\ChangeTracker;
 
 class OrderItem extends Model
 {
     use HasFactory;
-   
+
     protected $table = 'order_items';
 
     protected $fillable = [
@@ -24,7 +25,11 @@ class OrderItem extends Model
         'total_price',
         'piece_price',
         'remarks',
+        'status',
+        'tl_status',
         'quantity',
+        'fittings',
+        'priority_level'
     ];
 
     public function catalogue()
@@ -35,7 +40,7 @@ class OrderItem extends Model
     {
         return $this->belongsTo(Order::class);
     }
-   
+
     public function collection()
     {
         return $this->belongsTo(Collection::class, 'collection', 'id');
@@ -50,7 +55,8 @@ class OrderItem extends Model
     {
         return $this->hasMany(OrderMeasurement::class);
     }
-    
+
+
 
     //     public function collection()
     // {
@@ -69,5 +75,73 @@ class OrderItem extends Model
     public function product(){
         return $this->belongsTo(Product::class,'product_id');
     }
+
+    public function images()
+    {
+        return $this->hasMany(OrderItemImage::class,'order_item_id');
+    }
+
+     public function deliveries(){
+        return $this->hasMany(Delivery::class);
+    }
+    public function getDeliveredQtyAttribute()
+    {
+        return $this->deliveries_sum_delivered_quantity
+            ?? $this->deliveries()->sum('delivered_quantity');
+    }
+    public function voice_remark()
+    {
+        return $this->hasMany(OrderItemVoiceMessage::class, 'order_item_id', 'id');
+    }
+    
+    public function catlogue_image()
+    {
+        return $this->hasMany(OrderItemCatalogueImage::class, 'order_item_id', 'id');
+    }
+    protected static function booted(): void
+    {
+        static::updating(function ($item) {
+            $original = $item->getOriginal();
+            $dirty = $item->getDirty();
+
+            $normalize = function ($value) {
+                if (is_null($value)) return 0;
+                if (is_numeric($value)) return (float)$value;
+                try {
+                    return (new \DateTime($value))->format('Y-m-d H:i:s');
+                } catch (\Exception $e) {
+                    return $value;
+                }
+            };
+
+            $before = [];
+            $after = [];
+
+            foreach ($dirty as $key => $value) {
+                $normOld = $normalize($original[$key] ?? null);
+                $normNew = $normalize($value);
+                if ($normOld !== $normNew) {
+                    $before[$key] = $normOld;
+                    $after[$key] = $normNew;
+                }
+            }
+
+            if (!empty($before)) {
+                $orderId = ChangeTracker::getOrderId();
+
+                if ($orderId) {
+
+                    ChangeTracker::add("items", [
+                        'order_id' => $orderId,
+                        'id'       => $item->id,
+                        'before'   => $before,
+                        'after'    => $after,
+                    ]);
+
+                }
+            }
+        });
+    }
+
 
 }

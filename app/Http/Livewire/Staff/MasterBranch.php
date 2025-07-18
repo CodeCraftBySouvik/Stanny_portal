@@ -10,6 +10,8 @@ class MasterBranch extends Component
 {
     use WithPagination;
 
+    protected $paginationTheme = 'bootstrap'; 
+
     public $branchId;
     public $name, $email, $mobile, $whatsapp, $city, $address;
     public $search = '';
@@ -101,7 +103,7 @@ class MasterBranch extends Component
                 $query->where('name', 'like', '%' . $this->search . '%');
             })
             ->orderBy('name', 'desc')
-            ->paginate(5);
+            ->paginate(10);
 
         return view('livewire.staff.master-branch', compact('branchNames'));
     }

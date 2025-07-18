@@ -6,8 +6,8 @@
         <ul class="breadcrumb_menu">
             <li><a href="{{ route('admin.accounting.add_opening_balance') }}">Opening Balance</a></li>
             <li>Add Opening Balance</li>
-            <li class="back-button btn btn-dark btn-sm text-decoration-none text-light font-weight-bold mb-0">
-                <a href="{{route('admin.accounting.list_opening_balance')}}" class="text-white">
+            <li class="back-button">
+                <a href="{{route('admin.accounting.list_opening_balance')}}" class="btn btn-sm btn-danger select-md text-light font-weight-bold mb-0">
                     <i class="material-icons text-white" style="font-size: 15px;">chevron_left</i>
                     Back</a>
             </li>

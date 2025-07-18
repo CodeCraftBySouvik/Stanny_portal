@@ -61,6 +61,7 @@
                                 <p class="small m-0">{{$customer->email}}</p>
                             </div>
                         </div>
+                        @if ($customer->company_name)
                         <div class="row">
                             <div class="col-sm-4">
                                 <p class="small m-0"><strong>Company Name :</strong></p>
@@ -69,6 +70,7 @@
                                 <p class="small m-0"> {{$customer->company_name}}</p>
                             </div>
                         </div>
+                        @endif
                         <div class="row">
                             <div class="col-sm-4">
                                 <p class="small m-0"><strong>Phone :</strong></p>
@@ -109,6 +111,7 @@
                             </div>
                         </div>
                         @endif
+                        @if ($customer->dob)
                         <div class="row">
                             <div class="col-sm-4">
                                 <p class="small m-0"><strong>D.O.B. :</strong></p>
@@ -117,6 +120,7 @@
                                 <p class="small m-0"> {{$customer->dob}}</p>
                             </div>
                         </div>
+                        @endif
                         @if($customer->employee_rank)
                         <div class="row">
                             <div class="col-sm-4">

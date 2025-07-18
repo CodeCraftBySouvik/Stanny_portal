@@ -56,16 +56,16 @@ class UserController extends Controller
             'profile_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'verified_video' => 'nullable|file|mimes:mp4,avi,mkv|max:10240',
             'gst_certificate_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'is_billing_shipping_same' => 'required|boolean',
+            'is_billing_shipping_same' => 'nullable|boolean',
         ];
 
         // Add shipping address requirements if billing and shipping are not the same
         if ($request->input('is_billing_shipping_same') == 0) {
             $rules = array_merge($rules, [
-                'shipping_address' => 'required|string',
-                'shipping_city' => 'required|string|max:255',
-                'shipping_state' => 'required|string|max:255',
-                'shipping_country' => 'required|string|max:255',
+                'shipping_address' => 'nullable|string',
+                'shipping_city' => 'nullable|string|max:255',
+                'shipping_state' => 'nullable|string|max:255',
+                'shipping_country' => 'nullable|string|max:255',
                 'shipping_pin' => 'nullable|string|max:10',
                 'shipping_landmark' => 'nullable|string|max:255', 
             ]);
@@ -103,6 +103,13 @@ class UserController extends Controller
                 'email' => $request->email,
                 'phone' => $request->phone,
                 'whatsapp_no' => $request->whatsapp_no,
+                'is_phone_whatsapp' => $request->is_phone_whatsapp,
+                'country_code_alt_1' => $request->country_code_alt_1,
+                'alternative_phone_number_1' => $request->alternative_phone_number_1,
+                'is_alternate_no_whatsapp' => $request->is_alternate_no_whatsapp,
+                'country_code_alt_2' => $request->country_code_alt_2,
+                'alternative_phone_number_2' => $request->alternative_phone_number_2,
+                'is_alternate_no2_whatsapp' => $request->is_alternate_no2_whatsapp,
                 'dob' => $request->dob,
                 'company_name' => $request->company_name,
                 'employee_rank' => $request->employee_rank,

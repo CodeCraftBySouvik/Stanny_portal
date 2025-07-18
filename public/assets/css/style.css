@@ -38,7 +38,7 @@ button[disabled] {
 }
 .form-switch .form-check-input:checked {
     border-color: #188f0b !important;
-    background-color: #235d00 !important; 
+    background-color: #235d00 !important;
 }
 .page__subtitle{
     font-size: 16px;
@@ -68,7 +68,7 @@ button[disabled] {
 
 .image-box img {
     border-radius: 5px;
-    width: 85px; 
+    width: 85px;
     height: 85px;
 }
 
@@ -528,7 +528,7 @@ table td h6.text-sm {
 .form-check:not(.form-switch) .form-check-input[type="checkbox"]:checked {
     background: #000000;
 }
-.form-check:not(.form-switch) .form-check-input[type="checkbox"]:checked, 
+.form-check:not(.form-switch) .form-check-input[type="checkbox"]:checked,
 .form-check:not(.form-switch) .form-check-input[type="radio"]:checked {
     border-color: #000000;
 }
@@ -604,7 +604,7 @@ table td h6.text-sm {
     width: 0;
     height: 0;
   }
-  
+
   /* Custom radio outer border */
   .fabric-item .radio-label {
     display: flex;
@@ -615,7 +615,7 @@ table td h6.text-sm {
     font-weight: 600;
     padding-left: 30px;
   }
-  
+
   /* Outer circle */
   .fabric-item .radio-border {
     width: 20px;
@@ -631,7 +631,7 @@ table td h6.text-sm {
     justify-content: center;
     transition: all 0.3s ease-in-out;
   }
-  
+
   /* Inner filled circle */
   .fabric-item .radio-border::after {
     content: "";
@@ -641,12 +641,12 @@ table td h6.text-sm {
     border-radius: 50%;
     transition: background-color 0.3s ease-in-out;
   }
-  
+
   /* Checked state */
   .fabric-item .radio-input:checked + .radio-label .radio-border {
     border-color: #64236b;
   }
-  
+
   .fabric-item .radio-input:checked + .radio-label .radio-border::after {
     background-color: #64236b;
   }
@@ -679,7 +679,7 @@ table td h6.text-sm {
     justify-content: space-between; /* Add this to separate items */
     align-items: center;
   }
-  
+
   .breadcrumb_menu li:not(:last-child):before {
     content: '/';
     margin: 0 10px;
@@ -687,12 +687,12 @@ table td h6.text-sm {
   .breadcrumb_menu li:first-child:before{
     display: none;
   }
-  
+
   .breadcrumb_menu li a {
     color: #dc3545;
     text-decoration: none;
   }
-  
+
   .breadcrumb_menu .back-button {
     margin-left: auto; /* Move the back button to the right side */
   }
@@ -744,7 +744,7 @@ table td h6.text-sm {
 .searchInput{
     padding: 11px 10px;
 }
-   
+
 .select-md {
     border-radius: 3px;
     font-size: 13px;
@@ -776,7 +776,7 @@ table td h6.text-sm {
     vertical-align: middle;
     border: none;
     border-bottom: 1px solid #f0f2f5;
-  
+
 }
 .table td {
     font-size: 14px;
@@ -799,7 +799,7 @@ table td h6.text-sm {
     color: #664d03;
     background-color: #fff3cd !important;
 }
-  
+
 .btn-outline-success:hover:not(.active) {
     background-color: #077a45;
     opacity: .75;
@@ -937,7 +937,10 @@ table td h6.text-sm {
 }
 
 .custom-sideber-design.navbar-vertical.navbar-expand-xs .navbar-collapse {
-    height: calc(100vh - 170px);
+    /*height: calc(100vh - 170px);*/
+    height:auto;
+    max-height:inherit !important;
+    padding-bottom:35px;
 }
 
 .custom-sideber-design.navbar-vertical .navbar-nav > .nav-item .nav-link.active {
@@ -1065,11 +1068,6 @@ table td h6.text-sm {
     text-align: left;
 }
 
-
-.selectBox.custom-checkbox i {
-    right: 100%;
-}
-
 /*--- 05-03-25 joy----*/
 
 .extention-group {
@@ -1078,44 +1076,171 @@ table td h6.text-sm {
 }
 
 .extention-group .input__prefix {
-    max-width: 45px;
+    max-width: 38px;
     margin-right: 4px;
-} 
-
-.checkbox-label-container{
-    pointer-events: none;
-}
-
-
-/* Ensure the error message container has a fixed height with scrolling */
-.error-container {
-    max-height: 200px; /* Fixed height for errors */
-    overflow-y: auto; /* Enable scrolling for long error lists */
-    border: 1px solid #dc3545; /* Red border to indicate error */
-    padding: 10px;
-    border-radius: 5px;
-    background-color: #f8d7da; /* Light red background */
-}
-
-/* Adjust modal width for better layout */
-.modal-lg {
-    max-width: 700px; /* Set a reasonable max width */
-}
-
-/* Button spacing */
-.btn-sm {
-    padding: 5px 10px;
 }
 
 .hidden{
     overflow: inherit!important;
 }
-.prefix_select{
-    max-width: 68px;
-    height: 28px;
-    appearance: auto !important; /* Ensures arrow appears */
-    -webkit-appearance: auto !important;
-    -moz-appearance: auto !important;
-    
+
+
+/*--- 09-05-2025 Soumik ---*/
+
+select.form-control {
+    -webkit-appearance: auto;
+    -moz-appearance: auto;
+    appearance: auto;
+    min-height: 27.6px;
+}
+select.form-control + input.form-control {
+    margin-left: 5px;
+}
+.input-group select.form-control + input.form-control {
+    margin-left: 5px !important;
+}
+.input-group select.form-control:first-child {
+    border-radius: 5px !important;
+}
+.input-group input.form-control:not(:first-child) {
+    border-radius: 5px !important;
+}
+.flex-30 {
+    flex: 0 0 30% !important;
+}
+.form-check-label-group {
+    display: flex;
+    align-items: center;
+}
+.form-check-label-group label.form-check-label input {
+    height: 13px;
+}
+label.form-check-label {
+    font-size: 0.75rem;
+}
+.card-body form button[type="submit"] {
+    display: flex;
+    align-items: center;
+    line-height: 18px;
+}
+.form-select {
+    font-size: 0.75rem;
+}
+.section-header-filter {
+    display: flex;
+    align-items: center;
+}
+.section-header-filter label {
+    white-space: nowrap;
+}
+.measurement-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 100%;
+    padding-bottom: 10px;
+}
+.measurement_input {
+    font-size: 14px !important;
+}
+.custom-checkbox {
+    line-height: 21px;
+    padding-left: 25px !important;
+}
+.custom-checkbox input[type="checkbox"] {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    margin: 0 !important;
+}
+.custom-checkbox i {
+    top: 1.5px;
+    left: 0;
+}
+.search-input {
+    height: 27.6px;
+}
+.card .card-header {
+    background: transparent;
+}
+/*--- 19-05-2025 Soumik ---*/
+.fabric_dropdown_item {
+    width: 100%;
 }
 
+/*--- 26-05-2025 Karunadri ---*/
+.bg-approved_order{
+    color:#d1e7dd !important;
+    background-color:#00CA14 !important;
+    font-weight: bold;
+}
+.bg-approval_pending{
+    color:#000000 !important;
+    background-color:#D0CE55 !important;
+    font-weight: bold;
+}
+.bg-ready_for_delivery{
+    color:#d1e7dd !important;
+    background-color:#558ED0 !important;
+    font-weight: bold;
+
+}
+.bg-order_cancelled{
+    color:#d1e7dd !important;
+    background-color:#DE0046 !important;
+    font-weight: bold;
+
+}
+.bg-order_returned{
+    color:#d1e7dd !important;
+    background-color:#FB00B4 !important;
+    font-weight: bold;
+
+}
+.bg-received_by_sales_team{
+    color:#d1e7dd !important;
+    background-color:#2E8B62 !important;
+    font-weight: bold;
+
+}
+.bg-delivered_to_customer{
+    color:#d1e7dd !important;
+    background-color:#FF9500 !important;
+    font-weight: bold;
+
+}
+.bg-partial_delivered_to_customer{
+    color:#d1e7dd !important;
+    background-color:#935600 !important;
+    font-weight: bold;
+
+}
+.bg-partial_delivered_to_customer{
+    color:#d1e7dd !important;
+    background-color:#935600 !important;
+    font-weight: bold;
+
+}
+.bg-received_at_production{
+    color:#d1e7dd !important;
+    background-color:#55C4D0 !important;
+    font-weight: bold;
+
+}
+.bg-partial_delivered_by_production{
+    color:#d1e7dd !important;
+    background-color:#7F5BEE !important;
+    font-weight: bold;
+
+}
+.bg-fully_delivered_by_production{
+    color:#d1e7dd !important;
+    background-color:#2F00BD !important;
+    font-weight: bold;
+
+}
+.bg-approved_by_tl{
+    color:#000000 !important;
+    background-color:#D0CE55 !important;
+    font-weight: bold;
+}
