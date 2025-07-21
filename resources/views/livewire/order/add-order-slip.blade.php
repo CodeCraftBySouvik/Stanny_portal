@@ -206,11 +206,6 @@
                                         $isApprovedByTL = $order_item->status === 'Process' && $order_item->tl_status === 'Approved';
                                          $isApprovedByAdmin = $order_item->status === 'Process' && $order_item->admin_status === 'Approved';
                                     @endphp
-
-                                    {{-- <input type="text" class="form-control form-control-sm text-white fw-bold rounded-pill text-center {{$order_item->status == "Process" ? 'bg-success' : 'bg-danger'}}"
-                                           value="{{$order_item->status}}"
-                                           disabled
-                                           {{$readonly}}> --}}
                                            <input type="text"
                                             class="form-control form-control-sm text-white fw-bold rounded-pill text-center
                                                     {{ $isApprovedByAdmin ? 'bg-primary' : ($isApprovedByTL ? 'bg-info' : ($order_item->status === 'Process' ? 'bg-success' : 'bg-danger')) }}"
@@ -220,17 +215,10 @@
                                 </div>
                             </div>
                             <div class="col-sm-1">
-                                {{-- @php
-                                    $isHold = $order_item->status === 'Hold';
-                                    $userDesignationId = auth()->guard('admin')->user()->designation;
-                                     $isApprovedByTL = $order_item->status === 'Process' && $order_item->tl_status === 'Approved';
-                                     
-                                @endphp --}}
+                               
                                 @php
-                                    // $isHold         = $order_item->status === 'Hold';
-
                                     //  Get the full user object once
-                                    $user           = auth()->guard('admin')->user();
+                                    $user = auth()->guard('admin')->user();
 
                                     //  Compare against full user id
                                     $createdByThisAdmin = $order->created_by == $user->id;
@@ -357,8 +345,16 @@
                 <div class="row">
                     <div class="form-group text-end">
                         <span>ORDER AMOUNT <span class="text-danger">({{$actual_amount}})</span></span>
-                        <button type="submit" id="submit_btn"
-                            class="btn btn-sm btn-success"><i class="material-icons text-white" style="font-size: 15px;">add</i>Confirm</button>
+                        @if($user && $user->designation == 1)
+                            <button type="button" id="confirmBtn"
+                                class="btn btn-sm btn-success">
+                                <i class="material-icons text-white" style="font-size: 15px;">add</i>Confirm
+                            </button>
+                        @else
+                            <button type="submit" id="submit_btn"
+                                class="btn btn-sm btn-success"><i class="material-icons text-white" style="font-size: 15px;">add</i>Confirm
+                            </button>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -475,6 +471,8 @@
     </form>
 </div>
 @push('js')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
         function validateNumber(input) {
         // Remove any characters that are not digits or a single decimal point
@@ -486,6 +484,50 @@
         input.value = parts[0] + '.' + parts[1];
         }
     }
+
+            document.addEventListener('DOMContentLoaded', function () {
+            const btn = document.getElementById('confirmBtn');
+            if (btn) {
+                btn.addEventListener('click', function () {
+                    Swal.fire({
+                        title: 'Select Confirmation Team',
+                        html: `
+                            <div class="text-start">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="confirm_team" id="salesTeam" value="sales" checked>
+                                    <label class="form-check-label" for="salesTeam">Sales Team</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="confirm_team" id="productionTeam" value="production">
+                                    <label class="form-check-label" for="productionTeam">Production Team</label>
+                                </div>
+                            </div>
+                        `,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Confirm',
+                        cancelButtonText: 'Cancel',
+                    preConfirm: () => {
+                            const selectedTeam = document.querySelector('input[name="confirm_team"]:checked');
+                            if (!selectedTeam) {
+                                Swal.showValidationMessage(`Please select a team`);
+                                return false;
+                            }
+                            return selectedTeam.value;
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Pass selected team value to Livewire
+                            const selectedTeam = result.value;
+                            @this.call('confirmOrder', selectedTeam);
+                        }
+                    });
+                });
+            }
+        });
+
+        
 </script>
+
 @endpush
 

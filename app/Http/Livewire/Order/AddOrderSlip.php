@@ -89,6 +89,64 @@ class AddOrderSlip extends Component
         $this->staffs = User::where('user_type', 0)->where('designation', 2)->select('name', 'id')->orderBy('name', 'ASC')->get();
     }
 
+    // public function confirmOrder($team){
+    //     $orderItemIds = collect($this->order->items)->pluck('id')->toArray();
+    //     OrderItem::where('id', $orderItemIds)->update([
+    //         'assigned_team' => $team,
+    //         'admin_status' => 'Approved'
+    //     ]);
+    //     // foreach ($this->order_item as $item) {
+    //     //     OrderItem::where('id',$item['id'])->update([
+    //     //         'assigned_team' => $team,
+    //     //         'admin_status' => 'Approved'
+    //     //     ]);
+    //     // }
+
+    //     Order::where('id',$this->order->id)->update([
+    //         'status' => 'Approved'
+    //     ]);
+
+    //     session()->flash('success', 'Order Approved successfully.');
+    //     return redirect()->route('admin.order.index');
+        
+    // }
+
+    public function confirmOrder($team)
+{
+    try {
+        foreach ($this->order->items as $item) {
+            if ($item->status === 'Process') {
+                OrderItem::where('id', $item->id)->update([
+                    'assigned_team' => $team,
+                    'admin_status' => 'Approved'
+                ]);
+            }
+        }
+
+        // Optional: If all order items are approved, update the order status
+        $allApproved = OrderItem::where('order_id', $this->order->id)
+            ->where('admin_status', '!=', 'Approved')
+            ->doesntExist();
+
+        if ($allApproved) {
+            Order::where('id', $this->order->id)->update([
+                'status' => 'Approved'
+            ]);
+        }
+
+        session()->flash('success', 'Order approved successfully.');
+    } catch (\Exception $e) {
+        \Log::error('Order approval failed: ' . $e->getMessage());
+        session()->flash('error', 'Something went wrong during approval.');
+    }
+
+    return redirect()->route('admin.order.index');
+}
+
+
+   
+
+
    public function updateTlStatus($key)
     {
         $isApproved = !empty($this->order_item[$key]['tl_approved'])
@@ -104,19 +162,7 @@ class AddOrderSlip extends Component
             ->update(['tl_status' => $newStatus]);
     }
 
-    // public function updateAdminStatus($key){
-    //     $isApproved = !empty($this->order_item[$key]['admin_approved'])
-    //                 && $this->order_item[$key]['admin_approved'] == true;
-
-    //     $newStatus = $isApproved ? 'Approved' : 'Hold';
-
-    //     // Update the array (Livewire state)
-    //     $this->order_item[$key]['admin_status'] = $newStatus;
-
-    //     // Update the database
-    //     OrderItem::where('id', $this->order_item[$key]['id'])
-    //         ->update(['admin_status' => $newStatus]);
-    // }
+   
 
     public function updateAdminStatus($key)
     {

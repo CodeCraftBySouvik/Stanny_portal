@@ -32,7 +32,7 @@ use App\Helpers\Helper;
 use Illuminate\Validation\Rule;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Str;
-
+use Illuminate\Support\Facades\Validator;
 
 class OrderNew extends Component
 {
@@ -211,21 +211,42 @@ class OrderNew extends Component
                 }
             }
         }
-
         $this->Business_type = BusinessType::all();
         $this->selectedBusinessType = BusinessType::where('title','TEXTILES')->value('id');
         $this->countries = Country::where('status',1)->get();
     }
 
     public function skipOrder(){
-        dd('hi');
-        try {
-            $this->validate([
-                'skip_order_reason' => 'required',
-            ]);
-         }catch (\Exception $e) {
+        // dd('hi');
+      $this->validate([
+            'skip_order_reason' => 'required'
+        ]);
+
+         DB::beginTransaction();
+          try {
+             $order = new Order();
+            $order->order_number = $this->order_number;
+            $order->status = 'Cancelled';
+            $order->skip_order_reason = $this->skip_order_reason;
+            $order->created_by = auth()->guard('admin')->id();
+            $order->save();
+
+             // Update the bill book usage
+            $billBook = SalesmanBilling::find($this->bill_id);
+            if ($billBook) {
+                $billBook->increment('no_of_used');
+            }
+
+            DB::commit();
+            $this->reset(['skip_order_reason']); // clear modal field
+            $this->dispatch('hide-skip-modal'); 
+            return redirect()->route('admin.order.index');
+            session()->flash('success', 'Order skipped successfully.');
+          }catch(\Exception $e){
             dd($e->getMessage());
-         }
+             DB::rollBack();
+            session()->flash('error', 'Error skipping order: ' . $e->getMessage());
+          }
     }
 
 

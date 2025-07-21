@@ -29,7 +29,8 @@ class OrderItem extends Model
         'tl_status',
         'quantity',
         'fittings',
-        'priority_level'
+        'priority_level',
+        'assigned_team'
     ];
 
     public function catalogue()
