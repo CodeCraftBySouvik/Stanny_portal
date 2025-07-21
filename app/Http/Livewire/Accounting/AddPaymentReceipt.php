@@ -11,10 +11,12 @@ use App\Helpers\Helper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+
 use App\Interfaces\AccountingRepositoryInterface;
 
 class AddPaymentReceipt extends Component
-{   
+{
     protected $accountingRepository;
     public $searchResults = [];
     public $errorClass = [];
@@ -27,9 +29,8 @@ class AddPaymentReceipt extends Component
     public $new_customer = false;
     public $payment_collection_id = "";
     public $readonly = "readonly";
-    public $customer,$customer_id, $customer_name, $staff_id, $amount, $voucher_no, $payment_date, $payment_mode, $chq_utr_no, $bank_name, $receipt_for = "Customer";
+    public $customer,$customer_id, $customer_name, $staff_id, $amount, $voucher_no, $payment_date,$next_payment_date,$credit_date,$deposit_date,$payment_mode, $chq_utr_no, $bank_name, $receipt_for = "Customer",$cheque_photo;
     public $mobileLengthPhone,$countries,$selectedCountryPhone,$phone,$customer_email,$customer_company,$customer_address;
-
     public function boot(AccountingRepositoryInterface $accountingRepository)
     {
         $this->accountingRepository = $accountingRepository;
@@ -38,14 +39,14 @@ class AddPaymentReceipt extends Component
           $user = Auth::guard('admin')->user();
         $this->my_designation = $user->designation;
         $payment_collection = PaymentCollection::with('customer', 'user')->where('voucher_no',$payment_voucher_no)->first();
-        
+
         if(!empty($payment_voucher_no)){
             if(!$payment_collection){
                 abort(404);
                 return false;
             }
         }
-     
+
         $this->payment_voucher_no = $payment_voucher_no;
         $this->voucher_no = 'PAYRECEIPT'.time();
          if($user->designation == 1){
@@ -74,7 +75,17 @@ class AddPaymentReceipt extends Component
 
         $this->countries = Country::where('status',1)->get();
     }
+    public function rules()
+    {
+       $rules = [];
+    if ($this->payment_mode === 'cheque') {
+        $rules['credit_date'] = 'required'; // Optional: adjust validation as needed
+        $rules['deposit_date'] = 'required'; // Optional: adjust validation as needed
+        $rules['cheque_photo'] = 'required|image|max:5120';
+    }
 
+    return $rules;
+    }
     public function GetCountryDetails($mobileLength, $field){
         switch($field){
             case 'phone':
@@ -86,12 +97,16 @@ class AddPaymentReceipt extends Component
     public function changeNewCustomer(){
         // dd($this->new_customer); // This will show true or false
     }
-   
+
     public function submitForm()
     {
         // dd($this->all());
+
         $this->reset(['errorMessage']);
+
         $this->errorMessage = array();
+                         $this->validate();
+
         // Validate customer
         if($this->new_customer){
             if (empty($this->customer_name)) {
@@ -110,7 +125,7 @@ class AddPaymentReceipt extends Component
                 $this->errorMessage['customer_id'] = 'Please select a customer.';
             }
         }
-        
+
 
         // Validate collected by
         if (empty($this->staff_id)) {
@@ -174,7 +189,7 @@ class AddPaymentReceipt extends Component
                 session()->flash('error', $e->getMessage());
             }
         }
-       
+
     }
     public function ResetForm(){
         $this->reset(['customer','customer_id','staff_id', 'amount', 'voucher_no', 'payment_date', 'payment_mode', 'chq_utr_no', 'bank_name']);
@@ -195,7 +210,7 @@ class AddPaymentReceipt extends Component
         }
 
       public function selectCustomer($customer_id){
-     
+
             $customer = User::find($customer_id);
             if($customer){
                 $this->customer = $customer->name.'('.$customer->phone.')';
@@ -204,7 +219,7 @@ class AddPaymentReceipt extends Component
                 $this->reset(['customer','customer_id',]);
             }
             $this->searchResults = [];
-           
+
       }
     public function ChangePaymentMode($value){
         $this->activePayementMode = $value;
@@ -212,6 +227,7 @@ class AddPaymentReceipt extends Component
     public function render()
     {
         $this->staff_id = Auth::guard('admin')->user()->id;
+        $this->payment_date=date('Y-m-d');
         return view('livewire.accounting.add-payment-receipt');
     }
 }
