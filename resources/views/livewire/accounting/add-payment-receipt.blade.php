@@ -218,7 +218,7 @@
                                 <div class="form-group mb-3">
                                     <label for="">Next Payment Date </label>
                                     <input type="date" wire:model="next_payment_date" id="next_payment_date"
-                                        max="{{ date('Y-m-d') }}" class="form-control form-control-sm"
+                                        min="{{ date('Y-m-d') }}" class="form-control form-control-sm"
                                         {{ $readonly }}>
                                     @if (isset($errorMessage['next_payment_date']))
                                         <div class="text-danger">{{ $errorMessage['next_payment_date'] }}</div>
@@ -236,14 +236,21 @@
                                         wire:change="ChangePaymentMode($event.target.value)" @endif
                                         {{ $readonly }}>
                                         @if ($readonly)
-                                            <option value="cheque" {{ $payment_mode == 'cheque' ? 'selected' : 'hidden' }}>
+                                            <option value="cheque"
+                                                {{ $payment_mode == 'cheque' ? 'selected' : 'hidden' }}>
                                                 Cheque
                                             </option>
-                                            <option value="neft" {{ $payment_mode == 'neft' ? 'selected' : 'hidden' }}>
+                                            <option value="neft"
+                                                {{ $payment_mode == 'neft' ? 'selected' : 'hidden' }}>
                                                 NEFT
                                             </option>
-                                            <option value="cash" {{ $payment_mode == 'cash' ? 'selected' : 'hidden' }}>
+                                            <option value="cash"
+                                                {{ $payment_mode == 'cash' ? 'selected' : 'hidden' }}>
                                                 Cash
+                                            </option>
+                                            <option value="digital_payment"
+                                                {{ $payment_mode == 'digital_payment' ? 'selected' : 'hidden' }}>
+                                                Digital Payment
                                             </option>
                                         @else
                                             <option value="" selected="" hidden="">Select Payment
@@ -251,6 +258,7 @@
                                             <option value="cheque">Cheque</option>
                                             <option value="neft">NEFT</option>
                                             <option value="cash">Cash</option>
+                                            <option value="digital_payment">Digital Payment</option>
                                         @endif
                                     </select>
                                     @if (isset($errorMessage['payment_mode']))
@@ -258,9 +266,35 @@
                                     @endif
                                 </div>
                             </div>
+                            @if ($activePayementMode == 'digital_payment')
+                                <div class="col-sm-4">
+                                    <div class="form-group mb-3">
+                                        <label for="">Transaction No <span
+                                                class="text-danger">*</span></label>
+                                        <input type="text" wire:model="transaction_no" id="transaction_no"
+                                            class="form-control form-control-sm  @error('transaction_no') is-invalid @enderror"
+                                            @error('transaction_no')
+                                    <div class="text-danger">{{ $message }}</div>
+                                @enderror
+                                            </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="form-group mb-3">
+                                            <label for="">Withdrawal Charge <span
+                                                    class="text-danger">*</span></label>
+                                            <input type="text" wire:model="withdrawal_charge"
+                                                id="withdrawal_charge"
+                                                class="form-control form-control-sm  @error('withdrawal_charge') is-invalid @enderror"
+                                                @error('withdrawal_charge')
+                                    <div class="text-danger">{{ $message }}</div>
+                                @enderror
+                                                </div>
+                                        </div>
+                            @endif
                         </div>
-                        @if ($activePayementMode !== 'cash')
+
                             <div class="row" id="noncash_sec">
+                                 @if ($activePayementMode !== 'cash' and $activePayementMode !== 'digital_payment')
                                 <div class="col-sm-6">
                                     <div class="form-group mb-3">
                                         <label for="">Cheque No / UTR No </label>
@@ -271,6 +305,8 @@
                                         @endif
                                     </div>
                                 </div>
+                                 @endif
+                                  @if ($activePayementMode !== 'cash')
                                 <div class="col-sm-6">
                                     <div class="form-group mb-3">
                                         <label for="">Bank Name </label>
@@ -285,43 +321,45 @@
                                         </div>
                                     </div>
                                 </div>
+                                 @endif
                             </div>
-                        @endif
-                        @if ($activePayementMode == 'cheque')
-                        <div class="row" >
- <div class="col-sm-4">
-                                <div class="form-group mb-3">
-                                    <label for="">Deposit Date <span class="text-danger">*</span></label>
-                                    <input type="date" wire:model="deposit_date" id="deposit_date"
-                                        class="form-control form-control-sm  @error('deposit_date') is-invalid @enderror"  {{ $readonly }}>
-                                    @error('deposit_date')
-                                        <div class="text-danger">{{ $message  }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="form-group mb-3">
-                                    <label for="">Amount Credit Date <span
-                                            class="text-danger">*</span></label>
-                                    <input type="date" wire:model="credit_date" id="credit_date"
-                                        class="form-control form-control-sm" {{ $readonly }}>
-                                  @error('credit_date')
-                                        <div class="text-danger">{{ $message  }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="form-group mb-3">
-                                    <label for="">Cheque Photo <span class="text-danger">*</span></label>
-                                    <input type="file" wire:model="cheque_photo" id="cheque_photo"
-                                        class="form-control form-control-sm" accept="image/*">
-                                    @error('cheque_photo')
-                                        <div class="text-danger">{{ $message  }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
 
+
+
+                        @if ($activePayementMode == 'cheque')
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <div class="form-group mb-3">
+                                        <label for="">Deposit Date <span class="text-danger">*</span></label>
+                                        <input type="date" wire:model="deposit_date" id="deposit_date"
+                                            class="form-control form-control-sm  @error('deposit_date') is-invalid @enderror"
+                                            {{ $readonly }}>
+                                        @error('deposit_date')
+                                            <div class="text-danger">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group mb-3">
+                                        <label for="">Amount Credit Date </label>
+                                        <input type="date" wire:model="credit_date" id="credit_date"
+                                            class="form-control form-control-sm" {{ $readonly }}>
+                                        @error('credit_date')
+                                            <div class="text-danger">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group mb-3">
+                                        <label for="">Cheque Photo <span class="text-danger">*</span></label>
+                                        <input type="file" wire:model="cheque_file" id="cheque_photo"
+                                            class="form-control form-control-sm" accept="image/*">
+                                        @error('cheque_file')
+                                            <div class="text-danger">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
                         @endif
                         <div class="row">
                             <div class="form-group text-end">
@@ -329,7 +367,7 @@
                                     class="btn btn-sm btn-success select-md">{{ $payment_voucher_no
                                         ? 'Update Receipt'
                                         : "Add
-                                                                        Receipt" }}</button>
+                                                                                                                                                Receipt" }}</button>
                             </div>
                         </div>
                     </form>

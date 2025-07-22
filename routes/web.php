@@ -200,6 +200,8 @@ Route::group(['prefix' => 'admin','middleware' => 'admin'], function () {
         Route::get('/daily/expenses', DailyExpenses::class)->name('admin.accounting.daily.expenses');
         Route::get('/payment-collection', PaymentCollectionIndex::class)->name('admin.accounting.payment_collection')->middleware('check.permission');
         Route::get('/add-payment-receipt/{payment_voucher_no?}', AddPaymentReceipt::class)->name('admin.accounting.add_payment_receipt')->middleware('check.permission');
+        Route::get('/payment-receipt/edit/{payment_voucher_no?}', AddPaymentReceipt::class)->name('admin.accounting.edit_cheque_info');
+
         Route::get('/add-opening-balance', AddOpeningBalance::class)->name('admin.accounting.add_opening_balance')->middleware('check.permission');
         Route::get('/list-opening-balance', ListOpeningBalance::class)->name('admin.accounting.list_opening_balance')->middleware('check.permission');
         Route::get('/list/depot-expense', IndexExpense::class)->name('admin.accounting.list.depot_expense')->middleware('check.permission');

@@ -12,7 +12,7 @@ class PaymentCollection extends Model
   protected $table= 'payment_collections';
   protected $fillable = [
     'customer_id', 'user_id', 'admin_id', 'payment_id', 'collection_amount', 'cheque_date', 'voucher_no', 'payment_type', 'bank_name', 'cheque_number', 'is_ledger_added', 'image', 'is_approve', 'created_from',
-    'created_at', 'updated_at','credit_date','cheque_photo'
+    'created_at', 'updated_at','credit_date','cheque_photo','transaction_no'
   ];
 
   public function customer()

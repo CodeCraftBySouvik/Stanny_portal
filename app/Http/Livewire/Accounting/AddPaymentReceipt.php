@@ -7,11 +7,15 @@ use App\Models\User;
 use App\Models\Order;
 use App\Models\PaymentCollection;
 use App\Models\Country;
+use App\Models\TodoList;
 use App\Helpers\Helper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 use App\Interfaces\AccountingRepositoryInterface;
 
@@ -29,17 +33,20 @@ class AddPaymentReceipt extends Component
     public $new_customer = false;
     public $payment_collection_id = "";
     public $readonly = "readonly";
-    public $customer,$customer_id, $customer_name, $staff_id, $amount, $voucher_no, $payment_date,$next_payment_date,$credit_date,$deposit_date,$payment_mode, $chq_utr_no, $bank_name, $receipt_for = "Customer",$cheque_photo;
-    public $mobileLengthPhone,$countries,$selectedCountryPhone,$phone,$customer_email,$customer_company,$customer_address;
+    public $customer,$customer_id, $customer_name, $staff_id, $amount, $voucher_no, $payment_date,$next_payment_date,$credit_date,$deposit_date,$payment_mode, $chq_utr_no, $bank_name, $receipt_for = "Customer",$cheque_photo,$cheque_file,$transaction_no;
+    public $mobileLengthPhone,$countries,$selectedCountryPhone,$phone,$customer_email,$customer_company,$customer_address,$withdrawal_charge,$payment_data;
+   use WithFileUploads;
+
     public function boot(AccountingRepositoryInterface $accountingRepository)
     {
         $this->accountingRepository = $accountingRepository;
     }
-    public function mount($payment_voucher_no = ""){
+    public function mount($payment_voucher_no=""){
+
           $user = Auth::guard('admin')->user();
         $this->my_designation = $user->designation;
         $payment_collection = PaymentCollection::with('customer', 'user')->where('voucher_no',$payment_voucher_no)->first();
-
+        $this->payment_data= $payment_collection;
         if(!empty($payment_voucher_no)){
             if(!$payment_collection){
                 abort(404);
@@ -79,9 +86,15 @@ class AddPaymentReceipt extends Component
     {
        $rules = [];
     if ($this->payment_mode === 'cheque') {
-        $rules['credit_date'] = 'required'; // Optional: adjust validation as needed
         $rules['deposit_date'] = 'required'; // Optional: adjust validation as needed
-        $rules['cheque_photo'] = 'required|image|max:5120';
+        $rules['cheque_file'] = 'required|image|max:5120';
+
+
+    }
+     if ($this->payment_mode === 'digital_payment') {
+        $rules['withdrawal_charge'] = 'required | numeric'; // Optional: adjust validation as needed
+        $rules['transaction_no'] = 'required'; // Optional: adjust validation as needed
+
     }
 
     return $rules;
@@ -105,8 +118,9 @@ class AddPaymentReceipt extends Component
         $this->reset(['errorMessage']);
 
         $this->errorMessage = array();
-                         $this->validate();
-
+         if ($this->payment_mode === 'cheque' or $this->payment_mode === 'digital_payment') {
+        $this->validate();
+         }
         // Validate customer
         if($this->new_customer){
             if (empty($this->customer_name)) {
@@ -153,7 +167,7 @@ class AddPaymentReceipt extends Component
         }
 
         // Validate cheque no / UTR no
-        if ($this->payment_mode != 'cash' && empty($this->chq_utr_no)) {
+        if ($this->payment_mode != 'cash' && empty($this->chq_utr_no) && $this->payment_mode != 'digital_payment') {
            $this->errorMessage['chq_utr_no'] = 'Please enter a cheque no / UTR no.';
         }
 
@@ -180,7 +194,45 @@ class AddPaymentReceipt extends Component
                 }
 
                 //code...
+                if($this->payment_mode === 'cheque')
+                {
+                    $extension = $this->cheque_file->getClientOriginalExtension();
+                    $filename = Str::random(10) . '.' . $extension;
+                    $path = $this->cheque_file->storeAs('uploads/cheque', $filename, 'public');
+                    $publicPath = 'storage/' . $path;
+                    $this->cheque_photo=$publicPath;
+
+                }
                 $this->accountingRepository->StorePaymentReceipt($this->all());
+                $admin_id = Auth::guard('admin')->user()->id;
+                if(!empty($this->next_payment_date))
+                {
+                        $todoData=[
+                            'user_id'=>$this->staff_id,
+                            'created_by'=>$admin_id,
+                            'todo_type'=>'Payment',
+                            'next_payment_date'=>$this->next_payment_date,
+                            'remark'=>'Next Payment Schedule on '.$this->next_payment_date
+                        ];
+                        TodoList::insertGetId($todoData);
+
+                }
+                 if(!empty($this->deposit_date))
+                {
+                        $todoData=[
+                            'user_id'=>$this->staff_id,
+                            'created_by'=>$admin_id,
+                            'todo_type'=>'Payment',
+                            'deposit_date'=>$this->deposit_date,
+                            'remark'=>'Deposit Date '.$this->deposit_date
+                        ];
+                      TodoList::insertGetId($todoData);
+
+
+                }
+
+
+
                 session()->flash('success', 'Payment receipt added successfully.');
                 DB::commit();
                 return redirect()->route('admin.accounting.payment_collection');
@@ -192,7 +244,8 @@ class AddPaymentReceipt extends Component
 
     }
     public function ResetForm(){
-        $this->reset(['customer','customer_id','staff_id', 'amount', 'voucher_no', 'payment_date', 'payment_mode', 'chq_utr_no', 'bank_name']);
+        $this->reset(['customer','customer_id','staff_id', 'amount', 'voucher_no', 'payment_date', 'payment_mode', 'chq_utr_no', 'bank_name',
+        'cheque_file','credit_date','deposit_date']);
         $this->voucher_no = 'PAYRECEIPT'.time();
     }
 
@@ -228,6 +281,19 @@ class AddPaymentReceipt extends Component
     {
         $this->staff_id = Auth::guard('admin')->user()->id;
         $this->payment_date=date('Y-m-d');
+        if(!empty($this->payment_data))
+        {
+
+        return view('livewire.accounting.update-cheque');
+
+        }
+        else{
         return view('livewire.accounting.add-payment-receipt');
+
+        }
+    }
+    public function editReceipt($id)
+    {
+      die($id.'HEE');
     }
 }
