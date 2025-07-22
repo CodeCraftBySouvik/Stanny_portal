@@ -141,18 +141,6 @@
                                
                                     @if(empty($order->packingslip))
                                         @if($order->status!="Cancelled")
-                                            {{-- @if (in_array($userDesignationId,[1,4])) --}}
-                                                {{-- @if($userDesignationId == 4 && $order->status=='Approval Pending')
-                                                <a href="{{route('admin.order.add_order_slip', $order->id)}}" class="btn btn-outline-primary select-md btn_action btn_outline">Approve Order (TL)</a>
-                                                @endif
-                                                @if($userDesignationId==1 && $order->status=='Approved By TL')
-                                                <a href="{{route('admin.order.add_order_slip', $order->id)}}" class="btn btn-outline-primary select-md btn_action btn_outline">Approve Order(Admin)</a>
-                                                @endif --}}
-                                            {{-- @endif --}}
-                                            {{-- <a href="{{route('admin.order.edit', $order->id)}}" class="btn btn-outline-success select-md btn_outline" data-toggle="tooltip">Edit</a>
-
-                                            <button  wire:click="confirmCancelOrder({{ $order->id }})"
-                                            class="btn btn-outline-danger select-md btn_outline">Cancel Order</button > --}}
 
                                                 {{-- New Code By Souvik --}}
                                              @if($userDesignationId == 1 && $order->status == 'Approved By TL')
@@ -240,14 +228,14 @@
                                                     Edit
                                                 </a>
                                             @endif
-
+                                            
                                             
                                             <a href="{{route('admin.order.download_invoice',$order->id)}}" target="_blank" class="btn btn-outline-primary select-md btn_outline">Invoice</a>    
                                             <a href="{{route('admin.order.download_bill',$order->id)}}" target="_blank" class="btn btn-outline-primary select-md btn_outline">Bill</a>
                                         @endif
 
                                     @endif
-                                     @if ($order->invoice_type=="invoice")
+                                     @if ($order->invoice_type=="invoice" )
                                        <a href="{{route('admin.order.view',$order->id)}}" class="btn btn-outline-success select-md btn_action btn_outline">Details</a>
                                     @endif
                                     <a href="{{route('admin.order.log',$order->id)}}"><button class="btn btn-outline-info select-md btn_action btn_outline">Logs</button></a>
@@ -292,8 +280,7 @@
         });
     });
 
-
-
+  
 
     </script>
 @endpush

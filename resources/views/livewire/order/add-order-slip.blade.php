@@ -178,7 +178,10 @@
                                 </table>
 
                             </div>
-                            <div class="col-sm-3">
+                            @php
+                                $user = auth()->guard('admin')->user();
+                            @endphp
+                            <div class="{{$user->designation == 1 ? 'col-sm-2' : 'col-sm-3'}}">
                                 <div class="form-group mb-3">
                                     @if($key==0)
                                         <label>Quantity</label>
@@ -186,15 +189,13 @@
                                     <input type="text" class="form-control form-control-sm" value="{{$order_item->quantity}}" disabled {{$readonly}}>
                                 </div>
                             </div>
-                            <div class="col-sm-3">
+                            <div class="{{$user->designation == 1 ? 'col-sm-2' : 'col-sm-3'}}">
                                 <div class="form-group mb-3">
                                     @if($key==0)
                                         <label for="">Price</label>
                                     @endif
                                     <input type="text" class="form-control form-control-sm" value="{{$order_item->piece_price}}" disabled>
-                                    {{-- @if(isset($errorMessage["order_item.$key.quantity"]))
-                                        <div class="text-danger">{{ $errorMessage["order_item.$key.quantity"] }}</div>
-                                    @endif --}}
+                                    
                                 </div>
                             </div>
                              <div class="col-sm-2">
@@ -249,6 +250,24 @@
                                     @endif
                                 @endif
                             </div>
+                            {{-- Team Dropdown start--}}
+                            {{-- Only Admin Can select the team  --}}
+                            @if ($user->designation == 1)
+                            <div class="col-sm-2">
+                                <div class="form-group mb-3">
+                                    @if($key == 0)
+                                        <label>Team</label>
+                                    @endif
+                                    
+                                    <select wire:model="order_item.{{ $key }}.team" class="form-control form-control-sm" @if(!empty($order_item[$key]['team'])) disabled @endif>
+                                        <option value="" selected hidden>Select Team</option>
+                                        <option value="sales">Sales Team</option>
+                                        <option value="production">Production Team</option>
+                                    </select>
+                                </div>
+                            </div>
+                            @endif
+                            {{-- Team Dropdown end--}}
                             {{-- Start the measurement section --}}
                             @if($order_item->collection == 1 && !empty($order_item->measurements))
                             <div class="row">
@@ -345,11 +364,8 @@
                 <div class="row">
                     <div class="form-group text-end">
                         <span>ORDER AMOUNT <span class="text-danger">({{$actual_amount}})</span></span>
-                        @if($user && $user->designation == 1)
-                            <button type="button" id="confirmBtn"
-                                class="btn btn-sm btn-success">
-                                <i class="material-icons text-white" style="font-size: 15px;">add</i>Confirm
-                            </button>
+                         @if($user && $user->designation == 1)
+                           <button wire:click="setTeamAndSubmit" class="btn btn-sm btn-success">Approve Order</button>
                         @else
                             <button type="submit" id="submit_btn"
                                 class="btn btn-sm btn-success"><i class="material-icons text-white" style="font-size: 15px;">add</i>Confirm
@@ -485,46 +501,46 @@
         }
     }
 
-            document.addEventListener('DOMContentLoaded', function () {
-            const btn = document.getElementById('confirmBtn');
-            if (btn) {
-                btn.addEventListener('click', function () {
-                    Swal.fire({
-                        title: 'Select Confirmation Team',
-                        html: `
-                            <div class="text-start">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="confirm_team" id="salesTeam" value="sales" checked>
-                                    <label class="form-check-label" for="salesTeam">Sales Team</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="confirm_team" id="productionTeam" value="production">
-                                    <label class="form-check-label" for="productionTeam">Production Team</label>
-                                </div>
-                            </div>
-                        `,
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonText: 'Confirm',
-                        cancelButtonText: 'Cancel',
-                    preConfirm: () => {
-                            const selectedTeam = document.querySelector('input[name="confirm_team"]:checked');
-                            if (!selectedTeam) {
-                                Swal.showValidationMessage(`Please select a team`);
-                                return false;
-                            }
-                            return selectedTeam.value;
-                        }
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            // Pass selected team value to Livewire
-                            const selectedTeam = result.value;
-                            @this.call('confirmOrder', selectedTeam);
-                        }
-                    });
-                });
-            }
-        });
+        //     document.addEventListener('DOMContentLoaded', function () {
+        //     const btn = document.getElementById('confirmBtn');
+        //     if (btn) {
+        //         btn.addEventListener('click', function () {
+        //             Swal.fire({
+        //                 title: 'Select Confirmation Team',
+        //                 html: `
+        //                     <div class="text-start">
+        //                         <div class="form-check">
+        //                             <input class="form-check-input" type="radio" name="confirm_team" id="salesTeam" value="sales" checked>
+        //                             <label class="form-check-label" for="salesTeam">Sales Team</label>
+        //                         </div>
+        //                         <div class="form-check">
+        //                             <input class="form-check-input" type="radio" name="confirm_team" id="productionTeam" value="production">
+        //                             <label class="form-check-label" for="productionTeam">Production Team</label>
+        //                         </div>
+        //                     </div>
+        //                 `,
+        //                 icon: 'warning',
+        //                 showCancelButton: true,
+        //                 confirmButtonText: 'Confirm',
+        //                 cancelButtonText: 'Cancel',
+        //             preConfirm: () => {
+        //                     const selectedTeam = document.querySelector('input[name="confirm_team"]:checked');
+        //                     if (!selectedTeam) {
+        //                         Swal.showValidationMessage(`Please select a team`);
+        //                         return false;
+        //                     }
+        //                     return selectedTeam.value;
+        //                 }
+        //             }).then((result) => {
+        //                 if (result.isConfirmed) {
+        //                     // Pass selected team value to Livewire
+        //                     const selectedTeam = result.value;
+        //                     @this.call('setTeamAndSubmit', selectedTeam);
+        //                 }
+        //             });
+        //         });
+        //     }
+        // });
 
         
 </script>

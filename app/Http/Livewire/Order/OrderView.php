@@ -67,6 +67,7 @@ class OrderView extends Component
                         return [
                             'id' => $delivery->id,
                             'delivered_at' => $delivery->delivered_at,
+                            'delivered_by' => $delivery->delivered_by,
                             'status' => $delivery->status,
                             'remarks' => $delivery->remarks,
                             'fabric_quantity' => $delivery->fabric_quantity,
@@ -91,52 +92,7 @@ class OrderView extends Component
             'latestOrders'=>$this->latestOrders
         ]);
     }
-    // public function deliveredToCustomerPartial()
-    // {
-    // $this->validate();
-    // //\Log::info("Mark As Customer Delivered Method method triggered with Order ID: " . ($this->Id ?? 'NULL'));
-
-    //     if (!$this->Id) {
-    //         throw new \Exception("Order ID is required but received null.");
-    //     }
-    //     // $totalQuantity = OrderItem::where('order_id', $this->orderId)->sum('quantity');
-
-    //     // // Perform order cancellation logic here
-    //     Delivery::where('id', $this->Id)
-    //     ->update( ['status' =>$this->status,'remarks'=>$this->remarks,'customer_delivered_by'=>auth()->guard('admin')->user()->id]);
-    //     // Check if any item in the order has collection = 1
-    //     $hasfabricCollection = OrderItem::where('order_id',$this->orderId)->where('collection',1)->exists();
-
-    //     if($hasfabricCollection){
-    //         $totalQuantity = OrderItem::where('order_id', $this->orderId)->sum('quantity');
-    //         $totalDelevery= Delivery::where('order_id', $this->orderId)->where('status','Delivered')->sum('fabric_quantity');
-    //     }
-    //     else{
-    //         $totalQuantity = OrderItem::where('order_id', $this->orderId)->sum('quantity');
-    //         $totalDelevery= Delivery::where('order_id', $this->orderId)->where('status','Delivered')->sum('delivered_quantity');
-    //     }
-
-    //     if($totalQuantity==$totalDelevery)
-    //     {
-    //        Order::where('id', operator: $this->orderId)->update(['status' => 'Delivered to Customer']);
-    //     }
-    //     else{
-    //         if($this->status=='Delivered')
-    //         {
-    //             Order::where('id', operator: $this->orderId)->update(['status' => 'Partial Delivered to Customer']);
-
-    //         }
-
-    //     }
-
-    // session()->flash('success', 'Order delivery updated successfully!');
-
-    // // Close modal (optional)
-    // $this->dispatch('close-delivery-modal');
-
-
-    //     //return redirect(url()->previous())->with('success', 'Order has been Delivered to Customer successfully!');
-    // }
+   
 
     public function deliveredToCustomerPartial()
     {

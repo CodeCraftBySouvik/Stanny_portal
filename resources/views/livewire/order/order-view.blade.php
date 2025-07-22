@@ -218,7 +218,9 @@
                                                         <th  rowspan="1" colspan="1"  aria-label="products">
                                                             Status</th>
 
-                                                        <th  rowspan="1" colspan="1"  aria-label="products">Delivered BY (Production)</th>
+                                                        <th  rowspan="1" colspan="1"  aria-label="products">Delivered BY  
+                                                             ({{ isset($item['deliveries'][0]['delivered_by']) && $item['deliveries'][0]['delivered_by'] != 1 ? 'Production' : 'Admin' }})
+                                                        </th>
                                                     <th class="" rowspan="1" colspan="1"  aria-label="qty">
                                                         qty</th>
                                                         <th  rowspan="1" colspan="1" aria-label="products">
