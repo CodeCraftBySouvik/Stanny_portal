@@ -18,7 +18,7 @@ class AccountingRepository implements AccountingRepositoryInterface
 {
     public function StorePaymentReceipt(array $data)
     {
-   
+
     $admin_id = Auth::guard('admin')->user()->id;
     if(empty($data['payment_collection_id'])){
         $check_store_unpaid_invoices = Invoice::where('customer_id', $data['customer_id'])->where('is_paid',
@@ -36,7 +36,7 @@ class AccountingRepository implements AccountingRepositoryInterface
         '.$check_outstanding_amount ])->withInput();
 
         }*/
-    
+
 
         $paymentData = array(
         'payment_for' => 'credit',
@@ -117,6 +117,10 @@ class AccountingRepository implements AccountingRepositoryInterface
             'is_ledger_added' => 1,
             'is_approve' => 1,
             'created_from' => 'web',
+            'credit_date' => !empty($data['credit_date'])?$data['credit_date']:null,
+            'cheque_photo' => $data['cheque_photo'],
+            'withdrawal_charge' => $data['withdrawal_charge'],
+            'transaction_no' => $data['transaction_no'],
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s')
             );
@@ -159,7 +163,7 @@ class AccountingRepository implements AccountingRepositoryInterface
 
     private function invoicePayments($voucher_no,$payment_date,$payment_amount,$customer_id,$payment_collection_id,$staff_id){
         $check_invoice_payments = InvoicePayment::where('voucher_no', $voucher_no)->get()->toArray();
-      
+
         if(empty($check_invoice_payments)){
             $amount_after_settlement = $payment_amount;
             $invoice = Invoice::where('customer_id', $customer_id)->where('is_paid', 0)->orderBy('id','asc')->get();
@@ -167,13 +171,13 @@ class AccountingRepository implements AccountingRepositoryInterface
             foreach($invoice as $inv){
                 $invoice_date = date('Y-m-d', strtotime($inv->created_at));
                 $invoiceOld = date_diff(
-                    date_create($invoice_date), 
+                    date_create($invoice_date),
                     date_create($payment_date)
                 )->format('%a');
 
                 $year_val = date('Y', strtotime($payment_date));
                 $month_val = date('m', strtotime($payment_date));
-                
+
                 $payment_collection = PaymentCollection::find($payment_collection_id);
                 $payment_id = $payment_collection->payment_id;
                 $store = User::find($customer_id);
@@ -205,9 +209,9 @@ class AccountingRepository implements AccountingRepositoryInterface
                     $amount_after_settlement = 0;
 
                 } else{
-                    
+
                     // die('Not Full Covered');
-                  
+
                     if($amount_after_settlement>$amount && $amount_after_settlement>0){
                         $amount_after_settlement=$amount_after_settlement-$amount;
                         Invoice::where('id',$inv->id)->update([
@@ -243,7 +247,7 @@ class AccountingRepository implements AccountingRepositoryInterface
                             'voucher_no' => $voucher_no,
                             'invoice_amount' => $inv->net_price,
                             'vouchar_amount' => $payment_amount,
-                            'paid_amount' => $amount_after_settlement, 
+                            'paid_amount' => $amount_after_settlement,
                             'rest_amount' => $rest_payment_amount,
                             'created_at' => date('Y-m-d H:i:s'),
                             'updated_at' => date('Y-m-d H:i:s')
@@ -257,9 +261,9 @@ class AccountingRepository implements AccountingRepositoryInterface
             }
         }else{
             $invoice_payment = InvoicePayment::where('voucher_no', $voucher_no)->first();
-           
+
             $payment_amount = (float) $payment_amount;
-           
+
             if($invoice_payment->vouchar_amount<$payment_amount){
                 $payment_amount = $payment_amount-$invoice_payment->vouchar_amount;
                 $amount_after_settlement = $payment_amount;
@@ -268,20 +272,20 @@ class AccountingRepository implements AccountingRepositoryInterface
                 foreach($invoice as $inv){
                     $invoice_date = date('Y-m-d', strtotime($inv->created_at));
                     $invoiceOld = date_diff(
-                        date_create($invoice_date), 
+                        date_create($invoice_date),
                         date_create($payment_date)
                     )->format('%a');
-    
+
                     $year_val = date('Y', strtotime($payment_date));
                     $month_val = date('m', strtotime($payment_date));
-                    
+
                     $payment_collection = PaymentCollection::find($payment_collection_id);
                     $payment_id = $payment_collection->payment_id;
                     $store = User::find($customer_id);
-    
+
                     $amount = $inv->required_payment_amount;
                     $sum_inv_amount += $amount;
-    
+
                     if($amount == $payment_amount){
                         // die('Full Covered');
                         Invoice::where('id',$inv->id)->update([
@@ -289,7 +293,7 @@ class AccountingRepository implements AccountingRepositoryInterface
                             'payment_status' => 2,
                             'is_paid'=>1
                         ]);
-    
+
                         InvoicePayment::insert([
                             'invoice_id' => $inv->id,
                             'payment_collection_id' => $payment_collection_id,
@@ -302,13 +306,13 @@ class AccountingRepository implements AccountingRepositoryInterface
                             'created_at' => date('Y-m-d H:i:s'),
                             'updated_at' => date('Y-m-d H:i:s')
                         ]);
-    
+
                         $amount_after_settlement = 0;
-    
+
                     } else{
-                        
+
                         // die('Not Full Covered');
-                      
+
                         if($amount_after_settlement>$amount && $amount_after_settlement>0){
                             $amount_after_settlement=$amount_after_settlement-$amount;
                             Invoice::where('id',$inv->id)->update([
@@ -328,7 +332,7 @@ class AccountingRepository implements AccountingRepositoryInterface
                                 'created_at' => date('Y-m-d H:i:s'),
                                 'updated_at' => date('Y-m-d H:i:s')
                             ]);
-    
+
                         }else if($amount_after_settlement<$amount && $amount_after_settlement>0){
                             $rest_payment_amount = ($amount - $amount_after_settlement);
                             Invoice::where('id',$inv->id)->update([
@@ -336,7 +340,7 @@ class AccountingRepository implements AccountingRepositoryInterface
                                 'payment_status' => 1,
                                 'is_paid'=>0
                             ]);
-    
+
                             InvoicePayment::insert([
                                 'invoice_id' => $inv->id,
                                 'payment_collection_id' => $payment_collection_id,
@@ -344,21 +348,21 @@ class AccountingRepository implements AccountingRepositoryInterface
                                 'voucher_no' => $voucher_no,
                                 'invoice_amount' => $inv->net_price,
                                 'vouchar_amount' => $payment_amount,
-                                'paid_amount' => $amount_after_settlement, 
+                                'paid_amount' => $amount_after_settlement,
                                 'rest_amount' => $rest_payment_amount,
                                 'created_at' => date('Y-m-d H:i:s'),
                                 'updated_at' => date('Y-m-d H:i:s')
                             ]);
-    
+
                             $amount_after_settlement = 0;
                         }else if($amount_after_settlement==0){
-    
+
                         }
                     }
                 }
 
             }elseif($invoice_payment->vouchar_amount>$payment_amount){
-              
+
                 foreach($check_invoice_payments as $k=>$item){
                     $invoice = Invoice::find($item['invoice_id']);
                     $invoice->required_payment_amount = $invoice->required_payment_amount==0?$item['paid_amount']:($invoice->required_payment_amount+$item['paid_amount']);
@@ -368,27 +372,27 @@ class AccountingRepository implements AccountingRepositoryInterface
                     // Remove Invoice Payment
                     InvoicePayment::where('id', $item['id'])->delete();
                 }
-    
+
                 $amount_after_settlement = $payment_amount;
                 $invoice = Invoice::where('customer_id', $customer_id)->where('is_paid', 0)->orderBy('id','asc')->get();
                 $sum_inv_amount = 0;
                 foreach($invoice as $inv){
                     $invoice_date = date('Y-m-d', strtotime($inv->created_at));
                     $invoiceOld = date_diff(
-                        date_create($invoice_date), 
+                        date_create($invoice_date),
                         date_create($payment_date)
                     )->format('%a');
-    
+
                     $year_val = date('Y', strtotime($payment_date));
                     $month_val = date('m', strtotime($payment_date));
-                    
+
                     $payment_collection = PaymentCollection::find($payment_collection_id);
                     $payment_id = $payment_collection->payment_id;
                     $store = User::find($customer_id);
-    
+
                     $amount = $inv->required_payment_amount;
                     $sum_inv_amount += $amount;
-    
+
                     if($amount == $payment_amount){
                         // die('Full Covered');
                         Invoice::where('id',$inv->id)->update([
@@ -396,7 +400,7 @@ class AccountingRepository implements AccountingRepositoryInterface
                             'payment_status' => 2,
                             'is_paid'=>1
                         ]);
-    
+
                         InvoicePayment::insert([
                             'invoice_id' => $inv->id,
                             'payment_collection_id' => $payment_collection_id,
@@ -409,13 +413,13 @@ class AccountingRepository implements AccountingRepositoryInterface
                             'created_at' => date('Y-m-d H:i:s'),
                             'updated_at' => date('Y-m-d H:i:s')
                         ]);
-    
+
                         $amount_after_settlement = 0;
-    
+
                     } else{
-                        
+
                         // die('Not Full Covered');
-                      
+
                         if($amount_after_settlement>$amount && $amount_after_settlement>0){
                             $amount_after_settlement=$amount_after_settlement-$amount;
                             Invoice::where('id',$inv->id)->update([
@@ -435,7 +439,7 @@ class AccountingRepository implements AccountingRepositoryInterface
                                 'created_at' => date('Y-m-d H:i:s'),
                                 'updated_at' => date('Y-m-d H:i:s')
                             ]);
-    
+
                         }else if($amount_after_settlement<$amount && $amount_after_settlement>0){
                             $rest_payment_amount = ($amount - $amount_after_settlement);
                             Invoice::where('id',$inv->id)->update([
@@ -443,7 +447,7 @@ class AccountingRepository implements AccountingRepositoryInterface
                                 'payment_status' => 1,
                                 'is_paid'=>0
                             ]);
-    
+
                             InvoicePayment::insert([
                                 'invoice_id' => $inv->id,
                                 'payment_collection_id' => $payment_collection_id,
@@ -451,27 +455,27 @@ class AccountingRepository implements AccountingRepositoryInterface
                                 'voucher_no' => $voucher_no,
                                 'invoice_amount' => $inv->net_price,
                                 'vouchar_amount' => $payment_amount,
-                                'paid_amount' => $amount_after_settlement, 
+                                'paid_amount' => $amount_after_settlement,
                                 'rest_amount' => $rest_payment_amount,
                                 'created_at' => date('Y-m-d H:i:s'),
                                 'updated_at' => date('Y-m-d H:i:s')
                             ]);
-    
+
                             $amount_after_settlement = 0;
                         }else if($amount_after_settlement==0){
-    
+
                         }
                     }
                 }
             }else{
 
             }
-            
+
         }
     }
 
     public function StoreOpeningBalance(array $data){
-        
+
         $is_credit = 0;
         $is_debit = 0;
 
@@ -510,12 +514,12 @@ class AccountingRepository implements AccountingRepositoryInterface
                     }
                 }
             }
-           
+
         }
          /* For customer opening balance */
-         $customer_id = $data['customer_id'];   
+         $customer_id = $data['customer_id'];
          $user_type = "customer";
-        
+
          # add OB at the top of the existing transaction of the day
          if($data['payment_type'] == 'bank_cash'){
             if(isset($data['bank_amount'])){
@@ -613,7 +617,7 @@ class AccountingRepository implements AccountingRepositoryInterface
             $err_msg_bank = "Opening balance for customer added successfully";
             return ['status' => true, 'message' => $err_msg_bank];
          }else{
-             /* Entry in payment */      
+             /* Entry in payment */
             $payment_id = Payment::insertGetId([
                 'customer_id'=> $customer_id,
                 'payment_for'=> $data['credit_debit'],
@@ -629,7 +633,7 @@ class AccountingRepository implements AccountingRepositoryInterface
                 'created_by'=> Auth::guard('admin')->user()->id,
                 'created_at'=> date('Y-m-d H:i:s')
             ]);
-            
+
                 /* Entry in ledger */
             $ledger= Ledger::insert([
                     'user_type'=> $user_type,
@@ -645,7 +649,7 @@ class AccountingRepository implements AccountingRepositoryInterface
                     'purpose_description'=> $user_type.' opening balance',
                     'created_at'=> date('Y-m-d H:i:s')
                 ]);
-            
+
                 /* Entry in journal */
             $journal =Journal::insert([
                 'transaction_amount'=> $data['amount'],
@@ -662,6 +666,6 @@ class AccountingRepository implements AccountingRepositoryInterface
             $err_msg_bank = "Opening balance for customer added successfully";
             return ['status' => true, 'message' => $err_msg_bank];
          }
-        
+
     }
 }

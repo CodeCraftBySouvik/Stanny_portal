@@ -1,0 +1,7 @@
+| Cache Type        | Command                      |
+| ----------------- | ---------------------------- |
+| Application Cache | `php artisan cache:clear`    |
+| Route Cache       | `php artisan route:clear`    |
+| Config Cache      | `php artisan config:clear`   |
+| View Cache        | `php artisan view:clear`     |
+| Compiled Classes  | `php artisan clear-compiled` |

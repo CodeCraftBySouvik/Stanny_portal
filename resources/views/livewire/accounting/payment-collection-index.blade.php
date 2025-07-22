@@ -131,6 +131,9 @@
                                             @if (!empty($payment->is_ledger_added))
                                                 <a href="#" wire:click="$dispatch('confirm-revoke',{{$payment->id}})" class="btn btn-outline-warning select-md btn_outline">Revoke</a>
                                             @endif
+                                            @if (!empty($payment->payment_type) and $payment->payment_type=='cheque')
+                                                <a href="{{ route('admin.accounting.edit_cheque_info', ['payment_voucher_no' => $payment->voucher_no]) }}" class="btn btn-outline-warning select-md btn_outline">Edit Check Info</a>
+                                            @endif
                                             <button wire:click="downloadInvoice({{ $payment->id }})" class="btn btn-outline-primary select-md btn_outline">Download Receipt</button>
 
                                         </td>

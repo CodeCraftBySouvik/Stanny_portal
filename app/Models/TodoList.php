@@ -13,5 +13,6 @@ class TodoList extends Model
         'todo_type',
         'next_payment_date',
         'deposit_date',
+        'remark',
     ];
 }
