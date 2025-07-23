@@ -11,6 +11,9 @@ use App\Models\Invoice;
 use App\Models\Ledger;
 use App\Models\InvoiceProduct;
 use App\Models\PaymentCollection;
+use App\Models\StockFabric;
+use App\Models\StockProduct;
+use App\Models\Delivery;
 use App\Helpers\Helper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -49,6 +52,7 @@ class AddOrderSlip extends Component
                 'collection_id' => $order_item->collection,
                 'collection_title' => $order_item->collectionType?->title ?? '',
                 'fabrics' => $order_item->fabric,
+                'team' => $order_item->assigned_team,
                 'tl_approved' => $order_item->tl_status == 'Approved',
                 'admin_approved' => $order_item->admin_status == 'Approved',
                'measurements' => $order_item->measurements->map(function ($m) {
@@ -89,6 +93,101 @@ class AddOrderSlip extends Component
         $this->staffs = User::where('user_type', 0)->where('designation', 2)->select('name', 'id')->orderBy('name', 'ASC')->get();
     }
 
+    public function hasTeamSelected()
+    {
+        foreach ($this->order_item as $item) {
+            if (!empty($item['team'])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+     public function setTeamAndSubmit()
+    {   
+        // dd($this->hasTeamSelected());
+         if (!$this->hasTeamSelected()) {
+            session()->flash('error', 'Please select at least one team before submitting.');
+             return redirect()->route('admin.order.add_order_slip', $this->order->id);
+        }
+        foreach ($this->order_item as $itemData) {
+            $item = OrderItem::find($itemData['id']);
+            if ($item && $item->status === 'Process' && isset($itemData['team'])) {
+                $item->assigned_team = $itemData['team'];
+                $item->admin_status = 'Approved';
+                $item->save();
+
+                // if team is sales and deliver immediately and reduce stock
+                if($itemData['team'] === 'sales'){
+                    $this->autoDeliverItem($item);
+                }
+            }
+        }
+
+        $allApproved = OrderItem::where('order_id', $this->order->id)
+            ->where('admin_status', '!=', 'Approved')
+            ->doesntExist();
+
+        if ($allApproved) {
+            Order::where('id', $this->order->id)->update(['status' => 'Approved']);
+        }
+
+       return $this->submitForm(); // Call your existing form submit logic
+    }
+
+    protected function autoDeliverItem(OrderItem $item)
+    {
+        // Check if delivery already exists for this item
+        $existingDelivery = Delivery::where('order_item_id',$item->id)->exists();
+        if($existingDelivery){
+            return; // Prevent duplicate delivery
+        }
+        if ($item->collection == 1) {
+            // Fabric collection
+            $fabricStock = StockFabric::where('fabric_id', $item->fabrics)->first();
+            if ($fabricStock && $fabricStock->qty_in_meter >= $item->quantity) {
+                $fabricStock->qty_in_meter -= $item->quantity;
+                $fabricStock->save();
+
+                Delivery::create([
+                    'order_id' => $item->order_id,
+                    'order_item_id' => $item->id,
+                    'fabric_id' => $item->fabrics,
+                    'fabric_quantity' => $item->quantity,
+                    'delivered_quantity' => $item->quantity,
+                    'unit' => 'meters',
+                    'delivered_by' => auth()->guard('admin')->user()->id,
+                    'delivery_date' => now(),
+                ]);
+            }
+        } elseif ($item->collection == 2) {
+            // Product collection
+            $productStock = StockProduct::where('product_id', $item->product_id)->first();
+            if ($productStock && $productStock->qty_in_pieces >= $item->quantity) {
+                $productStock->qty_in_pieces -= $item->quantity;
+                $productStock->save();
+
+                Delivery::create([
+                    'order_id' => $item->order_id,
+                    'order_item_id' => $item->id,
+                    'product_id' => $item->product_id,
+                    'delivered_quantity' => $item->quantity,
+                    'fabric_quantity'  => null,
+                    'unit' => 'pieces',
+                    'delivered_by' => auth()->guard('admin')->user()->id,
+                    'delivery_date' => now(),
+                ]);
+            }
+        }
+    }
+
+
+
+
+   
+
+
    public function updateTlStatus($key)
     {
         $isApproved = !empty($this->order_item[$key]['tl_approved'])
@@ -104,19 +203,7 @@ class AddOrderSlip extends Component
             ->update(['tl_status' => $newStatus]);
     }
 
-    // public function updateAdminStatus($key){
-    //     $isApproved = !empty($this->order_item[$key]['admin_approved'])
-    //                 && $this->order_item[$key]['admin_approved'] == true;
-
-    //     $newStatus = $isApproved ? 'Approved' : 'Hold';
-
-    //     // Update the array (Livewire state)
-    //     $this->order_item[$key]['admin_status'] = $newStatus;
-
-    //     // Update the database
-    //     OrderItem::where('id', $this->order_item[$key]['id'])
-    //         ->update(['admin_status' => $newStatus]);
-    // }
+   
 
     public function updateAdminStatus($key)
     {
@@ -236,7 +323,7 @@ class AddOrderSlip extends Component
                 // new
                 if ($userDesignationId == 1) {
 
-                // ⬇️ new – auto‑approve any remaining TL‑approved rows
+                //  new – auto‑approve any remaining TL‑approved rows
                 OrderItem::where('order_id', $this->order->id)
                     ->where('status', 'Process')
                     ->where('tl_status', 'Approved')

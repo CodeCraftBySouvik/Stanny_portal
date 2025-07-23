@@ -46,6 +46,7 @@ class AddPaymentReceipt extends Component
           $user = Auth::guard('admin')->user();
         $this->my_designation = $user->designation;
         $payment_collection = PaymentCollection::with('customer', 'user')->where('voucher_no',$payment_voucher_no)->first();
+        $this->payment_collection_id = !empty($payment_collection)?$payment_collection->id:'';
         $this->payment_data= $payment_collection;
         if(!empty($payment_voucher_no)){
             if(!$payment_collection){
@@ -85,17 +86,22 @@ class AddPaymentReceipt extends Component
     public function rules()
     {
        $rules = [];
-    if ($this->payment_mode === 'cheque') {
+    if ($this->payment_mode === 'cheque' and empty($this->payment_collection_id)) {
         $rules['deposit_date'] = 'required'; // Optional: adjust validation as needed
         $rules['cheque_file'] = 'required|image|max:5120';
 
 
     }
-     if ($this->payment_mode === 'digital_payment') {
+     else if ($this->payment_mode === 'digital_payment') {
         $rules['withdrawal_charge'] = 'required | numeric'; // Optional: adjust validation as needed
         $rules['transaction_no'] = 'required'; // Optional: adjust validation as needed
 
     }
+    else if (!empty($this->payment_collection_id)) {
+        $rules['credit_date'] = 'required'; // Optional: adjust validation as needed
+
+    }
+
 
     return $rules;
     }
@@ -209,6 +215,7 @@ class AddPaymentReceipt extends Component
                 {
                         $todoData=[
                             'user_id'=>$this->staff_id,
+                            'customer_id'=>$this->customer_id,
                             'created_by'=>$admin_id,
                             'todo_type'=>'Payment',
                             'next_payment_date'=>$this->next_payment_date,
@@ -221,8 +228,9 @@ class AddPaymentReceipt extends Component
                 {
                         $todoData=[
                             'user_id'=>$this->staff_id,
+                            'customer_id'=>$this->customer_id,
                             'created_by'=>$admin_id,
-                            'todo_type'=>'Payment',
+                            'todo_type'=>'Cheque Deposit',
                             'deposit_date'=>$this->deposit_date,
                             'remark'=>'Deposit Date '.$this->deposit_date
                         ];
@@ -292,8 +300,21 @@ class AddPaymentReceipt extends Component
 
         }
     }
-    public function editReceipt($id)
+    public function editReceipt()
     {
-      die($id.'HEE');
+    try {
+       $this->validate();
+
+        $payment_collection = PaymentCollection::find($this->payment_collection_id); // Replace 'User' with your model name
+        $payment_collection->credit_date = $this->credit_date; // Replace 'name' with your field
+        $payment_collection->save();
+         session()->flash('success', 'Credit Date  Added successfully.');
+        return redirect()->route('admin.accounting.payment_collection');
+    } catch (\Exception $e) {
+    session()->flash('error', $e->getMessage());
+
+    }
+
+
     }
 }

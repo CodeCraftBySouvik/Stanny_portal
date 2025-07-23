@@ -259,7 +259,7 @@
                     <span class="nav-link-text ms-1">Product Management</span>
                 </a>
             </li>
-           
+
             <!-- Submenu -->
             <ul id="productManagementSubmenu"
                 class="collapse list-unstyled ms-4 {{ in_array(Route::currentRouteName(), ['product.view', 'product.gallery', 'product.add', 'product.update', 'admin.categories', 'admin.subcategories', 'measurements.index', 'product.fabrics','admin.collections.index','admin.fabrics.index','product.catalogue']) ? 'show' : '' }}">
@@ -269,7 +269,7 @@
                         Catalogue
                     </a>
                 </li>
-               
+
                 <li class="nav-item">
                     <a class="nav-link text-white {{ Request::is('admin/products/collections') ? 'active ' : '' }}"
                         href="{{route('admin.collections.index')}}">
@@ -365,7 +365,7 @@
                 </li>
             </ul>
             @endif
-            
+
             @if ($this->hasPermissionByParent('report_management'))
             {{-- Report management --}}
             <li class="nav-item">
@@ -386,7 +386,16 @@
                 </li>
             </ul>
             @endif
-            
+ <li class="nav-item">
+                <a class="nav-link text-white {{ Route::currentRouteName() == 'admin.todo-list' ? 'active ' : '' }}" href="{{route('todo-list.todo-list')}}">
+                    <!-- Default to the first route -->
+                    <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="material-icons opacity-10">dashboard</i>
+                    </div>
+                    <span class="nav-link-text ms-1">ToDo List</span>
+                </a>
+            </li>
+
         </ul>
     </div>
     {{-- <div class="sidenav-footer position-absolute w-100 bottom-0 ">

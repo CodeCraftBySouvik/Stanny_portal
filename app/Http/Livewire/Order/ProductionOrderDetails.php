@@ -213,7 +213,8 @@ class ProductionOrderDetails extends Component
              ->filter(function($item){
                return $item->status === 'Process' &&
                       $item->tl_status === 'Approved' &&
-                      $item->admin_status === 'Approved';
+                      $item->admin_status === 'Approved' &&
+                      $item->assigned_team === 'production';
             })
             ->map(function ($item) {
             $product = Product::find($item->product_id);
@@ -607,22 +608,6 @@ class ProductionOrderDetails extends Component
                     }
                 }
 
-
-
-                // Return leftover fabric back to stock
-                // $leftoverEntries = OrderStockEntry::where('order_item_id', $itemId)
-                //     ->where('fabric_id', $item['fabric_id'])
-                //     ->get();
-
-                // $leftoverQuantity = $leftoverEntries->sum('quantity');
-
-                // if ($leftoverQuantity > 0) {
-                //     $fabricStock = StockFabric::where('fabric_id', $item['fabric_id'])->first();
-                //     if ($fabricStock) {
-                //         $fabricStock->increment('qty_in_meter', $leftoverQuantity);
-                //     }
-                  
-                // }
             }
 
             // 3️⃣ For product: just reduce main stock
@@ -646,17 +631,6 @@ class ProductionOrderDetails extends Component
                     'timestamp' => now(),
                 ]),
             ]);
-
-            // 5️⃣ Update overall order status
-            // $order = Order::find($this->orderId);
-            // $totalItems = $order->items()->count();
-            // $deliveredItems = $order->items()->whereHas('deliveries')->count();
-
-            // if ($deliveredItems == $totalItems) {
-            //     $order->update(['status' => 'Fully Delivered']);
-            // } elseif ($deliveredItems > 0) {
-            //     $order->update(['status' => 'Partial Delivered']);
-            // }
 
             // 5️⃣ Update overall order status with quantity checks for products
             $order = Order::find($this->orderId);
@@ -718,9 +692,7 @@ class ProductionOrderDetails extends Component
 
     public function render()
     {
-         // Fetch the order and its related items
-        //  $order = Order::with('items')->findOrFail($this->orderId);
-         
+        
          // Fetch product details for each order item
          $this->loadOrderItems();
         return view('livewire.order.production-order-details',[
