@@ -17,7 +17,7 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-12">
-                    <form wire:submit.prevent="submitForm">
+                    <form wire:submit.prevent="editReceipt">
                         @if (session()->has('success'))
                             <div class="alert alert-success">
                                 {{ session('success') }}

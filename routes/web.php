@@ -26,6 +26,8 @@ use App\Http\Livewire\Expense\{ExpenseIndex,DepotExpanse,DailyExpenses,DailyColl
 use App\Http\Livewire\UserAddressForm;
 use App\Http\Livewire\CustomerEdit;
 use App\Http\Livewire\CustomerDetails;
+use App\Http\Livewire\Todo;
+
 use App\Http\Livewire\Supplier\SupplierIndex;
 use App\Http\Livewire\Supplier\SupplierAdd;
 use App\Http\Livewire\Supplier\SupplierEdit;
@@ -220,7 +222,11 @@ Route::group(['prefix' => 'admin','middleware' => 'admin'], function () {
 
     });
 
+Route::prefix('todo-list')->name('todo-list.')->group(function() {
+        // Route::get('/', DepotExpanse::class)->name('index');
+        Route::get('/', Todo::class)->name('todo-list');
 
+    });
     // Route::get('/measurements/add', MeasurementAdd::class)->name('measurements.add');
     // Route::get('/measurements/edit/{id}', MeasurementEdit::class)->name('measurements.edit');
     // Route::get('/measurements/details/{id}', MeasurementDetails::class)->name('measurements.details');
