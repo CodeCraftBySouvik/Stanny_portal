@@ -103,14 +103,13 @@ class AddOrderSlip extends Component
         return false;
     }
 
-
      public function setTeamAndSubmit()
-    {   
-        // dd($this->hasTeamSelected());
-         if (!$this->hasTeamSelected()) {
+    {
+        if (!$this->hasTeamSelected()) {
             session()->flash('error', 'Please select at least one team before submitting.');
-             return redirect()->route('admin.order.add_order_slip', $this->order->id);
+            return; 
         }
+
         foreach ($this->order_item as $itemData) {
             $item = OrderItem::find($itemData['id']);
             if ($item && $item->status === 'Process' && isset($itemData['team'])) {
@@ -118,13 +117,14 @@ class AddOrderSlip extends Component
                 $item->admin_status = 'Approved';
                 $item->save();
 
-                // if team is sales and deliver immediately and reduce stock
-                if($itemData['team'] === 'sales'){
+                // Auto deliver logic for sales team
+                if ($itemData['team'] === 'sales') {
                     $this->autoDeliverItem($item);
                 }
             }
         }
 
+        // Check if all items are approved
         $allApproved = OrderItem::where('order_id', $this->order->id)
             ->where('admin_status', '!=', 'Approved')
             ->doesntExist();
@@ -133,8 +133,42 @@ class AddOrderSlip extends Component
             Order::where('id', $this->order->id)->update(['status' => 'Approved']);
         }
 
-       return $this->submitForm(); // Call your existing form submit logic
+        // Call the final submit function
+        return $this->submitForm();
     }
+
+
+    //  public function setTeamAndSubmit()
+    // {   
+    //     dd($this->hasTeamSelected());
+    //      if (!$this->hasTeamSelected()) {
+    //         session()->flash('error', 'Please select at least one team before submitting.');
+    //          return;
+    //     }
+    //     foreach ($this->order_item as $itemData) {
+    //         $item = OrderItem::find($itemData['id']);
+    //         if ($item && $item->status === 'Process' && isset($itemData['team'])) {
+    //             $item->assigned_team = $itemData['team'];
+    //             $item->admin_status = 'Approved';
+    //             $item->save();
+
+    //             // if team is sales and deliver immediately and reduce stock
+    //             if($itemData['team'] === 'sales'){
+    //                 $this->autoDeliverItem($item);
+    //             }
+    //         }
+    //     }
+
+    //     $allApproved = OrderItem::where('order_id', $this->order->id)
+    //         ->where('admin_status', '!=', 'Approved')
+    //         ->doesntExist();
+
+    //     if ($allApproved) {
+    //         Order::where('id', $this->order->id)->update(['status' => 'Approved']);
+    //     }
+
+    //    return $this->submitForm(); // Call your existing form submit logic
+    // }
 
     protected function autoDeliverItem(OrderItem $item)
     {

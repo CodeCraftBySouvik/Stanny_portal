@@ -60,12 +60,12 @@
                             @php
                                 $hasDelivered = false;
                                 foreach ($orderItemsNew as $key => $item) {
-                                foreach ($item['deliveries'] as $delivery) {
-                                    if($delivery['status'] == 'Delivered'){
-                                            $hasDelivered = true;
-                                            break 2;   // exit both loops
+                                    foreach ($item['deliveries'] as $delivery) {
+                                        if($delivery['status'] == 'Delivered'){
+                                                $hasDelivered = true;
+                                                break 2;   // exit both loops
+                                        }
                                     }
-                                }
                                 }
                             @endphp
                             <div class="d-flex justify-content-between align-items-center">
@@ -501,46 +501,7 @@
         }
     }
 
-        //     document.addEventListener('DOMContentLoaded', function () {
-        //     const btn = document.getElementById('confirmBtn');
-        //     if (btn) {
-        //         btn.addEventListener('click', function () {
-        //             Swal.fire({
-        //                 title: 'Select Confirmation Team',
-        //                 html: `
-        //                     <div class="text-start">
-        //                         <div class="form-check">
-        //                             <input class="form-check-input" type="radio" name="confirm_team" id="salesTeam" value="sales" checked>
-        //                             <label class="form-check-label" for="salesTeam">Sales Team</label>
-        //                         </div>
-        //                         <div class="form-check">
-        //                             <input class="form-check-input" type="radio" name="confirm_team" id="productionTeam" value="production">
-        //                             <label class="form-check-label" for="productionTeam">Production Team</label>
-        //                         </div>
-        //                     </div>
-        //                 `,
-        //                 icon: 'warning',
-        //                 showCancelButton: true,
-        //                 confirmButtonText: 'Confirm',
-        //                 cancelButtonText: 'Cancel',
-        //             preConfirm: () => {
-        //                     const selectedTeam = document.querySelector('input[name="confirm_team"]:checked');
-        //                     if (!selectedTeam) {
-        //                         Swal.showValidationMessage(`Please select a team`);
-        //                         return false;
-        //                     }
-        //                     return selectedTeam.value;
-        //                 }
-        //             }).then((result) => {
-        //                 if (result.isConfirmed) {
-        //                     // Pass selected team value to Livewire
-        //                     const selectedTeam = result.value;
-        //                     @this.call('setTeamAndSubmit', selectedTeam);
-        //                 }
-        //             });
-        //         });
-        //     }
-        // });
+       
 
         
 </script>

@@ -358,6 +358,7 @@
                         <div class="card">
                             <div class="card-body">
                                 <h6>Stock Entry Interface</h6>
+                                @foreach ($stockEntries as $entryIndex => $entry)
                                 <div class="row mb-3">
                                     <div class="col-md-3">
                                         <label class="form-label">
@@ -366,19 +367,50 @@
                                         <input type="text" value="{{ $selectedItem['collection_title'] ?? '' }}"
                                             class="form-control form-control-sm border border-1 p-2" disabled>
                                     </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label">
-                                            <strong>{{ $selectedItem['collection_id'] == 2 ? 'Product' : 'Fabric' }}</strong>
-                                            <span class="text-danger">*</span>
-                                        </label>
-                                        <input type="text"
-                                            value="{{ $selectedItem['collection_id'] == 2 ? $selectedItem['product_name'] : $selectedItem['fabric_title'] }}"
-                                            class="form-control form-control-sm border border-1 p-2" disabled>
+                                   <div class="col-md-3 mt-4">
+                                        @if ($entryIndex === 0)
+                                            {{-- First row: show disabled input --}}
+                                            <input type="text"
+                                                value="{{ $selectedItem['collection_id'] == 2 ? $selectedItem['product_name'] : $selectedItem['fabric_title'] }}"
+                                                class="form-control form-control-sm border border-1 p-2" disabled>
+                                        @elseif($selectedItem['collection_id'] == 1)
+                                        {{-- Fabric Search Input --}}
+                                        <div class="mb-2">
+                                            <input type="text"
+                                                wire:model.lazy="fabricSearch.{{ $entryIndex }}"
+                                                class="form-control form-control-sm"
+                                                placeholder="Search fabric..."
+                                                wire:keyup="searchFabric({{ $entryIndex }})">
+                                        </div>
+                                        {{-- Fabric Select Dropdown --}}
+                                        @if (!empty($searchResults[$entryIndex]))
+                                             <div class="dropdown-menu show w-100"
+                                                style="max-height: 187px; max-width: 100px; overflow-y: auto;">
+                                                    @foreach ($searchResults[$entryIndex] as $fabric)
+                                                       <button class="dropdown-item fabric_dropdown_item" type="button"
+                                                            wire:click="selectFabric({{ $fabric['id'] }}, {{ $entryIndex }})">
+                                                            {{ $fabric['title'] }}
+                                                        </button>
+                                                    @endforeach
+                                              </div>
+                                        @endif
+
+                                        @error('stockEntries.' . $entryIndex . '.fabric_id')
+                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        @enderror
+                                    @endif
                                     </div>
                                     <div class="col-md-2">
                                         <label class="form-label">{{ $selectedItem['available_label'] }}</label>
-                                        <input type="number" value="{{ $selectedItem['available_value'] }}"
+                                        @if ($entryIndex === 0)
+                                         <input type="number" value="{{ $selectedItem['available_value'] }}"
                                             class="form-control form-control-sm border border-1 p-2" disabled>
+                                        @else
+                                          <input type="number"
+                                            wire:model="stockEntries.{{ $entryIndex }}.available_value"
+                                            class="form-control form-control-sm border border-1 p-2"
+                                            disabled>    
+                                        @endif
                                     </div>
                                     <div class="col-md-2">
                                         <label class="form-label">{{ $selectedItem['updated_label'] }}</label>
@@ -392,19 +424,31 @@
                                             </div>
                                         @enderror
                                     </div>
-                                    <div class="col-md-2 mt-4">
+                                    <div class="col-md-1 mt-4">
                                             <button class="btn btn-outline-success select-md"
                                                 wire:click="updateStock({{ $selectedItem['index'] }},
                                                             '{{ $selectedItem['input_name'] }}')">
                                                 Update
                                             </button>
-                                        @if($selectedItem['has_stock_entry'])
+                                        {{-- @if($selectedItem['has_stock_entry'])
                                         <button class="btn btn-outline-danger select-md"
                                             wire:click="$dispatch('confirm-revert-back', { index: {{ $selectedItem['index'] }}, inputName: '{{ $selectedItem['input_name'] }}' })">
                                             Revert Back
                                         </button>
-                                        @endif
+                                        @endif --}}
                                     </div>
+
+                                    @if ($entryIndex !== 0)
+                                    <div class="col-md-1">
+                                        <button class="btn btn-danger btn-sm ms-2 mt-3" wire:click="removeStockEntry('{{ $entryIndex }}')">
+                                            <span class="material-icons">delete</span>
+                                        </button>
+                                    </div>
+                                    @endif
+                                </div>
+                                @endforeach
+                                <div class="mb-3">
+                                    <button type="button" class="btn btn-outline-success select-md" wire:click="addStockEntry"><i class="material-icons me-1">add</i>Add More</button>
                                 </div>
                             </div>
                         </div>
@@ -496,7 +540,7 @@
     </div>
 </div>
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
+{{-- <script>
     window.addEventListener('confirm-revert-back', event => {
         const { index, inputName } = event.detail;
 
@@ -515,7 +559,7 @@
             }
         });
     });
-</script>
+</script> --}}
 <script>
     // for the stock modal open and close
     window.addEventListener('open-stock-modal',event=>{
