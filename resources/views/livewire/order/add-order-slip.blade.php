@@ -365,7 +365,7 @@
                     <div class="form-group text-end">
                         <span>ORDER AMOUNT <span class="text-danger">({{$actual_amount}})</span></span>
                          @if($user && $user->designation == 1)
-                           <button wire:click="setTeamAndSubmit" class="btn btn-sm btn-success">Approve Order</button>
+                           <button wire:click.prevent="setTeamAndSubmit" class="btn btn-sm btn-success">Approve Order</button>
                         @else
                             <button type="submit" id="submit_btn"
                                 class="btn btn-sm btn-success"><i class="material-icons text-white" style="font-size: 15px;">add</i>Confirm
