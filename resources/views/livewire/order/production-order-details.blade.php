@@ -412,38 +412,27 @@
                                             disabled>    
                                         @endif
                                     </div>
-                                    <div class="col-md-2">
+                                    {{-- Required meter --}}
+                                  <div class="col-md-2">
                                         <label class="form-label">{{ $selectedItem['updated_label'] }}</label>
-                                        @if ($entryIndex === 0)
-                                            @php
-                                                $inputName = "rows." . $selectedItem['input_name'];
-                                            @endphp
-                                            <input type="text"
-                                                wire:model="{{ $inputName }}"
-                                                class="form-control form-control-sm border border-1 p-2 @error($inputName) is-invalid @enderror">
 
-                                            @error($inputName)
-                                                <div class="invalid-feedback">
-                                                    {{ $message }}
-                                                </div>
-                                            @enderror
-                                        @else
-                                            {{-- Additional rows use dynamic input names --}}
-                                            @php
-                                                $inputName = $entry['input_name'] ?? 'row_' . $selectedItem['index'] . '_entry_' . $entryIndex;
-                                            @endphp
+                                        @php
+                                            // Always use consistent key for validation and binding
+                                            $inputName = 'required_meter_' . $entryIndex;
+                                            $fullInputKey = "rows.$inputName";
+                                        @endphp
 
-                                            <input type="text"
-                                                wire:model="rows.{{ $inputName }}"
-                                                class="form-control form-control-sm border border-1 p-2 @error('rows.' . $inputName) is-invalid @enderror">
-                                            @error('rows.' . $inputName)
-                                                <div class="invalid-feedback">
-                                                    {{ $message }}
-                                                </div>
-                                            @enderror
-                                        @endif
-                                        
+                                        <input type="text"
+                                            wire:model="{{ $fullInputKey }}"
+                                            class="form-control form-control-sm border border-1 p-2 @error($fullInputKey) is-invalid @enderror">
+
+                                        @error($fullInputKey)
+                                            <div class="invalid-feedback">
+                                                {{ $message }}
+                                            </div>
+                                        @enderror
                                     </div>
+
                                     <div class="col-md-1 mt-4">
                                             {{-- <button class="btn btn-outline-success select-md"
                                                 wire:click="updateStock({{ $selectedItem['index'] }},
@@ -452,8 +441,12 @@
                                             </button> --}}
                                         @if($selectedItem['has_stock_entry'])
                                             <button class="btn btn-outline-danger select-md"
-                                                wire:click="$dispatch('confirm-revert-back', { index: {{ $selectedItem['index'] }}, inputName: '{{ $selectedItem['input_name'] }}' })">
-                                                Revert Back
+                                                wire:click="$dispatch('confirm-revert-back', {
+                                                    index: {{ $selectedItem['index'] }},
+                                                    inputName: '{{ $selectedItem['input_name'] }}',
+                                                    entryId: {{ $entry['id'] ?? 'null' }}
+                                                })">
+                                                 Revert Back
                                             </button>
                                         @endif
                                     </div>
@@ -472,7 +465,7 @@
                                         <button type="button" class="btn btn-outline-success select-md" wire:click="addStockEntry"><i class="material-icons me-1">add</i>Add More</button>
                                     </div>
                                     {{-- Update All --}}
-                                    <div class="">
+                                    <div class="mb-3">
                                         <button class="btn btn-outline-success select-md" wire:click="updateStock({{ $selectedItem['index'] }})">
                                              Update All
                                         </button>
@@ -571,7 +564,7 @@
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     window.addEventListener('confirm-revert-back', event => {
-        const { index, inputName } = event.detail;
+        const { index, inputName,entryId  } = event.detail;
 
         Swal.fire({
             title: 'Are you sure?',
@@ -584,7 +577,7 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 // use @this.call to run the Livewire method
-                @this.call('revertBackStock', index, inputName);
+                @this.call('revertBackStock', index, inputName,entryId );
             }
         });
     });
