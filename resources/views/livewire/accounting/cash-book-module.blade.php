@@ -33,7 +33,7 @@
                         <input type="text" wire:model.debounce.300ms="searchStaff"
                             class="form-control select-md bg-white" placeholder="Staff name"
                             wire:keyup="SearchStaff($event.target.value)">
-                        
+
                         @if (!empty($staffSuggestions))
                         <ul class="list-group position-absolute z-index-1 w-100"
                             style="max-height: 200px; overflow-y:auto;">
@@ -433,7 +433,7 @@
         });
     });
 
-   
+
 </script>
 
 </div>
