@@ -414,28 +414,48 @@
                                     </div>
                                     <div class="col-md-2">
                                         <label class="form-label">{{ $selectedItem['updated_label'] }}</label>
-                                        <input type="text"
-                                            wire:model="rows.{{ $selectedItem['input_name'] }}"
-                                            class="form-control form-control-sm border border-1 p-2 @error($selectedItem['input_name']) is-invalid @enderror">
+                                        @if ($entryIndex === 0)
+                                            @php
+                                                $inputName = "rows." . $selectedItem['input_name'];
+                                            @endphp
+                                            <input type="text"
+                                                wire:model="{{ $inputName }}"
+                                                class="form-control form-control-sm border border-1 p-2 @error($inputName) is-invalid @enderror">
+
+                                            @error($inputName)
+                                                <div class="invalid-feedback">
+                                                    {{ $message }}
+                                                </div>
+                                            @enderror
+                                        @else
+                                            {{-- Additional rows use dynamic input names --}}
+                                            @php
+                                                $inputName = $entry['input_name'] ?? 'row_' . $selectedItem['index'] . '_entry_' . $entryIndex;
+                                            @endphp
+
+                                            <input type="text"
+                                                wire:model="rows.{{ $inputName }}"
+                                                class="form-control form-control-sm border border-1 p-2 @error('rows.' . $inputName) is-invalid @enderror">
+                                            @error('rows.' . $inputName)
+                                                <div class="invalid-feedback">
+                                                    {{ $message }}
+                                                </div>
+                                            @enderror
+                                        @endif
                                         
-                                        @error( $selectedItem['input_name'])
-                                             <div class="invalid-feedback">
-                                                 {{$message}}
-                                            </div>
-                                        @enderror
                                     </div>
                                     <div class="col-md-1 mt-4">
-                                            <button class="btn btn-outline-success select-md"
+                                            {{-- <button class="btn btn-outline-success select-md"
                                                 wire:click="updateStock({{ $selectedItem['index'] }},
                                                             '{{ $selectedItem['input_name'] }}')">
                                                 Update
+                                            </button> --}}
+                                        @if($selectedItem['has_stock_entry'])
+                                            <button class="btn btn-outline-danger select-md"
+                                                wire:click="$dispatch('confirm-revert-back', { index: {{ $selectedItem['index'] }}, inputName: '{{ $selectedItem['input_name'] }}' })">
+                                                Revert Back
                                             </button>
-                                        {{-- @if($selectedItem['has_stock_entry'])
-                                        <button class="btn btn-outline-danger select-md"
-                                            wire:click="$dispatch('confirm-revert-back', { index: {{ $selectedItem['index'] }}, inputName: '{{ $selectedItem['input_name'] }}' })">
-                                            Revert Back
-                                        </button>
-                                        @endif --}}
+                                        @endif
                                     </div>
 
                                     @if ($entryIndex !== 0)
@@ -447,9 +467,18 @@
                                     @endif
                                 </div>
                                 @endforeach
-                                <div class="mb-3">
-                                    <button type="button" class="btn btn-outline-success select-md" wire:click="addStockEntry"><i class="material-icons me-1">add</i>Add More</button>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="mb-3">
+                                        <button type="button" class="btn btn-outline-success select-md" wire:click="addStockEntry"><i class="material-icons me-1">add</i>Add More</button>
+                                    </div>
+                                    {{-- Update All --}}
+                                    <div class="">
+                                        <button class="btn btn-outline-success select-md" wire:click="updateStock({{ $selectedItem['index'] }})">
+                                             Update All
+                                        </button>
+                                    </div>
                                 </div>
+
                             </div>
                         </div>
                         @else
@@ -540,7 +569,7 @@
     </div>
 </div>
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-{{-- <script>
+<script>
     window.addEventListener('confirm-revert-back', event => {
         const { index, inputName } = event.detail;
 
@@ -559,7 +588,7 @@
             }
         });
     });
-</script> --}}
+</script>
 <script>
     // for the stock modal open and close
     window.addEventListener('open-stock-modal',event=>{

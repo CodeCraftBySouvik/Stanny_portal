@@ -18,6 +18,7 @@ use App\Helpers\Helper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Interfaces\AccountingRepositoryInterface;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class AddOrderSlip extends Component
 {
@@ -107,7 +108,7 @@ class AddOrderSlip extends Component
     {
         if (!$this->hasTeamSelected()) {
             session()->flash('error', 'Please select at least one team before submitting.');
-            return; 
+            return;
         }
 
         foreach ($this->order_item as $itemData) {
@@ -139,7 +140,7 @@ class AddOrderSlip extends Component
 
 
     //  public function setTeamAndSubmit()
-    // {   
+    // {
     //     dd($this->hasTeamSelected());
     //      if (!$this->hasTeamSelected()) {
     //         session()->flash('error', 'Please select at least one team before submitting.');
@@ -219,7 +220,7 @@ class AddOrderSlip extends Component
 
 
 
-   
+
 
 
    public function updateTlStatus($key)
@@ -237,7 +238,7 @@ class AddOrderSlip extends Component
             ->update(['tl_status' => $newStatus]);
     }
 
-   
+
 
     public function updateAdminStatus($key)
     {
@@ -334,7 +335,7 @@ class AddOrderSlip extends Component
                        ->where('status', 'Process')
                        ->where('tl_status', 'Approved')
                        ->exists();
-   
+
                    if (!$hasProcessItem) {
                        session()->flash('error', 'Cannot approve order. No items are approved by Team Leader.');
                        return redirect()->route('admin.order.add_order_slip', $this->order->id);
@@ -347,13 +348,13 @@ class AddOrderSlip extends Component
                 //        ->where('tl_status', 'Approved')
                 //        ->where('admin_status', 'Approved')
                 //        ->exists();
-   
+
                 //    if (!$hasProcessItem) {
                 //        session()->flash('error', 'Cannot approve order. No items are approved by Admin.');
                 //        return redirect()->route('admin.order.add_order_slip', $this->order->id);
                 //    }
                 // }
-                
+
                 // new
                 if ($userDesignationId == 1) {
 
@@ -461,7 +462,7 @@ class AddOrderSlip extends Component
     //     $order = Order::find($this->order->id);
 
     //     if ($order) {
-          
+
     //         // Calculate the remaining amount
     //         $packingSlip=PackingSlip::create([
     //             'order_id' => $this->order->id,
@@ -657,6 +658,7 @@ class AddOrderSlip extends Component
     }
     public function render()
     {
+
         // Fetch the order and its related items
         $order = Order::with([
             'items.deliveries' => fn($q) => $q->with('user:id,name'),
@@ -700,8 +702,112 @@ class AddOrderSlip extends Component
                 'product_image' => $product ? $product->product_image : null,
             ];
         });
+
+       $customer_deposits=[];
+       $customer_netdue=[];
+            // Fetch invoices with filters
+            $invoices = Invoice::where('customer_id',$order->customer_id)
+            ->with('customer:id,name')
+            ->orderBy('created_at', 'asc')
+
+           ->get()->map(function ($item) use (&$customer_deposits,&$customer_netdue) {
+                    if (!array_key_exists($item->customer_id, $customer_deposits))
+                    {
+                        $total_amount = Order::whereHas('invoice')
+                                        ->where('customer_id', $item->customer_id)
+                                        ->sum('total_amount');
+                        $total_deposit = PaymentCollection::where('customer_id', $item->customer_id)->sum('collection_amount');
+                        $net_due=$total_amount-$total_deposit;
+                        $customer_netdue[$item->customer_id]=$net_due;
+                        $customer_deposits[$item->customer_id]=$total_deposit;
+
+                    }
+
+                    if($customer_netdue[$item->customer_id]<=0)
+                    {
+                        $item->due_amnt=0;
+                    }
+                    else{
+                        if($customer_deposits[$item->customer_id]>$item->net_price)
+                        {
+                            $item->due_amnt=0;
+                            $customer_deposits[$item->customer_id]=$customer_deposits[$item->customer_id]-$item->net_price;
+                        }
+                        else{
+                            if($customer_deposits[$item->customer_id]>0)
+                            {
+                                 $item->due_amnt=$item->net_price-$customer_deposits[$item->customer_id];
+                                 $customer_deposits[$item->customer_id]=0;
+                            }
+                            else{
+                                $item->due_amnt=$item->net_price;
+                            }
+                        }
+                    }
+
+
+                    return $item;
+            })
+            ->filter(function ($item) {return $item->due_amnt > 0;})
+            ->values()
+            ->slice(0, 2) // 🔥 Apply OFFSET & LIMIT
+           ;
+
+       $customer_deposits=[];
+       $customer_netdue=[];
+            // Fetch invoices with filters
+            $rest_invoices = Invoice::where('customer_id',$order->customer_id)
+            ->with('customer:id,name')
+            ->orderBy('created_at', 'asc')
+
+           ->get()->map(function ($item) use (&$customer_deposits,&$customer_netdue) {
+                    if (!array_key_exists($item->customer_id, $customer_deposits))
+                    {
+                        $total_amount = Order::whereHas('invoice')
+                                        ->where('customer_id', $item->customer_id)
+                                        ->sum('total_amount');
+                        $total_deposit = PaymentCollection::where('customer_id', $item->customer_id)->sum('collection_amount');
+                        $net_due=$total_amount-$total_deposit;
+                        $customer_netdue[$item->customer_id]=$net_due;
+                        $customer_deposits[$item->customer_id]=$total_deposit;
+
+                    }
+
+                    if($customer_netdue[$item->customer_id]<=0)
+                    {
+                        $item->due_amnt=0;
+                    }
+                    else{
+                        if($customer_deposits[$item->customer_id]>$item->net_price)
+                        {
+                            $item->due_amnt=0;
+                            $customer_deposits[$item->customer_id]=$customer_deposits[$item->customer_id]-$item->net_price;
+                        }
+                        else{
+                            if($customer_deposits[$item->customer_id]>0)
+                            {
+                                 $item->due_amnt=$item->net_price-$customer_deposits[$item->customer_id];
+                                 $customer_deposits[$item->customer_id]=0;
+                            }
+                            else{
+                                $item->due_amnt=$item->net_price;
+                            }
+                        }
+                    }
+
+
+                    return $item;
+            })
+            ->filter(function ($item) {return $item->due_amnt > 0;})
+            ->values()
+            ->slice(2, 8) // 🔥 Apply OFFSET & LIMIT
+           ;
+
+
         return view('livewire.order.add-order-slip',[
             'order_detail' => $order,
+            'invoices'=>$invoices,
+            'rest_invoices'=>$rest_invoices,
             'orderItemsNew' => $orderItems,
         ]);
     }

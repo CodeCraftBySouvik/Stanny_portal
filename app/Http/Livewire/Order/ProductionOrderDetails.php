@@ -55,161 +55,318 @@ class ProductionOrderDetails extends Component
     }
 
 
+    // Old
+    //     public function updateStock($index, $inputName)
+    // {
+    //     try {
+    //         DB::beginTransaction();
 
-        public function updateStock($index, $inputName)
-    {
-        try {
-            DB::beginTransaction();
-
-            $item = $this->orderItems[$index];
-            $orderItemId = $item['id'];
-            $enteredQuantity = $this->rows[$inputName] ?? 0;
-
-            // ✅ Validate input
-            $validator = Validator::make(
-                [$inputName => $enteredQuantity],
-                [
-                    $inputName => [
-                        'required',
-                        'numeric',
-                        'min:1',
-                    ],
-                ],
-                [
-                    $inputName . '.required' => 'Quantity is required.',
-                    $inputName . '.numeric'  => 'Quantity must be a number.',
-                    $inputName . '.min'      => 'Quantity must be at least 1.',
-                ]
-            );
-
-            if ($validator->fails()) {
-                $this->rows['is_valid_' . $inputName] = false;
-                $this->addError($inputName, $validator->errors()->first($inputName));
-                DB::rollBack();
-                return;
-            }
-
-            // ✅ Get stock
-            $stock = null;
-            $availableStock = 0;
-            $fabricId = null;
-            $productId = null;
-
-            if ($item['collection_id'] == 1) {
-                $fabricId = $item['fabrics']->id;
-                $stock = StockFabric::where('fabric_id', $fabricId)->first();
-                $availableStock = $stock?->qty_in_meter ?? 0;
-
-            } elseif ($item['collection_id'] == 2) {
-                $productId = $item['product']->id;
-                $stock = StockProduct::where('product_id', $productId)->first();
-                $availableStock = $stock?->qty_in_pieces ?? 0;
-            }
-
-            // ✅ Get or create existing stock entry
-            $stockEntry = OrderStockEntry::where('order_item_id', $orderItemId)->first();
-            $previousQuantity = $stockEntry?->quantity ?? 0;
-
-            // ✅ Ensure new quantity doesn't exceed total available
-            $maxAllowed = $availableStock + $previousQuantity;
-
-            if ($enteredQuantity > $maxAllowed) {
-                $this->addError($inputName, "Quantity must be less than or equal to {$maxAllowed}.");
-                DB::rollBack();
-                return;
-            }
-
-            // ✅ Adjust stock and save/update entry
-            $difference = $enteredQuantity - $previousQuantity;
-
-            OrderStockEntry::updateOrCreate(
-                ['order_item_id' => $orderItemId],
-                [
-                    'order_id'   => $this->orderId,
-                    'fabric_id'  => $fabricId,
-                    'product_id' => $productId,
-                    'quantity'   => $enteredQuantity,
-                    'unit'       => $item['stock_entry_data']['type'],
-                    'created_by' => auth()->guard('admin')->user()->id,
-                ]
-            );
-
-            // ✅ Update stock
-            if ($stock) {
-                if ($item['collection_id'] == 1) {
-                    $stock->decrement('qty_in_meter', $difference);
-                } elseif ($item['collection_id'] == 2) {
-                    $stock->decrement('qty_in_pieces', $difference);
-                }
-            }
-
-            // ✅ Log changes
-            ChangeLog::create([
-                'done_by' => auth()->guard('admin')->user()->id,
-                'purpose' => 'stock_entry_update',
-                'data_details' => json_encode([
-                    'order_item_id' => $orderItemId,
-                    'entered_quantity' => $enteredQuantity,
-                ]),
-            ]);
-
-            DB::commit();
-
-            // ✅ Frontend and state reset
-            $this->rows['is_done_' . $inputName] = true;
-            $this->resetPage($inputName);
-            $this->loadOrderItems();
-            $this->openStockModal($index); // reopen modal with updated data
-            return redirect()->route('production.order.details', $this->orderId);
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            dd($e->getMessage());
-        }
-    }
-
-
-
-
-
-
-
-    // public function revertBackStock($index,$inputName){
-    //      try {
-    //        DB::beginTransaction();
-    //        $item = $this->orderItems[$index];
+    //         $item = $this->orderItems[$index];
     //         $orderItemId = $item['id'];
     //         $enteredQuantity = $this->rows[$inputName] ?? 0;
 
-    //         // Find the latest stock entry for this order item
-    //         $stockEntry = OrderStockEntry::where('order_item_id', $orderItemId)
-    //                         ->latest()->first();
-    //         if ($stockEntry) {
-    //         // Revert the stock
-    //         if ($item['collection_id'] == 1) {
-    //             $stock = StockFabric::where('fabric_id', $stockEntry->fabric_id)->first();
-    //             $stock->update(['qty_in_meter' => $stock->qty_in_meter + $stockEntry->quantity]);
-    //         } elseif ($item['collection_id'] == 2) {
-    //             $stock = StockProduct::where('product_id', $stockEntry->product_id)->first();
-    //             $stock->update(['qty_in_pieces' => $stock->qty_in_pieces + $stockEntry->quantity]);
+    //         // ✅ Validate input
+    //         $validator = Validator::make(
+    //             [$inputName => $enteredQuantity],
+    //             [
+    //                 $inputName => [
+    //                     'required',
+    //                     'numeric',
+    //                     'min:1',
+    //                 ],
+    //             ],
+    //             [
+    //                 $inputName . '.required' => 'Quantity is required.',
+    //                 $inputName . '.numeric'  => 'Quantity must be a number.',
+    //                 $inputName . '.min'      => 'Quantity must be at least 1.',
+    //             ]
+    //         );
+
+    //         if ($validator->fails()) {
+    //             $this->rows['is_valid_' . $inputName] = false;
+    //             $this->addError($inputName, $validator->errors()->first($inputName));
+    //             DB::rollBack();
+    //             return;
     //         }
 
-    //         $stockEntry->delete();
+    //         // ✅ Get stock
+    //         $stock = null;
+    //         $availableStock = 0;
+    //         $fabricId = null;
+    //         $productId = null;
 
-           
-    //     }
-    //        DB::commit(); 
-    //         // Reset and reload
+    //         if ($item['collection_id'] == 1) {
+    //             $fabricId = $item['fabrics']->id;
+    //             $stock = StockFabric::where('fabric_id', $fabricId)->first();
+    //             $availableStock = $stock?->qty_in_meter ?? 0;
+
+    //         } elseif ($item['collection_id'] == 2) {
+    //             $productId = $item['product']->id;
+    //             $stock = StockProduct::where('product_id', $productId)->first();
+    //             $availableStock = $stock?->qty_in_pieces ?? 0;
+    //         }
+
+    //         // ✅ Get or create existing stock entry
+    //         $stockEntry = OrderStockEntry::where('order_item_id', $orderItemId)->first();
+    //         $previousQuantity = $stockEntry?->quantity ?? 0;
+
+    //         // ✅ Ensure new quantity doesn't exceed total available
+    //         $maxAllowed = $availableStock + $previousQuantity;
+
+    //         if ($enteredQuantity > $maxAllowed) {
+    //             $this->addError($inputName, "Quantity must be less than or equal to {$maxAllowed}.");
+    //             DB::rollBack();
+    //             return;
+    //         }
+
+    //         // ✅ Adjust stock and save/update entry
+    //         $difference = $enteredQuantity - $previousQuantity;
+
+    //         OrderStockEntry::updateOrCreate(
+    //             ['order_item_id' => $orderItemId],
+    //             [
+    //                 'order_id'   => $this->orderId,
+    //                 'fabric_id'  => $fabricId,
+    //                 'product_id' => $productId,
+    //                 'quantity'   => $enteredQuantity,
+    //                 'unit'       => $item['stock_entry_data']['type'],
+    //                 'created_by' => auth()->guard('admin')->user()->id,
+    //             ]
+    //         );
+
+    //         // ✅ Update stock
+    //         if ($stock) {
+    //             if ($item['collection_id'] == 1) {
+    //                 $stock->decrement('qty_in_meter', $difference);
+    //             } elseif ($item['collection_id'] == 2) {
+    //                 $stock->decrement('qty_in_pieces', $difference);
+    //             }
+    //         }
+
+    //         // ✅ Log changes
+    //         ChangeLog::create([
+    //             'done_by' => auth()->guard('admin')->user()->id,
+    //             'purpose' => 'stock_entry_update',
+    //             'data_details' => json_encode([
+    //                 'order_item_id' => $orderItemId,
+    //                 'entered_quantity' => $enteredQuantity,
+    //             ]),
+    //         ]);
+
+    //         DB::commit();
+
+    //         // ✅ Frontend and state reset
+    //         $this->rows['is_done_' . $inputName] = true;
     //         $this->resetPage($inputName);
     //         $this->loadOrderItems();
-    //         $this->openStockModal($index);
-    //         return redirect()->route('production.order.details',$this->orderId);
+    //         $this->openStockModal($index); // reopen modal with updated data
+    //         return redirect()->route('production.order.details', $this->orderId);
 
-    //      }catch (\Throwable $e) {
+    //     } catch (\Throwable $e) {
     //         DB::rollBack();
     //         dd($e->getMessage());
     //     }
     // }
+
+
+// New Code
+ public function updateStock($index)
+{
+    $item = $this->orderItems[$index];
+    $orderItemId = $item['id'];
+    $collectionId = $item['collection_id'];
+    $unitType = $item['stock_entry_data']['type'];
+    $adminId = auth()->guard('admin')->user()->id;
+
+    $rules = [];
+    $messages = []; 
+
+    foreach ($this->stockEntries as $entryIndex => $entry) {
+        // Fixed name for first row, dynamic otherwise
+        if ($entryIndex === 0) {
+            $rowKey = $entry['input_name']; // usually 'required_meter'
+        } else {
+            $rowKey = $entry['input_name'] ?? "row_{$entryIndex}";
+        }
+
+        // Quantity validation
+        $rules["rows.$rowKey"] = ['required', 'numeric', 'min:0.01'];
+        $messages["rows.$rowKey.required"] = 'Required meter is mandatory';
+        $messages["rows.$rowKey.numeric"] = 'Must be a valid number';
+        $messages["rows.$rowKey.min"] = 'Must be at least 0.01';
+
+        // Fabric selection validation (for additional rows)
+        if ($entryIndex > 0 && $collectionId == 1) {
+            $rules["stockEntries.$entryIndex.fabric_id"] = ['required'];
+            $messages["stockEntries.$entryIndex.fabric_id.required"] = 'Fabric selection is required';
+        }
+    }
+
+
+    //  VALIDATE OUTSIDE TRY-CATCH so Livewire handles errors automatically
+    $this->validate($rules, $messages);
+
+    try {
+        DB::beginTransaction();
+
+        // 2. PROCESS EACH STOCK ENTRY
+        foreach ($this->stockEntries as $entryIndex => $entry) {
+            $inputName = $entry['input_name'];
+            $enteredQuantity = (float)($this->rows[$inputName] ?? 0);
+
+            // Determine fabric/product IDs
+            if ($collectionId == 1) {
+                $fabricId = $entryIndex === 0 
+                    ? ($item['fabrics']['id'] ?? null)
+                    : ($entry['fabric_id'] ?? null);
+                $productId = null;
+            } else {
+                $productId = $item['product']['id'] ?? null;
+                $fabricId = null;
+            }
+
+            // Get stock
+            $stock = null;
+            $availableStock = 0;
+            $stockModel = null;
+
+            if ($collectionId == 1 && $fabricId) {
+                $stock = StockFabric::firstOrNew(['fabric_id' => $fabricId]);
+                $availableStock = $stock->qty_in_meter ?? 0;
+            } elseif ($collectionId == 2 && $productId) {
+                $stock = StockProduct::firstOrNew(['product_id' => $productId]);
+                $availableStock = $stock->qty_in_pieces ?? 0;
+            }
+
+            // Get previous entry
+            $previousEntry = OrderStockEntry::where([
+                'order_item_id' => $orderItemId,
+                'fabric_id' => $fabricId,
+                'product_id' => $productId
+            ])->first();
+
+            $previousQuantity = $previousEntry ? $previousEntry->quantity : 0;
+            $maxAllowed = $availableStock + $previousQuantity;
+
+            // Stock check
+            if ($enteredQuantity > $maxAllowed) {
+                $this->addError("rows.$inputName", 
+                    "Exceeds available stock. Max allowed: {$maxAllowed} {$unitType}");
+                DB::rollBack();
+                return;
+            }
+
+            // Save entry
+            $stockEntryData = [
+                'order_id' => $this->orderId,
+                'quantity' => $enteredQuantity,
+                'unit' => $unitType,
+                'created_by' => $adminId,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+
+            if ($previousEntry) {
+                $previousEntry->update($stockEntryData);
+            } else {
+                OrderStockEntry::create(array_merge([
+                    'order_item_id' => $orderItemId,
+                    'fabric_id' => $fabricId,
+                    'product_id' => $productId,
+                ], $stockEntryData));
+            }
+
+            // Update stock levels
+            $difference = $enteredQuantity - $previousQuantity;
+            if ($stock) {
+                if ($collectionId == 1) {
+                    $stock->qty_in_meter -= $difference;
+                } elseif ($collectionId == 2) {
+                    $stock->qty_in_pieces -= $difference;
+                }
+                $stock->save();
+            } elseif ($fabricId || $productId) {
+                if ($collectionId == 1) {
+                    StockFabric::create([
+                        'fabric_id' => $fabricId,
+                        'qty_in_meter' => -$enteredQuantity
+                    ]);
+                } else {
+                    StockProduct::create([
+                        'product_id' => $productId,
+                        'qty_in_pieces' => -$enteredQuantity
+                    ]);
+                }
+            }
+
+            // Log change
+            ChangeLog::create([
+                'done_by' => $adminId,
+                'purpose' => 'stock_entry_update',
+                'data_details' => json_encode([
+                    'order_item_id' => $orderItemId,
+                    'fabric_id' => $fabricId,
+                    'product_id' => $productId,
+                    'previous_quantity' => $previousQuantity,
+                    'new_quantity' => $enteredQuantity,
+                    'difference' => $difference
+                ]),
+            ]);
+        }
+
+        DB::commit();
+        $this->dispatch('stock-updated-successfully', message: 'Stock updated successfully!');
+        $this->loadOrderItems();
+        $this->openStockModal($index); // Refresh modal
+
+    } catch (\Throwable $e) {
+        DB::rollBack();
+        report($e);
+        $this->dispatch('error', message: 'Error updating stock: ' . $e->getMessage());
+    }
+}
+
+
+
+
+
+
+    public function revertBackStock($index,$inputName){
+         try {
+           DB::beginTransaction();
+           $item = $this->orderItems[$index];
+            $orderItemId = $item['id'];
+            $enteredQuantity = $this->rows[$inputName] ?? 0;
+
+            // Find the latest stock entry for this order item
+            $stockEntry = OrderStockEntry::where('order_item_id', $orderItemId)
+                            ->latest()->first();
+            if ($stockEntry) {
+            // Revert the stock
+            if ($item['collection_id'] == 1) {
+                $stock = StockFabric::where('fabric_id', $stockEntry->fabric_id)->first();
+                $stock->update(['qty_in_meter' => $stock->qty_in_meter + $stockEntry->quantity]);
+            } elseif ($item['collection_id'] == 2) {
+                $stock = StockProduct::where('product_id', $stockEntry->product_id)->first();
+                $stock->update(['qty_in_pieces' => $stock->qty_in_pieces + $stockEntry->quantity]);
+            }
+
+            $stockEntry->delete();
+
+           
+        }
+           DB::commit(); 
+            // Reset and reload
+            $this->resetPage($inputName);
+            $this->loadOrderItems();
+            $this->openStockModal($index);
+            return redirect()->route('production.order.details',$this->orderId);
+
+         }catch (\Throwable $e) {
+            DB::rollBack();
+            dd($e->getMessage());
+        }
+    }
 
     public function loadOrderItems(){
         $this->orderItems = $this->order->items
@@ -329,32 +486,93 @@ class ProductionOrderDetails extends Component
         unset($this->rows['is_valid_'.$inputName]);
     }   
 
-    public function openStockModal($index){
-        $item =  $this->orderItems[$index];
+    // Old code
+    // public function openStockModal($index){
+    //     $item =  $this->orderItems[$index];
+    //     $fabricId = $item['collection_id'] == 1 ? ($item['fabrics']->id ?? null) : null;
+    //     $productId = $item['collection_id'] == 2 ? ($item['product']->id ?? null) : null;
+
+    //      $totalUsed = OrderStockEntry::query()
+    //                 ->where('order_item_id', $item['id'])
+    //                 ->when($fabricId, fn($q) => $q->where('fabric_id', $fabricId))
+    //                 ->when($productId, fn($q) => $q->where('product_id', $productId))
+    //                 ->sum('quantity');
+
+    //     $inputName = 'row_' . $index . '_' . $item['stock_entry_data']['input_name'];
+    //     $this->stockEntries = OrderStockEntry::where('order_item_id', $item['id'])
+    //                                             ->get()
+    //                                             ->toArray();
+                                                
+    //     // Add a default empty entry if none exist
+    //     if (count($this->stockEntries) === 0) {
+    //         $this->stockEntries[] = [
+    //             'fabric_id' => null,
+    //              'product_id' => $item['product']['id'],
+    //             'quantity' => 0,
+    //             'is_new' => true
+    //         ];
+    //     }
+    //      $this->selectedItem = [
+    //         'item_id' => $item['id'],
+    //         'index' => $index,
+    //         'collection_title' => $item['collection_title'],
+    //         'collection_id' => $item['collection_id'],
+    //         'product_name' => $item['product']['name'] ?? '',
+    //         'fabric_title' => $item['fabrics']['title'] ?? '',
+    //         'available_label' => $item['stock_entry_data']['available_label'],
+    //         'available_value' => $item['stock_entry_data']['available_value'],
+    //         'updated_label' => $item['stock_entry_data']['updated_label'],
+    //         'input_name' => $inputName,
+    //         'has_stock_entry' => $item['has_stock_entry'],
+    //         'total_used' => $totalUsed, 
+    //   ]; 
+    //   $this->rows[$inputName] = $totalUsed;
+    //   $this->dispatch('open-stock-modal');
+    // }
+
+    // New Code
+    public function openStockModal($index)
+    {
+        $item = $this->orderItems[$index];
         $fabricId = $item['collection_id'] == 1 ? ($item['fabrics']->id ?? null) : null;
         $productId = $item['collection_id'] == 2 ? ($item['product']->id ?? null) : null;
 
-         $totalUsed = OrderStockEntry::query()
-                    ->where('order_item_id', $item['id'])
-                    ->when($fabricId, fn($q) => $q->where('fabric_id', $fabricId))
-                    ->when($productId, fn($q) => $q->where('product_id', $productId))
-                    ->sum('quantity');
+        $totalUsed = OrderStockEntry::query()
+            ->where('order_item_id', $item['id'])
+            ->when($fabricId, fn($q) => $q->where('fabric_id', $fabricId))
+            ->when($productId, fn($q) => $q->where('product_id', $productId))
+            ->sum('quantity');
 
         $inputName = 'row_' . $index . '_' . $item['stock_entry_data']['input_name'];
-        $this->stockEntries = OrderStockEntry::where('order_item_id', $item['id'])
-                                                ->get()
-                                                ->toArray();
-                                                
-        // Add a default empty entry if none exist
+
+        // fetch existing stock entries and assign unique input_name to each
+        $entries = OrderStockEntry::where('order_item_id', $item['id'])->get();
+
+        $this->stockEntries = [];
+
+        foreach ($entries as $i => $entry) {
+            $entryData = $entry->toArray();
+            $entryData['input_name'] = 'row_' . $index . '_entry_' . $i;
+            $entryData['is_new'] = false;
+
+            $this->rows[$entryData['input_name']] = $entryData['quantity']; // initialize quantity input
+            $this->stockEntries[] = $entryData;
+        }
+
+        // if no previous stock entries, create one default
         if (count($this->stockEntries) === 0) {
+            $defaultInputName = 'row_' . $index . '_entry_0';
             $this->stockEntries[] = [
                 'fabric_id' => null,
-                 'product_id' => $item['product']['id'],
+                'product_id' => $item['product']['id'],
                 'quantity' => 0,
-                'is_new' => true
+                'input_name' => $defaultInputName,
+                'is_new' => true,
             ];
+            $this->rows[$defaultInputName] = 0;
         }
-         $this->selectedItem = [
+
+        $this->selectedItem = [
             'item_id' => $item['id'],
             'index' => $index,
             'collection_title' => $item['collection_title'],
@@ -364,12 +582,14 @@ class ProductionOrderDetails extends Component
             'available_label' => $item['stock_entry_data']['available_label'],
             'available_value' => $item['stock_entry_data']['available_value'],
             'updated_label' => $item['stock_entry_data']['updated_label'],
-            'input_name' => $inputName,
+            'input_name' => $inputName, // used for the first row
             'has_stock_entry' => $item['has_stock_entry'],
-            'total_used' => $totalUsed, 
-      ]; 
-      $this->rows[$inputName] = $totalUsed;
-      $this->dispatch('open-stock-modal');
+            'total_used' => $totalUsed,
+        ];
+
+        $this->rows[$inputName] = $totalUsed;
+
+        $this->dispatch('open-stock-modal');
     }
 
     public function addStockEntry() {
