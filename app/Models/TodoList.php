@@ -12,7 +12,7 @@ class TodoList extends Model
         'customer_id',
         'created_by',
         'todo_type',
-        'next_payment_date',
+        'todo_date',
         'deposit_date',
         'remark',
     ];

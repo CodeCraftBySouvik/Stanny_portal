@@ -39,7 +39,7 @@ use App\Http\Livewire\Stock\{StockIndex,UserLedger};
 use App\Http\Livewire\Report\{UserLedgerReport};
 use App\Http\Livewire\BusinessType\BusinessTypeIndex;
 use App\Http\Livewire\Country\CountryIndex;
-use App\Http\Livewire\Accounting\{AddPaymentReceipt,PaymentCollectionIndex,AddOpeningBalance,ListOpeningBalance,IndexExpense,AddExpense,EditExpense,CashBookModule};
+use App\Http\Livewire\Accounting\{AddPaymentReceipt,PaymentCollectionIndex,AddOpeningBalance,ListOpeningBalance,IndexExpense,AddExpense,EditExpense,CashBookModule,DayCashEntry};
 // purchase Order pdf
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\PurchaseOrder;
@@ -210,6 +210,8 @@ Route::group(['prefix' => 'admin','middleware' => 'admin'], function () {
         Route::get('/add-depot-expense', AddExpense::class)->name('admin.accounting.add_depot_expense')->middleware('check.permission');
         Route::get('/edit-depot-expense/{expenseId}', EditExpense::class)->name('admin.accounting.edit_depot_expense')->middleware('check.permission');
         Route::get('/cashbook-module', CashBookModule::class)->name('admin.accounting.cashbook_module');
+        Route::get('/daily-cash-entry', DayCashEntry::class)->name('admin.accounting.daily-cash-entry');
+
     });
 
     Route::prefix('report')->group(function() {

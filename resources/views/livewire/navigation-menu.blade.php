@@ -167,6 +167,12 @@
                        Cashbook Module
                     </a>
                 </li>
+                 <li class="nav-item">
+                    <a class="nav-link text-white {{ request()->is('admin/accounting/daily-cash-entry') ? 'active' : '' }}"
+                        href="{{ route('admin.accounting.daily-cash-entry') }}">
+                       Daily Cash Entry
+                    </a>
+                </li>
             </ul>
             @endif
             @if ($user->id==1)

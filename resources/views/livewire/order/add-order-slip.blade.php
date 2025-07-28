@@ -145,7 +145,6 @@
                 <div class="row">
                     <div class="col-sm-12">
                         <div class="form-group mb-3">
-                            <h6>Previous Information</h6>
 
                             <div class="accordion" id="accordionExample">
                                 <div class="accordion-item">
@@ -236,12 +235,12 @@
                                     <h2 class="accordion-header" id="headingTwo">
                                         <button class="accordion-button collapsed" type="button"
                                             data-bs-toggle="collapse" data-bs-target="#collapseTwo"
-                                            aria-expanded="false" aria-controls="collapseTwo">
-                                            See ALL
+                                            aria-expanded="false" aria-controls="collapseTwo" id="textButton">
+                                            Show ALL
                                         </button>
                                     </h2>
                                     <div id="collapseTwo" class="accordion-collapse collapse"
-                                        aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+                                        aria-labelledby="headingTwo" data-bs-parent="#accordionExample" id="toggleButton">
                                         <div class="accordion-body">
                                             <table class="table table-sm table-hover">
                                                 <thead>
@@ -252,7 +251,6 @@
                                                         <x-table-th>Customer</x-table-th>
                                                         <x-table-th>Amount</x-table-th>
                                                         <x-table-th>Due Amount</x-table-th>
-                                                        <x-table-th>Action</x-table-th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -303,12 +301,7 @@
                                                             <x-table-td>{{ number_format($item->due_amnt, 2) }}
                                                             </x-table-td>
 
-                                                            <x-table-td>
-                                                                <button
-                                                                    wire:click="downloadOrderInvoice({{ $item->order_id }})"
-                                                                    class="btn select-md btn-outline-success btn_outline">Download</button>
 
-                                                            </x-table-td>
                                                         </tr>
                                                     @endforeach
                                                 </tbody>
@@ -731,5 +724,15 @@
                 input.value = parts[0] + '.' + parts[1];
             }
         }
+        var collapseTwo = document.getElementById('collapseTwo');
+        var toggleButton = document.getElementById('textButton');
+
+        collapseTwo.addEventListener('show.bs.collapse', function () {
+            toggleButton.textContent  = 'Show Less';
+        });
+
+        collapseTwo.addEventListener('hide.bs.collapse', function () {
+            toggleButton.textContent  = 'Show ALL';
+        });
     </script>
 @endpush

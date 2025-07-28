@@ -93,7 +93,7 @@
                 {{ session('error') }}
             </div>
             @endif
-            <div class="row">
+            <div class="row mb-3">
                 <div class="col-xl-4 col-sm-6 mb-xl-0 mb-4">
                     <div class="card data-card">
                         <div class="card-header p-3 pt-2">
@@ -150,6 +150,96 @@
                                 <h4 class="mb-0 {{ $totalWallet < 0 ? 'wallet-negative' : 'text-dark' }}">
                                     {{ number_format($totalWallet, 2) }}
                                 </h4>
+                            </div>
+                        </div>
+                        <hr class="dark horizontal my-0">
+                        {{-- <div class="card-footer p-3 d-flex justify-content-between align-items-center">
+                            <p class="mb-0"><span class="text-danger text-sm font-weight-bolder">-2%</span>
+                                than
+                                yesterday</p>
+                        </div> --}}
+                    </div>
+                </div>
+                {{-- @endif --}}
+            </div>
+             <div class="row">
+                <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+                    <div class="card data-card">
+                        <div class="card-header p-3 pt-2">
+                            <div
+                                class="icon icon-lg icon-shape bg-gradient-primary shadow-primary text-center border-radius-xl  position-absolute">
+                                <i class="material-icons opacity-10">attach_money</i>
+                            </div>
+                            <div class="text-end pt-1">
+                                <p class="text-sm mb-0 text-capitalize">Total Cash</p>
+                                <h4 class="mb-0">{{ number_format($totalcashCollections, 2) }}</h4>
+                            </div>
+                        </div>
+                        <hr class="dark horizontal my-0">
+                        {{-- <div class="card-footer p-3">
+
+                        </div> --}}
+                    </div>
+                </div>
+                {{-- Total Expenses --}}
+                {{-- @if ($totalCollections > 0 || $totalExpenses > 0) --}}
+                <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+                    <div class="card data-card">
+                        <div class="card-header p-3 pt-2">
+                            <div
+                                class="icon icon-lg icon-shape bg-gradient-success shadow-success text-center border-radius-xl  position-absolute">
+                                <i class="material-icons opacity-10">attach_money</i>
+                            </div>
+                            <div class="text-end pt-1">
+                                <p class="text-sm mb-0 text-capitalize">Total NEFT</p>
+                                <h4 class="mb-0">{{ number_format($totalneftCollections, 2) }}</h4>
+                            </div>
+                        </div>
+                        <hr class="dark horizontal my-0">
+                        {{-- <div class="card-footer p-3 d-flex justify-content-between align-items-center">
+                            <p class="mb-0"><span class="text-danger text-sm font-weight-bolder">-2%</span>
+                                than
+                                yesterday</p>
+                        </div> --}}
+                    </div>
+                </div>
+                {{-- @endif --}}
+                {{-- Total Wallet --}}
+                {{-- @if ($totalCollections > 0 || $totalExpenses > 0) --}}
+                <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+                    <div class="card data-card">
+                        <div class="card-header p-3 pt-2">
+                            <div
+                                class="icon icon-lg icon-shape bg-gradient-success shadow-success text-center border-radius-xl  position-absolute">
+                                <i class="material-icons opacity-10">attach_money</i>
+                            </div>
+                            <div class="text-end pt-1">
+                                <p class="text-sm mb-0 text-capitalize">Total Cheque</p>
+
+                                <h4 class="mb-0">{{ number_format($totalchequeCollections, 2) }}</h4>
+
+                            </div>
+                        </div>
+                        <hr class="dark horizontal my-0">
+                        {{-- <div class="card-footer p-3 d-flex justify-content-between align-items-center">
+                            <p class="mb-0"><span class="text-danger text-sm font-weight-bolder">-2%</span>
+                                than
+                                yesterday</p>
+                        </div> --}}
+                    </div>
+                </div>
+                 <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+                    <div class="card data-card">
+                        <div class="card-header p-3 pt-2">
+                            <div
+                                class="icon icon-lg icon-shape bg-gradient-success shadow-success text-center border-radius-xl  position-absolute">
+                                <i class="material-icons opacity-10">attach_money</i>
+                            </div>
+                            <div class="text-end pt-1">
+                                <p class="text-sm mb-0 text-capitalize">Total Digital Payment</p>
+
+                                <h4 class="mb-0">{{ number_format($totaldigitalCollections, 2) }}</h4>
+
                             </div>
                         </div>
                         <hr class="dark horizontal my-0">
