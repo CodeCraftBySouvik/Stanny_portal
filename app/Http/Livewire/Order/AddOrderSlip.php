@@ -708,7 +708,7 @@ class AddOrderSlip extends Component
             // Fetch invoices with filters
             $invoices = Invoice::where('customer_id',$order->customer_id)
             ->with('customer:id,name')
-            ->orderBy('created_at', 'asc')
+            ->orderBy('created_at', 'desc')
 
            ->get()->map(function ($item) use (&$customer_deposits,&$customer_netdue) {
                     if (!array_key_exists($item->customer_id, $customer_deposits))
@@ -758,7 +758,7 @@ class AddOrderSlip extends Component
             // Fetch invoices with filters
             $rest_invoices = Invoice::where('customer_id',$order->customer_id)
             ->with('customer:id,name')
-            ->orderBy('created_at', 'asc')
+            ->orderBy('created_at', 'desc')
 
            ->get()->map(function ($item) use (&$customer_deposits,&$customer_netdue) {
                     if (!array_key_exists($item->customer_id, $customer_deposits))
