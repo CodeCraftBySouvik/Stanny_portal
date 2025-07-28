@@ -26,12 +26,9 @@ class Todo extends Component
         $rules['staff_id'] = 'required'; // Optional: adjust validation as needed
         $rules['todo_type'] = 'required'; // Optional: adjust validation as needed
         $rules['remark'] = 'required'; // Optional: adjust validation as needed
-
-
-    if ($this->todo_type === 'Payment' or $this->todo_type === 'Cheque Deposit') {
         $rules['todo_date'] = 'required'; // Optional: adjust validation as needed
 
-    }
+
 
 
 
@@ -54,16 +51,10 @@ class Todo extends Component
             'customer_id'=>$this->customer_id,
             'created_by'=>$admin_id,
             'todo_type'=>$this->todo_type,
+            'todo_date'=>$this->todo_date,
             'remark'=>$this->remark
             ];
-            if($this->todo_type=='Payment')
-            {
-                $todoData['next_payment_date']=$this->todo_date;
-            }
-            if($this->todo_type=='Cheque Deposit')
-            {
-                $todoData['deposit_date']=$this->todo_date;
-            }
+
             TodoList::insertGetId($todoData);
             $this->ResetForm();
             session()->flash('success', 'ToDo List added successfully.');
@@ -88,8 +79,8 @@ class Todo extends Component
     {
         //die($this->search_staff_id.'HHH');
         return TodoList::with(['customer:id,name','staff:id,name'])
-        ->when($this->start_date, fn($query) => $query->whereDate('created_at', '>=', $this->start_date)) // Start date filter
-        ->when($this->end_date, fn($query) => $query->whereDate('created_at', '<=', $this->end_date)) // End d
+        ->when($this->start_date, fn($query) => $query->whereDate('todo_date', '>=', $this->start_date)) // Start date filter
+        ->when($this->end_date, fn($query) => $query->whereDate('todo_date', '<=', $this->end_date)) // End d
         ->when($this->search_staff_id, fn($query) => $query->where('user_id','=', $this->search_staff_id)) // End d
 
         ->orderBy('created_at', 'desc')->paginate(10);

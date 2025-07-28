@@ -27,6 +27,10 @@ class CashBookModule extends Component
     public $totalWallet = 0;
     public $paymentCollections = [];
     public $paymentExpenses = [];
+    public $totalcashCollections = 0;
+    public $totalneftCollections = 0;
+    public $totalchequeCollections = 0;
+    public $totaldigitalCollections = 0;
 
     public $start_date;
     public $end_date;
@@ -284,6 +288,50 @@ class CashBookModule extends Component
             $collectionQuery->whereBetween('created_at', [$startDate, $endDate]);
         }
         $this->totalCollections = $collectionQuery->sum('collection_amount');
+
+        $collectionQuery = PaymentCollection::where('is_approve', 1)
+            ->where('payment_type','cash')
+            ->when(!$user->is_super_admin, function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            });
+
+        if ($this->start_date && $this->end_date) {
+            $collectionQuery->whereBetween('created_at', [$startDate, $endDate]);
+        }
+        $this->totalcashCollections = $collectionQuery->sum('collection_amount');
+         $collectionQuery = PaymentCollection::where('is_approve', 1)
+            ->where('payment_type','neft')
+            ->when(!$user->is_super_admin, function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            });
+
+        if ($this->start_date && $this->end_date) {
+            $collectionQuery->whereBetween('created_at', [$startDate, $endDate]);
+        }
+        $this->totalneftCollections = $collectionQuery->sum('collection_amount');
+
+        $collectionQuery = PaymentCollection::where('is_approve', 1)
+            ->where('payment_type','digital_payment')
+            ->when(!$user->is_super_admin, function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            });
+
+        if ($this->start_date && $this->end_date) {
+            $collectionQuery->whereBetween('created_at', [$startDate, $endDate]);
+        }
+        $this->totaldigitalCollections = $collectionQuery->sum('collection_amount');
+
+         $collectionQuery = PaymentCollection::where('is_approve', 1)
+            ->where('payment_type','cheque')
+            ->whereNotNull('credit_date')
+            ->when(!$user->is_super_admin, function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            });
+
+        if ($this->start_date && $this->end_date) {
+            $collectionQuery->whereBetween('created_at', [$startDate, $endDate]);
+        }
+        $this->totalchequeCollections = $collectionQuery->sum('collection_amount');
 
         // Today's Expenses
         $expenseQuery = Journal::where('is_debit', 1)

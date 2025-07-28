@@ -218,7 +218,7 @@ class AddPaymentReceipt extends Component
                             'customer_id'=>$this->customer_id,
                             'created_by'=>$admin_id,
                             'todo_type'=>'Payment',
-                            'next_payment_date'=>$this->next_payment_date,
+                            'todo_date'=>$this->next_payment_date,
                             'remark'=>'Next Payment Schedule on '.$this->next_payment_date
                         ];
                         TodoList::insertGetId($todoData);
@@ -231,7 +231,7 @@ class AddPaymentReceipt extends Component
                             'customer_id'=>$this->customer_id,
                             'created_by'=>$admin_id,
                             'todo_type'=>'Cheque Deposit',
-                            'deposit_date'=>$this->deposit_date,
+                            'todo_date'=>$this->deposit_date,
                             'remark'=>'Deposit Date '.$this->deposit_date
                         ];
                       TodoList::insertGetId($todoData);

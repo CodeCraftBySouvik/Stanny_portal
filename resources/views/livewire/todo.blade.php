@@ -124,11 +124,10 @@
                                                 <td>
                                                     <p class="text-xs font-weight-bold mb-0">
                                                         @php
-                                                            if (!empty($todo->next_payment_date)) {
-                                                                echo date('d-m-Y', strtotime($todo->next_payment_date));
-                                                            } elseif (!empty($todo->deposit_date)) {
-                                                                echo date('d-m-Y', strtotime($todo->deposit_date));
+                                                            if (!empty($todo->todo_date)) {
+                                                                echo date('d-m-Y', strtotime($todo->todo_date));
                                                             }
+
                                                         @endphp
                                                     </p>
                                                 </td>
@@ -161,7 +160,7 @@
                             </div>
                             <form wire:submit.prevent="submit">
                                 <div class="row">
-                                    <label class="form-label"> Cutomer</label>
+                                    <label class="form-label"> Customer</label>
                                     <div class="ms-md-auto pe-md-3 d-flex align-items-center mb-2">
                                         <input type="text" wire:keyup="FindCustomer($event.target.value)"
                                             wire:model="customer" class="form-control"
@@ -216,7 +215,7 @@
                                     @error('todo_type')
                                         <p class='text-danger'>{{ $message }}</p>
                                     @enderror
-                                    <label class="form-label"> ToDo Date</label>
+                                    <label class="form-label"> ToDo Date<span class="text-danger">*</span></label>
                                     <div class="ms-md-auto pe-md-3 d-flex align-items-center mb-2">
                                         <input type="date"
                                             class="form-control  @error('todo_date') is-invalid @enderror"
