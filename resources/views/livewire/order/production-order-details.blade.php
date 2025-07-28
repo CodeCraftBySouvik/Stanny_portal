@@ -222,7 +222,7 @@
                                         </button>
                                         @if ($item['has_stock_entry'])
                                         <button class="btn btn-outline-success select-md"
-                                            wire:click="openDeliveryModal({{ $loop->index }})">
+                                            wire:click="openGarmentDeliveryModal({{ $loop->index }})">
                                                 Delivery
                                         </button>
                                         @endif
@@ -485,8 +485,133 @@
                     </div>
                 </div>
                 </div>
+                {{-- Delivery Process Modal For Garment --}}
+                <div wire:ignore.self class="modal fade" id="delieveryGarmentProcessModal" tabindex="-1" aria-labelledby="delieveryGarmentProcessModal" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="delieveryGarmentProcessModal">Process Delivery - {{$order->order_number}}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                   <div class="modal-body">
+                    @if ($selectedItem)
+                        <div class="card">
+                           <div class="card-body">
+                                {{-- <h6>Stock </h6> --}}
+                                @foreach ($stockEntries as $entryIndex => $entry)
+                                <div class="row mb-3">
+                                    <div class="col-md-2">
+                                        <label class="form-label">
+                                            <strong>Collection</strong> <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" value="{{ $selectedItem['collection_title'] ?? '' }}"
+                                            class="form-control form-control-sm border border-1 p-2" disabled>
+                                    </div>
+                                   <div class="col-md-2 mt-4">
+                                        @if ($entryIndex === 0)
+                                            {{-- First row: show disabled input --}}
+                                            <input type="text"
+                                                value="{{ $selectedItem['collection_id'] == 2 ? $selectedItem['product_name'] : $selectedItem['fabric_title'] }}"
+                                                class="form-control form-control-sm border border-1 p-2" disabled>
+                                        @elseif($selectedItem['collection_id'] == 1)
+                                        {{-- Fabric Search Input --}}
+                                        <div class="mb-2">
+                                            <input type="text"
+                                                wire:model.lazy="fabricSearch.{{ $entryIndex }}"
+                                                class="form-control form-control-sm"
+                                                placeholder="Search fabric..."
+                                                wire:keyup="searchFabric({{ $entryIndex }})" disabled>
+                                        </div>
+                                        {{-- Fabric Select Dropdown --}}
+                                        @if (!empty($searchResults[$entryIndex]))
+                                             <div class="dropdown-menu show w-100"
+                                                style="max-height: 187px; max-width: 100px; overflow-y: auto;">
+                                                    @foreach ($searchResults[$entryIndex] as $fabric)
+                                                       <button class="dropdown-item fabric_dropdown_item" type="button"
+                                                            wire:click="selectFabric({{ $fabric['id'] }}, {{ $entryIndex }})">
+                                                            {{ $fabric['title'] }}
+                                                        </button>
+                                                    @endforeach
+                                              </div>
+                                        @endif
 
-                {{-- Delivery Process Modal --}}
+                                        @error('stockEntries.' . $entryIndex . '.fabric_id')
+                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        @enderror
+                                    @endif
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">{{ $selectedItem['available_label'] }}</label>
+                                        @if ($entryIndex === 0)
+                                         <input type="number" value="{{ $selectedItem['available_value'] }}"
+                                            class="form-control form-control-sm border border-1 p-2" disabled>
+                                        @else
+                                          <input type="number"
+                                            wire:model="stockEntries.{{ $entryIndex }}.available_value"
+                                            class="form-control form-control-sm border border-1 p-2"
+                                            disabled>    
+                                        @endif
+                                    </div>
+                                    {{-- Required meter --}}
+                                  <div class="col-md-2">
+                                        <label class="form-label">{{ $selectedItem['updated_label'] }}</label>
+
+                                        @php
+                                            // Always use consistent key for validation and binding
+                                            $inputName = 'required_meter_' . $entryIndex;
+                                            $fullInputKey = "rows.$inputName";
+                                        @endphp
+
+                                        <input type="text" disabled
+                                            wire:model="{{ $fullInputKey }}"
+                                            class="form-control form-control-sm border border-1 p-2 @error($fullInputKey) is-invalid @enderror">
+
+                                        @error($fullInputKey)
+                                            <div class="invalid-feedback">
+                                                {{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
+                                    {{-- NEW -> Delivered meter (what team is handing out now) --}}
+                                    <div class="col-md-2">
+                                        <label class="form-label">Delivered&nbsp;Meter</label>
+                                        <input type="number"
+                                            wire:model="deliveryEntries.{{ $entryIndex }}.delivered_meter"
+                                            class="form-control form-control-sm border border-1 p-2">
+                                        @error('deliveryEntries.' . $entryIndex . '.delivered_meter')
+                                            <span class="invalid-feedback d-block">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                      {{-- Row‑level Add Extra button --}}
+                                        <div class="col-md-2 mt-4">
+                                            <button type="button"
+                                                    class="btn btn-outline-success select-md"
+                                                    wire:click="addDeliveryRow({{ $entryIndex }})">
+                                                + Add Extra
+                                            </button>
+                                        </div>
+
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        @else
+                           <p class="text-muted">No data loaded.</p>
+                        @endif
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-outline-dark" data-bs-dismiss="modal">Close</button>
+                        <button type="button" 
+                                class="btn btn-sm btn-outline-primary mt-2"
+                                wire:click="processDelivery">
+                            Process Delivery
+                        </button>
+                    </div>
+                    </div>
+                </div>
+                </div>
+                {{-- Delivery Process Modal For Garment Item--}}
                 <div wire:ignore.self class="modal fade" id="delieveryProcessModal" tabindex="-1" aria-labelledby="delieveryProcessModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
@@ -523,16 +648,7 @@
                                         @endif
                                     </div>
                                 </div>
-                                @if (isset($selectedDeliveryItem['collection_id']) && $selectedDeliveryItem['collection_id'] == 1) 
-                                    @if ($showExtraStockPrompt)
-                                        <div class="bg-danger p-3 rounded mt-3 mb-2">
-                                            <i class="material-icons text-warning me-2" style="font-size: 20px;">warning</i>
-                                            Actual usage ({{ $actualUsage[$selectedDeliveryItem['item_id']] ?? 0 }} {{ $selectedDeliveryItem['unit'] ?? '' }})
-                                            exceeds total usage ({{ $selectedDeliveryItem['planned_usage'] }} {{ $selectedDeliveryItem['unit'] ?? '' }}).
-                                            Please add extra stock entries before proceeding.
-                                        </div>
-                                    @endif
-                                @endif
+                                
 
                             </div>
                         </div>
@@ -540,19 +656,11 @@
 
                     <div class="modal-footer">
                         <button type="button" class="btn btn-sm btn-outline-dark" data-bs-dismiss="modal">Close</button>
-                        @if($showExtraStockPrompt && $selectedDeliveryItem['collection_id'] == 1)
-                             <button type="button" 
-                                    class="btn btn-sm btn-outline-primary mt-2"
-                                    wire:click="addExtraStock">
-                                Add Extra Stock
-                            </button>
-                        @else
-                            <button type="button" 
-                                    class="btn btn-sm btn-outline-primary mt-2"
-                                    wire:click="processDelivery">
-                                Process Delivery
-                            </button>
-                        @endif
+                        <button type="button" 
+                                class="btn btn-sm btn-outline-primary mt-2"
+                                wire:click="processDelivery">
+                            Process Delivery
+                        </button>
                     </div>
                     </div>
                 </div>
@@ -607,5 +715,9 @@
         }
     });
 
+     window.addEventListener('open-garment-delivery-modal',event=>{
+        let myModal = new bootstrap.Modal(document.getElementById('delieveryGarmentProcessModal'));
+         myModal.show();
+     });
 
 </script>

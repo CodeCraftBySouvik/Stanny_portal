@@ -32,8 +32,10 @@ class ProductionOrderDetails extends Component
     public $showExtraStockPrompt;
     public $fabrics = [];
     public $stockEntries = [];
+    public $deliveryEntries = [];
     public $fabricSearch = [];
     public $searchResults = [];
+
     public function mount($id){
         $this->orderId = $id;
         $this->order = Order::with('items')->findOrFail($this->orderId);
@@ -68,6 +70,7 @@ class ProductionOrderDetails extends Component
 
             $this->fabricSearch[$index] = $fabric ? $fabric->title : 'Unknown Fabric';
         }
+        
     }
 
 
@@ -886,7 +889,150 @@ public function revertBackStock($index, $inputName, $entryId)
         }
     }
 
-    
+    public function openGarmentDeliveryModal($index){
+        $item = $this->orderItems[$index];
+    $fabricId = $item['fabrics']['id'] ?? null; // Use $item['fabrics']['id'] as you're likely using relationship data
+    $productId = $item['collection_id'] == 2 ? ($item['product']['id'] ?? null) : null;
+
+    $totalUsed = OrderStockEntry::query()
+                                ->where('order_item_id', $item['id'])
+                                ->when($fabricId, fn($q) => $q->where('fabric_id', $fabricId))
+                                ->when($productId, fn($q) => $q->where('product_id', $productId))
+                                ->sum('quantity');
+
+   
+    $defaultInputName = 'required_meter_0'; 
+
+    // fetch existing stock entries and assign unique input_name to each
+    $entries = OrderStockEntry::where('order_item_id', $item['id'])->get();
+
+    $this->stockEntries = [];
+    $initialRowsData = []; // To hold initial quantities for $this->rows
+
+    foreach ($entries as $i => $entry) {
+        $entryData = $entry->toArray();
+        $entryData['input_name'] = 'required_meter_' . $i; // Consistent naming for all stock entries
+        $entryData['is_new'] = false;
+
+        $availableStock = 0;
+        if ($item['collection_id'] == 1 && $entry->fabric_id) {
+            $stockFabric = StockFabric::where('fabric_id', $entry->fabric_id)->first();
+            // Directly use qty_in_meter as it represents the current remaining stock
+            $availableStock = $stockFabric ? $stockFabric->qty_in_meter : 0;
+        } elseif ($item['collection_id'] == 2 && $entry->product_id) {
+            $stockProduct = StockProduct::where('product_id', $entry->product_id)->first();
+            // Directly use qty_in_pieces as it represents the current remaining stock
+            $availableStock = $stockProduct ? $stockProduct->qty_in_pieces : 0;
+        }
+
+        // Ensure available stock is not negative for display purposes
+        $entryData['available_value'] = max(0, $availableStock); // Safeguard against negative display
+
+        // Store quantity for wire:model binding
+        $initialRowsData[$entryData['input_name']] = $entryData['quantity'];
+        // ✅ Set delivered_meter = required_meter
+        $this->deliveryEntries[$i]['delivered_meter'] = $entryData['quantity'];
+        $this->stockEntries[] = $entryData;
+    }
+
+    // if no previous stock entries, create one default
+    if (count($this->stockEntries) === 0) {
+        $defaultInputNameForEntry = 'required_meter_0'; // Consistent with 'required_meter_0'
+        $availableValueForDefault = 0; // Calculate for the very first item if no entries exist
+
+        if ($item['collection_id'] == 1 && $item['fabrics']['id']) {
+            $stockFabric = StockFabric::where('fabric_id', $item['fabrics']['id'])->first();
+            $availableValueForDefault = $stockFabric ? $stockFabric->qty_in_meter : 0;
+        } elseif ($item['collection_id'] == 2 && $item['product']['id']) {
+            $stockProduct = StockProduct::where('product_id', $item['product']['id'])->first();
+            $availableValueForDefault = $stockProduct ? $stockProduct->qty_in_pieces : 0;
+        }
+
+        $this->stockEntries[] = [
+            'fabric_id' => $item['fabrics']['id'] ?? null, // Use $item['fabrics']['id']
+            'product_id' => $item['product']['id'] ?? null,
+            'quantity' => 0,
+            'input_name' => $defaultInputNameForEntry,
+            'is_new' => true,
+            'available_value' => max(0, $availableValueForDefault), // Safeguard
+        ];
+        $initialRowsData[$defaultInputNameForEntry] = 0;
+    }
+
+    // Initialize $this->rows with the collected data
+    $this->rows = $initialRowsData;
+
+    $this->selectedItem = [
+        'item_id' => $item['id'],
+        'index' => $index,
+        'collection_title' => $item['collection_title'],
+        'collection_id' => $item['collection_id'],
+        'product_name' => $item['product']['name'] ?? '',
+        'fabric_title' => $item['fabrics']['title'] ?? '',
+        
+        'available_label' => ($item['collection_id'] == 1) ? 'Available Meter' : 'Available Pieces',
+        // For the overall available value, calculate it here once for the primary display
+        'available_value' => (int)max(0, ($item['collection_id'] == 1
+                                    ? (StockFabric::where('fabric_id', $fabricId)->first()->qty_in_meter ?? 0)
+                                    : (StockProduct::where('product_id', $productId)->first()->qty_in_pieces ?? 0))),
+        'updated_label' => ($item['collection_id'] == 1) ? 'Required Meter' : 'Required Pieces',
+        'input_name' => $defaultInputName, // Still referring to the base name for the first row
+        'has_stock_entry' => $item['has_stock_entry'],
+        'total_used' => $totalUsed,
+        'fabric_id' => $fabricId,
+        'product_id' => $productId
+    ];
+        $this->dispatch('open-garment-delivery-modal');
+    }
+
+    public function addDeliveryRow($entryIndex)
+    {
+        $delivered = (float)($this->deliveryEntries[$entryIndex]['delivered_meter'] ?? 0);
+        $available = (float)($this->stockEntries[$entryIndex]['available_value'] ?? 0);
+        $inputName = $this->stockEntries[$entryIndex]['input_name'];
+
+        if ($delivered <= 0) {
+            $this->addError("deliveryEntries.$entryIndex.delivered_meter", "Delivered meter must be greater than 0.");
+            return;
+        }
+
+        if ($delivered > $available) {
+            $this->addError("deliveryEntries.$entryIndex.delivered_meter", "Delivered exceeds available stock.");
+            return;
+        }
+
+        // Get entry data
+        $orderItemId = $this->selectedItem['item_id'];
+        $fabricId = $this->stockEntries[$entryIndex]['fabric_id'];
+
+        //  1. Update OrderStockEntry quantity
+        $entry = OrderStockEntry::where('order_item_id', $orderItemId)
+                    ->where('fabric_id', $fabricId)
+                    ->first();
+
+        if ($entry) {
+            $entry->quantity += $delivered;
+            $entry->save();
+        }
+
+        // 🔁 2. Update StockFabric qty_in_meter
+        $stock = StockFabric::where('fabric_id', $fabricId)->first();
+        if ($stock) {
+            $stock->qty_in_meter -= $delivered;
+            $stock->save();
+        }
+
+        // 🔁 3. Update local Livewire data to reflect changes
+        $this->rows[$inputName] += $delivered;
+        $this->stockEntries[$entryIndex]['available_value'] = max(0, $available - $delivered);
+        $this->deliveryEntries[$entryIndex]['delivered_meter'] = 0;
+
+        // 🔁 4. Also update selectedItem available_value if first row
+        if ($entryIndex === 0) {
+            $this->selectedItem['available_value'] = $this->stockEntries[$entryIndex]['available_value'];
+        }
+    }
+
 
         public function openDeliveryModal($index)
     {
@@ -1059,6 +1205,7 @@ public function revertBackStock($index, $inputName, $entryId)
     public function processDelivery()
     {
         $item = $this->selectedDeliveryItem;
+         
         $itemId = $item['item_id'];
 
         $this->validate([
@@ -1116,27 +1263,51 @@ public function revertBackStock($index, $inputName, $entryId)
 
             //  For fabric: consume multiple stock entries
             if ($item['collection_id'] == 1) {
-                $remaining = $actual;
+                $totalDelivered = 0;
 
-                $stockEntries = OrderStockEntry::where('order_item_id', $itemId)
-                    ->where('fabric_id', $item['fabric_id'])
-                    ->orderBy('created_at')
-                    ->get();
+                foreach ($this->deliveryEntries as $index => $entry) {
+                    $deliveredQty = floatval($entry['delivered_meter'] ?? 0);
+                    $fabricId = $this->stockEntries[$index]['fabric_id'] ?? null;
 
-                foreach ($stockEntries as $entry) {
-                    if ($remaining <= 0) break;
+                    if ($deliveredQty > 0 && $fabricId) {
+                        $totalDelivered += $deliveredQty;
 
-                    if ($entry->quantity <= $remaining) {
-                        $remaining -= $entry->quantity;
-                        // $entry->delete();
-                    } else {
-                        $entry->update(['quantity' => $entry->quantity - $remaining]);
-                        $remaining = 0;
-                        break;
+                        // ➤ 1. Insert into Delivery table (row per fabric delivery)
+                        Delivery::create([
+                            'order_id' => $this->orderId,
+                            'order_item_id' => $itemId,
+                            'fabric_id' => $fabricId,
+                            'fabric_quantity' => $this->rows[$this->stockEntries[$index]['input_name']] ?? 0,
+                            'delivered_quantity' => $deliveredQty,
+                            'unit' => $item['unit'],
+                            'delivered_by' => auth()->guard('admin')->user()->id,
+                            'delivered_at' => now(),
+                        ]);
+
+                        // ➤ 2. Decrease from stock
+                        $stock = StockFabric::where('fabric_id', $fabricId)->first();
+                        if ($stock) {
+                            $stock->decrement('qty_in_meter', $deliveredQty);
+                        }
+
+                        // ➤ 3. Update OrderStockEntry
+                        $ose = OrderStockEntry::where('order_item_id', $itemId)
+                                ->where('fabric_id', $fabricId)
+                                ->first();
+
+                        if ($ose) {
+                            $ose->quantity -= $deliveredQty;
+                            $ose->save();
+                        }
                     }
                 }
 
+                if ($totalDelivered <= 0) {
+                    session()->flash('stock_error', 'Please enter a valid delivery quantity.');
+                    return;
+                }
             }
+
 
             //  For product: just reduce main stock
             if ($item['collection_id'] == 2) {
@@ -1210,6 +1381,7 @@ public function revertBackStock($index, $inputName, $entryId)
 
             return redirect()->route('production.order.details', $this->orderId);
         } catch (\Throwable $e) {
+            dd($e->getMessage());
             DB::rollBack();
             dd($e->getMessage());
         }
