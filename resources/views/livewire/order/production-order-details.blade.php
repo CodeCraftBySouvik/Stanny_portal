@@ -581,6 +581,7 @@
                                         @error('deliveryEntries.' . $entryIndex . '.delivered_meter')
                                             <span class="invalid-feedback d-block">{{ $message }}</span>
                                         @enderror
+                                        
                                     </div>
                                       {{-- Row‑level Add Extra button --}}
                                         <div class="col-md-2 mt-4">
