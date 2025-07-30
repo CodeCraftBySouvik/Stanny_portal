@@ -97,7 +97,7 @@ class PurchaseOrderCreate extends Component
             // Begin database transaction
             DB::beginTransaction();
             $supplier = Supplier::find($this->selectedSupplier);
-            
+            $designationId = auth()->guard('admin')->user()->id;
             // Insert the purchase order
             $purchaseOrder = new PurchaseOrder();
             $purchaseOrder->supplier_id = $this->selectedSupplier;
@@ -112,6 +112,7 @@ class PurchaseOrderCreate extends Component
             $purchaseOrder->total_price = array_sum(array_column($this->rows, 'total_amount'));
             $productIds = [];
             $fabricIds = [];
+            $purchaseOrder->is_approved = ($designationId == 1) ? 1 : 0;
             $purchaseOrder->save();
 
             // Insert related purchase order products

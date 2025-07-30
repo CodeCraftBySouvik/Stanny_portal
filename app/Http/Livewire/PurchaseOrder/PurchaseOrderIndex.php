@@ -12,8 +12,13 @@ class PurchaseOrderIndex extends Component
     public $purchaseOrders = '';
     public $search = '';
     protected $paginationTheme = 'bootstrap'; // Optional: For Bootstrap styling
-    public function mount(){
-        
+    public function approveOrder($purchase_order_id)
+    {
+        $po = PurchaseOrder::findOrFail($purchase_order_id);
+        $po->is_approved = 1;
+        $po->save();
+
+        session()->flash('message', 'Purchase Order approved successfully.');
     }
       public function updatingSearch()
     {

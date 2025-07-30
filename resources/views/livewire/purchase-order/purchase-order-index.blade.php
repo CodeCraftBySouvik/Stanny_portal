@@ -83,11 +83,12 @@
                                             {{ $purchaseOrder->supplier? $purchaseOrder->supplier->name : "" }}
                                         </td>
                                         <td>
-                                            @if ($purchaseOrder->status == 0)
+                                            @if ($purchaseOrder->is_approved == 0)
                                                 <span class ="badge bg-warning"><span>Pending</span></span>
+                                            @elseif ($purchaseOrder->is_approved == 1 && $purchaseOrder->status == 0)
+                                                <span class="badge bg-info">Approved</span>
                                             @elseif ($purchaseOrder->status == 1)
-                                                <span class ="badge bg-success"><span>Received</span></span>    
-                                                
+                                                <span class ="badge bg-success"><span>Received</span></span>
                                             @endif
                                             
                                         </td>
@@ -95,7 +96,7 @@
                                         <td class="align-middle action_tab">
                                           
                                             <button wire:click="downloadPdf({{ $purchaseOrder->id }})" class="btn btn-outline-primary select-md btn_outline">PDF</button>
-                                            @if($purchaseOrder->status == 0)
+                                            @if($purchaseOrder->status == 0 && $purchaseOrder->is_approved == 1)
                                                 <a href="{{route('purchase_order.edit',$purchaseOrder->id)}}" class="btn btn-outline-primary select-md btn_action btn_outline" data-toggle="tooltip" data-original-title="Edit product">
                                                     Edit 
                                                 </a>
@@ -108,7 +109,14 @@
                                                 <a href="{{route('purchase_order.details',['purchase_order_id'=>$purchaseOrder->id])}}" class="btn btn-outline-primary select-md btn_action btn_outline">
                                                     Details
                                                 </a>
-                                               
+                                                @php
+                                                     $designationId = auth()->guard('admin')->user()->id;
+                                                @endphp
+                                            @if ($purchaseOrder->is_approved == 0 && $designationId == 1)
+                                                <button wire:click="approveOrder({{ $purchaseOrder->id }})" class="btn btn-outline-success select-md btn_outline">
+                                                    Approve
+                                                </button>
+                                            @endif
                                         </td>
                                     </tr>
                                     @empty
