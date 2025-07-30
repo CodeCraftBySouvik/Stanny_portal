@@ -26,14 +26,10 @@ class PurchaseOrderIndex extends Component
     public function resetForm(){
         $this->reset(['search']);
     }
-    // $purchaseOrder = PurchaseOrder::with('supplier', 'orderproducts')->findOrFail($purchase_order_id);
-    // $pdf = Pdf::loadView('livewire.purchase-order.generate-pdf', compact('purchaseOrder'));
-    // return $pdf->download('purchase_order_' . $purchase_order_id . '.pdf');
+   
     public function downloadPdf($purchase_order_id)
     {
-        // $invoice = Invoice::with(['order', 'customer', 'user', 'packing'])
-        //             ->where('order_id', $orderId)
-        //             ->firstOrFail();
+        
         $purchaseOrder = PurchaseOrder::with('supplier', 'orderproducts')->findOrFail($purchase_order_id);
         // Generate PDF
         $pdf =  Pdf::loadView('livewire.purchase-order.generate-pdf', compact('purchaseOrder'));
@@ -42,7 +38,6 @@ class PurchaseOrderIndex extends Component
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
         }, 'purchase_order_' . $purchase_order_id . '.pdf');
-        // return $pdf->download('purchase_order_' . $purchase_order_id . '.pdf');
     }
     public function render()
     {

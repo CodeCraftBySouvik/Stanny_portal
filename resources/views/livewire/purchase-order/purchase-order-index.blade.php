@@ -93,15 +93,13 @@
                                         </td>
                                         
                                         <td class="align-middle action_tab">
-                                           {{-- <a href="{{route('purchase_order.generate_pdf',['purchase_order_id'=>$purchaseOrder->id])}}" target="_blank" class="btn btn-outline-primary select-md btn_action btn_outline">
-                                                PDF
-                                            </a>--}}
+                                          
                                             <button wire:click="downloadPdf({{ $purchaseOrder->id }})" class="btn btn-outline-primary select-md btn_outline">PDF</button>
                                             @if($purchaseOrder->status == 0)
                                                 <a href="{{route('purchase_order.edit',$purchaseOrder->id)}}" class="btn btn-outline-primary select-md btn_action btn_outline" data-toggle="tooltip" data-original-title="Edit product">
                                                     Edit 
                                                 </a>
-                                                {{-- <button wire:click="deleteProduct({{ $purchaseOrder->id }})" class="btn btn-outline-danger btn-sm custom-btn-sm mb-0">Delete</button> --}}
+                                                
                                             
                                                 <a href="{{route('purchase_order.generate_grn',['purchase_order_id'=>$purchaseOrder->id])}}" class="btn btn-outline-primary select-md btn_action btn_outline">
                                                     Generate GRN
