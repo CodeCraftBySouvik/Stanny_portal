@@ -261,33 +261,37 @@ class AddPaymentReceipt extends Component
     {
         $this->searchResults = Helper::GetCustomerDetails($term);
     }
-      // Function to validate date
-       public function is_valid_date($date) {
-            $timestamp = strtotime($date);
-            if ($timestamp !== false) {
-                return true;
-            }
-            return false;
+    // Function to validate date
+    public function is_valid_date($date) {
+        $timestamp = strtotime($date);
+        if ($timestamp !== false) {
+            return true;
         }
+        return false;
+    }
 
-      public function selectCustomer($customer_id){
+    public function selectCustomer($customer_id){
 
-            $customer = User::find($customer_id);
-            if($customer){
-                $this->customer = $customer->name.'('.$customer->phone.')';
-                $this->customer_id = $customer->id;
-            }else{
-                $this->reset(['customer','customer_id',]);
-            }
-            $this->searchResults = [];
+        $customer = User::find($customer_id);
+        if($customer){
+            $this->customer = $customer->name.'('.$customer->phone.')';
+            $this->customer_id = $customer->id;
+        }else{
+            $this->reset(['customer','customer_id',]);
+        }
+        $this->searchResults = [];
+    }
 
-      }
     public function ChangePaymentMode($value){
         $this->activePayementMode = $value;
     }
+
     public function render()
     {
-        $this->staff_id = Auth::guard('admin')->user()->id;
+        if(empty($this->staff_id)){
+            $this->staff_id = Auth::guard('admin')->user()->id;
+        }
+
         $this->payment_date=date('Y-m-d');
         if(!empty($this->payment_data))
         {

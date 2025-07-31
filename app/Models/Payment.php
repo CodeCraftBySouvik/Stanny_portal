@@ -50,4 +50,10 @@ class Payment extends Model
     {
         return $this->belongsTo(Expense::class, 'expense_id', 'id');
     }
+
+    public function journal()
+    {
+        return $this->hasOne(Journal::class, 'payment_id');
+    }
+
 }

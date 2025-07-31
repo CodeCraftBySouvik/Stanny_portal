@@ -332,23 +332,52 @@ class CashBookModule extends Component
             $collectionQuery->whereBetween('created_at', [$startDate, $endDate]);
         }
         $this->totalchequeCollections = $collectionQuery->sum('collection_amount');
-
         // Today's Expenses
+        // $expenseQuery = Journal::where('is_debit', 1)
+        //     ->when(!$user->is_super_admin, function ($query) use ($user) {
+        //         $query->whereHas('payment', function ($q) use ($user) {
+        //             $q->whereNotNull('stuff_id')->where('stuff_id', $user->id);
+        //              // Staff's expenses
+        //         });
+        //     });
+            
+
+        // if ($this->start_date && $this->end_date) {
+        //     $expenseQuery->whereBetween('created_at', [$startDate, $endDate]);
+        // }
+        // $this->totalExpenses = $expenseQuery->sum('transaction_amount');
+
         $expenseQuery = Journal::where('is_debit', 1)
+            ->whereNotNull('payment_id') // ✅ Exclude wallet-given entries
             ->when(!$user->is_super_admin, function ($query) use ($user) {
                 $query->whereHas('payment', function ($q) use ($user) {
                     $q->whereNotNull('stuff_id')->where('stuff_id', $user->id);
-                     // Staff's expenses
                 });
             });
 
         if ($this->start_date && $this->end_date) {
             $expenseQuery->whereBetween('created_at', [$startDate, $endDate]);
         }
+
         $this->totalExpenses = $expenseQuery->sum('transaction_amount');
 
+        // Wallet given 
+        $walletCredits = Journal::where('is_debit', 1)
+            ->whereNull('payment_id') // ✅ Only wallet top-ups
+            ->when(!$user->is_super_admin, function ($query) use ($user) {
+                $query->whereHas('payment', function ($q) use ($user) {
+                    $q->where('stuff_id', $user->id);
+                });
+            });
+
+        if ($this->start_date && $this->end_date) {
+            $walletCredits->whereBetween('created_at', [$startDate, $endDate]);
+        }
+
+        $totalWalletGiven = $walletCredits->sum('transaction_amount');
+
         // Final Wallet
-        $this->totalWallet = $openingBalance + ($this->totalCollections - $this->totalExpenses);
+        $this->totalWallet = $openingBalance + ($this->totalCollections + $totalWalletGiven - $this->totalExpenses);
 
         // Payment Collections Table
         $paymentQuery = PaymentCollection::where('is_approve', 1)

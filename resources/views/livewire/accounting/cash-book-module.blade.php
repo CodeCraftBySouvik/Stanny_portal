@@ -134,9 +134,7 @@
                         </div> --}}
                     </div>
                 </div>
-                {{-- @endif --}}
-                {{-- Total Wallet --}}
-                {{-- @if ($totalCollections > 0 || $totalExpenses > 0) --}}
+                
                 <div class="col-xl-4 col-sm-6 mb-xl-0 mb-4">
                     <div class="card data-card">
                         <div class="card-header p-3 pt-2">
@@ -153,14 +151,9 @@
                             </div>
                         </div>
                         <hr class="dark horizontal my-0">
-                        {{-- <div class="card-footer p-3 d-flex justify-content-between align-items-center">
-                            <p class="mb-0"><span class="text-danger text-sm font-weight-bolder">-2%</span>
-                                than
-                                yesterday</p>
-                        </div> --}}
+                        
                     </div>
                 </div>
-                {{-- @endif --}}
             </div>
              <div class="row">
                 <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
@@ -181,8 +174,7 @@
                         </div> --}}
                     </div>
                 </div>
-                {{-- Total Expenses --}}
-                {{-- @if ($totalCollections > 0 || $totalExpenses > 0) --}}
+                
                 <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
                     <div class="card data-card">
                         <div class="card-header p-3 pt-2">
@@ -196,16 +188,10 @@
                             </div>
                         </div>
                         <hr class="dark horizontal my-0">
-                        {{-- <div class="card-footer p-3 d-flex justify-content-between align-items-center">
-                            <p class="mb-0"><span class="text-danger text-sm font-weight-bolder">-2%</span>
-                                than
-                                yesterday</p>
-                        </div> --}}
+                       
                     </div>
                 </div>
-                {{-- @endif --}}
-                {{-- Total Wallet --}}
-                {{-- @if ($totalCollections > 0 || $totalExpenses > 0) --}}
+                
                 <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
                     <div class="card data-card">
                         <div class="card-header p-3 pt-2">
@@ -221,11 +207,7 @@
                             </div>
                         </div>
                         <hr class="dark horizontal my-0">
-                        {{-- <div class="card-footer p-3 d-flex justify-content-between align-items-center">
-                            <p class="mb-0"><span class="text-danger text-sm font-weight-bolder">-2%</span>
-                                than
-                                yesterday</p>
-                        </div> --}}
+                       
                     </div>
                 </div>
                  <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
@@ -243,14 +225,10 @@
                             </div>
                         </div>
                         <hr class="dark horizontal my-0">
-                        {{-- <div class="card-footer p-3 d-flex justify-content-between align-items-center">
-                            <p class="mb-0"><span class="text-danger text-sm font-weight-bolder">-2%</span>
-                                than
-                                yesterday</p>
-                        </div> --}}
+                       
                     </div>
                 </div>
-                {{-- @endif --}}
+              
             </div>
             {{-- Add Payment Receipt button --}}
             <div class="d-flex justify-content-end mt-4">
