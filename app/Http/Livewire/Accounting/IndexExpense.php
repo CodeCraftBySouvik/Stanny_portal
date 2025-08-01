@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Accounting;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Payment;
+use App\Models\Journal;
 
 class IndexExpense extends Component
 {
@@ -36,7 +37,9 @@ class IndexExpense extends Component
     }
     public function render()
     {
+         $validPaymentIds = Journal::whereNotNull('payment_id')->pluck('payment_id');
         $expenses = Payment::where('payment_for', 'debit')
+            ->whereIn('id', $validPaymentIds)
             ->when($this->search, function ($query) {
                 $query->where('voucher_no', 'like', '%' . $this->search . '%')
                       ->orWhere('amount', 'like', '%' . $this->search . '%');

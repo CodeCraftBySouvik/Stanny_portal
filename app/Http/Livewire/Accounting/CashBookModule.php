@@ -402,8 +402,10 @@ class CashBookModule extends Component
         }
         $this->paymentCollections = $paymentQuery->orderByDesc('created_at')->get();
 
+         $validPaymentIds = Journal::whereNotNull('payment_id')->pluck('payment_id');
         // Expenses Table
         $paymentExpenseQuery = Payment::where('payment_for', 'debit')
+            ->whereIn('id', $validPaymentIds)
             ->when(!$user->is_super_admin, function ($query) use ($user) {
                 $query->where('stuff_id', $user->id);
             })
