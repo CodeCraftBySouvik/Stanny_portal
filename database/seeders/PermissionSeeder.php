@@ -62,9 +62,12 @@ class PermissionSeeder extends Seeder
             ['parent_name' => 'accounting_management', 'name' => 'depo_expense_listing', 'route' => 'admin.accounting.list.depot_expense'],
             ['parent_name' => 'accounting_management', 'name' => 'depo_expense_create', 'route' => 'admin.accounting.add_depot_expense'],
             ['parent_name' => 'accounting_management', 'name' => 'depo_expense_update', 'route' => 'admin.accounting.edit_depot_expense'],
+            ['parent_name' => 'accounting_management', 'name' => 'cashbook_module', 'route' => 'admin.accounting.cashbook_module'],
+            ['parent_name' => 'accounting_management', 'name' => 'daily_cash_entry', 'route' => 'admin.accounting.daily-cash-entry'],
 
 
             ['parent_name' => 'report_management', 'name' => 'user_ledger_listing', 'route' => 'admin.report.user_ledger'],
+
             ['parent_name' => 'order_management', 'name' => 'order_listing', 'route' => 'admin.order.index'],
             ['parent_name' => 'order_management', 'name' => 'order_create', 'route' => 'admin.order.new'],
             ['parent_name' => 'order_management', 'name' => 'order_update', 'route' => 'admin.order.edit'],
@@ -72,8 +75,15 @@ class PermissionSeeder extends Seeder
             ['parent_name' => 'order_management', 'name' => 'order_confirm', 'route' => 'admin.order.add_order_slip'],
             ['parent_name' => 'order_management', 'name' => 'order_invoice_listing', 'route' => 'admin.order.invoice.index'],
             ['parent_name' => 'order_management', 'name' => 'order_cancel_listing', 'route' => 'admin.order.cancel-order.index'],
+            ['parent_name' => 'order_management', 'name' => 'instant_invoices', 'route' => 'admin.order.invoice.add'],
+            ['parent_name' => 'order_management', 'name' => 'proformas', 'route' => 'admin.order.proformas.index'],
 
             ['parent_name' => 'production_management', 'name' => 'production_order_listing', 'route' => 'production.order.index'],
+
+            ['parent_name' => 'master_management', 'name' => 'business_type_index', 'route' => 'business_type.index'],
+            ['parent_name' => 'master_management', 'name' => 'country_index', 'route' => 'country.index'],
+
+
         ];
 
         foreach ($permissions as $permission) {

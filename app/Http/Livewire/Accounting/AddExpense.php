@@ -68,10 +68,17 @@ class AddExpense extends Component
             $this->customerExpenseTitles = [];
         }
     }
+    
     public function mount(){
         $this->voucher_no = 'EXPENSE'.time();
-      
+        if (auth()->guard('admin')->user()->designation == 2) {
+            $this->user_type = 'staff';
+            $this->getUser('staff');
+            $this->staff_id = auth()->guard('admin')->user()->id; // Assuming the staff is the logged-in user
+            $this->staffSearchTerm = auth()->guard('admin')->user()->name;
+        }
     }
+
     public function searchStaff()
     {
         if (!empty($this->staffSearchTerm)) {

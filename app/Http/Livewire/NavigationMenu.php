@@ -43,13 +43,30 @@ class NavigationMenu extends Component
         if (!$this->user || !$this->user->designation) {
             return false;
         }
-        $permission_id = Permission::where('parent_name', $parentName)->value('id');
+        $permission_id = Permission::where('parent_name', $parentName)->pluck('id');
         if($permission_id){
-            return DesignationPermission::where('permission_id', $permission_id)->where('designation_id', $this->user->designation)->exists();
+            return DesignationPermission::whereIn('permission_id', $permission_id)->where('designation_id', $this->user->designation)->exists();
         }else{
             return false;
         }
     }
+    public function hasPermission($name)
+    {
+        if (!$this->user || !$this->user->designation) {
+            return false;
+        }
+
+        $permission_id = Permission::where('name', $name)->value('id');
+
+        if ($permission_id) {
+            return DesignationPermission::where('permission_id', $permission_id)
+                ->where('designation_id', $this->user->designation)
+                ->exists();
+        }
+
+        return false;
+    }
+
     public function render()
     {
         return view('livewire.navigation-menu');

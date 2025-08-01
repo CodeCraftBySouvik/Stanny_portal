@@ -25,7 +25,7 @@
                         <!-- User Type Selection -->
                         <div class="mb-3 col-md-6">
                             <label class="form-label"><strong>Expense At <span class="text-danger">*</span></strong></label>
-                            <select wire:model="user_type" wire:change="getUser($event.target.value)"  class="form-control form-control bg-white">
+                            <select wire:model="user_type" wire:change="getUser($event.target.value)"  class="form-control form-control bg-white" @if(auth()->guard('admin')->user()->designation == 2) disabled @endif>
                                 <option value="" hidden>Select Expense At</option>
                                 <option value="staff">Staff</option>
                                 <option value="customer">Customer</option>
@@ -37,8 +37,7 @@
                         <div class="mb-3 col-md-6">
                             @if($user_type === 'staff')
                                 <label class="form-label"><strong>Staff Name <span class="text-danger">*</span></strong></label>
-                                <input type="text" wire:model.defer="staffSearchTerm" wire:keyup="searchStaff" class="form-control form-control bg-white" placeholder="Search by staff name">
-                                <!-- <input type="hidden" wire:model="stuff_id"> -->
+                                <input type="text" wire:model.defer="staffSearchTerm" wire:keyup="searchStaff" class="form-control form-control bg-white" placeholder="Search by staff name" @if(auth()->guard('admin')->user()->designation == 2) disabled @endif>
                                 <input type="hidden" wire:model="staff_id">
                                 @error('staff_id') <div class="text-danger text-sm">{{ $message }}</div> @enderror
 
