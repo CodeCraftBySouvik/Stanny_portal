@@ -40,19 +40,7 @@ class OrderIndex extends Component
         $this->dispatch('showSalesMarkAsReceived',['orderId' => $id]);
     }
 
-    //  public function markSalesReceivedConfirmed($orderId)
-    // {
-    //     $order = Order::find($orderId);
-    //     if ($order && $order->status == 'Approved') {
-    //         $order->status = 'Received at Sales';
-    //         $order->save();
-
-    //         // Optional: add status log or notification
-    //         session()->flash('message', 'Order marked as Received.');
-    //     } else {
-    //         session()->flash('error', 'Order not eligible for receiving.');
-    //     }
-    // }
+   
 
     public function changeTab($status){
         $this->tab = $status;

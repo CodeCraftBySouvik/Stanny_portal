@@ -928,7 +928,7 @@ table td h6.text-sm {
 }
 
 .custom-sideber-design.navbar-vertical .navbar-brand > img {
-    max-width: 100px !important;
+    max-width: 128px !important;
     max-height: inherit !important;
 }
 

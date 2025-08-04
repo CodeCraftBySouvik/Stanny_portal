@@ -1054,6 +1054,7 @@ class OrderNew extends Component
                         // Admin is creating the order
                         $orderItem->tl_status = 'Approved';
                         $orderItem->admin_status = 'Approved';
+                        $orderItem->assigned_team = 'production';
                     } elseif ($loggedInAdmin->designation == 4) {
                         // Team Lead is creating the order
                         $orderItem->tl_status = 'Approved';

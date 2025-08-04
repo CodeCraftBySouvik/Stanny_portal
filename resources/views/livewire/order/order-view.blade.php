@@ -1,4 +1,11 @@
-<di class="container">
+<div class="container">
+    <style>
+        .skip-order{
+            font-size: 24px !important;
+            margin-top: 8px !important;
+        }
+        
+    </style>
     <section class="admin__title">
         <h5>Order detail</h5>
     </section>
@@ -10,290 +17,306 @@
                 <a href="{{route('admin.order.index')}}"
                     class="btn btn-sm btn-danger select-md text-light font-weight-bold mb-0">Back </a>
             </li>
-            
+
         </ul>
     </section>
-    <div id="export-area">
+    @if ($order->skip_order_reason)
     <div class="card shadow-sm mb-2">
-        <div class="card-body">
-            <div class="row">
-                <div class="col-sm-6">
-                    <div class="form-group mb-3">
-                        <h6>Order Information</h6>
-                        <div class="row">
-                            <div class="col-sm-4">
-                                <p class="small m-0">
+        <div class="card-body text-center">
+            <h3 class="text-danger skip-order">Order Skipped</h3>
+            <p><strong>Reason:</strong> {{ $order->skip_order_reason ?? 'N/A' }}</p>
+        </div>
+    </div>
+    @else
+    <div id="export-area">
+        <div class="card shadow-sm mb-2">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group mb-3">
+                            <h6>Order Information</h6>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <p class="small m-0">
 
-                                </p>
+                                    </p>
+                                </div>
                             </div>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <p class="small m-0"><strong>Order Amount :</strong></p>
+                                </div>
+                                <div class="col-sm-8">
+                                    <p class="small m-0">{{number_format($order->total_amount, 2)}}</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <p class="small m-0"><strong>Order Time :</strong></p>
+                                </div>
+                                <div class="col-sm-8">
+                                    <p class="small m-0">{{ $order->created_at->format('d M Y h:i A') }}</p>
+                                </div>
+                            </div>
+
+                            <div class="row">
+
+                                <div>
+
+
+                                </div>
+                            </div>
+
+
+
                         </div>
-                        <div class="row">
-                            <div class="col-sm-4">
-                                <p class="small m-0"><strong>Order Amount :</strong></p>
-                            </div>
-                            <div class="col-sm-8">
-                                <p class="small m-0">{{number_format($order->total_amount, 2)}}</p>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-4">
-                                <p class="small m-0"><strong>Order Time :</strong></p>
-                            </div>
-                            <div class="col-sm-8">
-                                <p class="small m-0">{{ $order->created_at->format('d M Y h:i A') }}</p>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            
-                            <div>
-                                
-
-                            </div>
-                        </div>
-
-
-
                     </div>
-                </div>
-                
-                <div class="col-sm-6">
-                    <div class="form-group mb-3">
-                        @php
+
+                    <div class="col-sm-6">
+                        <div class="form-group mb-3">
+                            @php
                             $hasDelivered = false;
                             foreach ($orderItems as $key => $item) {
                             foreach ($item['deliveries'] as $delivery) {
-                                if($delivery['status'] == 'Delivered'){
-                                        $hasDelivered = true;
-                                        break 2;   // exit both loops
-                                }
+                            if($delivery['status'] == 'Delivered'){
+                            $hasDelivered = true;
+                            break 2; // exit both loops
                             }
                             }
-                        @endphp
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h6>Customer Details</h6>
-                            @if ($hasDelivered)
+                            }
+                            @endphp
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6>Customer Details</h6>
+                                @if ($hasDelivered)
                                 <p>
-                                    <a class="btn btn-outline-success select-md" href="{{ route('orders.generatePdf', $order->id) }}" target="_blank">Download</a>
+                                    <a class="btn btn-outline-success select-md"
+                                        href="{{ route('orders.generatePdf', $order->id) }}"
+                                        target="_blank">Download</a>
                                 </p>
-                            @endif
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-4">
-                                <p class="small m-0"><strong>Person Name :</strong></p>
+                                @endif
                             </div>
-                            <div class="col-sm-8">
-                                <p class="small m-0">{{$order->customer_name}}</p>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <p class="small m-0"><strong>Person Name :</strong></p>
+                                </div>
+                                <div class="col-sm-8">
+                                    <p class="small m-0">{{$order->customer_name}}</p>
+                                </div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-4">
-                                <p class="small m-0"><strong>Company Name :</strong></p>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <p class="small m-0"><strong>Company Name :</strong></p>
+                                </div>
+                                <div class="col-sm-8">
+                                    <p class="small m-0">{{$order->customer?$order->customer->company_name:"---"}}</p>
+                                </div>
                             </div>
-                            <div class="col-sm-8">
-                                <p class="small m-0">{{$order->customer?$order->customer->company_name:"---"}}</p>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <p class="small m-0"><strong>Rank :</strong></p>
+                                </div>
+                                <div class="col-sm-8">
+                                    <p class="small m-0">{{$order->customer?$order->customer->employee_rank:"---"}}</p>
+                                </div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-4">
-                                <p class="small m-0"><strong>Rank :</strong></p>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <p class="small m-0"><strong>Email :</strong></p>
+                                </div>
+                                <div class="col-sm-8">
+                                    <p class="small m-0"> {{$order->customer_email}} </p>
+                                </div>
                             </div>
-                            <div class="col-sm-8">
-                                <p class="small m-0">{{$order->customer?$order->customer->employee_rank:"---"}}</p>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-4">
-                                <p class="small m-0"><strong>Email :</strong></p>
-                            </div>
-                            <div class="col-sm-8">
-                                <p class="small m-0"> {{$order->customer_email}} </p>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-4">
-                                <p class="small m-0"><strong>Mobile :</strong></p>
-                            </div>
-                            <div class="col-sm-8">
-                                <p class="small m-0"> {{$order->customer? $order->customer->phone: ""}}</p>
-                            </div>
-                        </div>
-                       
-                        <div class="row">
-                            <div class="col-sm-4">
-                                <p class="small m-0"><strong> Address :</strong></p>
-                            </div>
-                            <div class="col-sm-8">
-                                <p class="small m-0">{{$order->billing_address}}</p>
-                            </div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="col-sm-4">
-                                <p class="small m-0"><strong>Client Image :</strong></p>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <p class="small m-0"><strong>Mobile :</strong></p>
+                                </div>
+                                <div class="col-sm-8">
+                                    <p class="small m-0"> {{$order->customer? $order->customer->phone: ""}}</p>
+                                </div>
                             </div>
 
-                            <div class="col-sm-8">
-                                {{-- Fancybox hook: data-fancybox attribute --}}
-                                <a
-                                    target="_blank"
-                                    href="{{ asset($order->customer_image) }}"  {{-- full‑size image --}}
-                                >
-                                    <img
-                                        src="{{ asset($order->customer_image) }}"  {{-- same file or a thumbnail --}}
-                                        alt="client image"
-                                        class="img-thumbnail"
-                                        width="100"
-                                    >
-                                </a>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <p class="small m-0"><strong> Address :</strong></p>
+                                </div>
+                                <div class="col-sm-8">
+                                    <p class="small m-0">{{$order->billing_address}}</p>
+                                </div>
                             </div>
+                            <div class="row mb-2">
+                                <div class="col-sm-4">
+                                    <p class="small m-0"><strong>Client Image :</strong></p>
+                                </div>
+
+                                <div class="col-sm-8">
+                                    {{-- Fancybox hook: data-fancybox attribute --}}
+                                    <a target="_blank" href="{{ asset($order->customer_image) }}" {{-- full‑size image
+                                        --}}>
+                                        <img src="{{ asset($order->customer_image) }}" {{-- same file or a thumbnail
+                                            --}} alt="client image" class="img-thumbnail" width="100">
+                                    </a>
+                                </div>
+                            </div>
+
+
+
                         </div>
-
-                        
-
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="card shadow-sm mb-2">
-        <div class="table-responsive">
-            <div class="card-body">
-                <table class="table table-sm ledger">
-                    <thead>
-                        <tr>
-                            <th class="" rowspan="1" colspan="1" style="width: 65px;" aria-label="price">Collection</th>
-                            <th class="w-50 " rowspan="1" colspan="1" style="width: 328px;" aria-label="products">Order
-                                Items</th>
-                            <th class="" rowspan="1" colspan="1" style="width: 65px;" aria-label="price">price</th>
-                            <th class="" rowspan="1" colspan="1" style="width: 50px;" aria-label="qty">
-                                qty</th>
-                            <th class="" rowspan="1" colspan="1" style="width: 80px;" aria-label="total">total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if ($orderItems->isNotEmpty())
+        <div class="card shadow-sm mb-2">
+            <div class="table-responsive">
+                <div class="card-body">
+                    <table class="table table-sm ledger">
+                        <thead>
+                            <tr>
+                                <th class="" rowspan="1" colspan="1" style="width: 65px;" aria-label="price">Collection
+                                </th>
+                                <th class="w-50 " rowspan="1" colspan="1" style="width: 328px;" aria-label="products">
+                                    Order
+                                    Items</th>
+                                <th class="" rowspan="1" colspan="1" style="width: 65px;" aria-label="price">price</th>
+                                <th class="" rowspan="1" colspan="1" style="width: 50px;" aria-label="qty">
+                                    qty</th>
+                                <th class="" rowspan="1" colspan="1" style="width: 80px;" aria-label="total">total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if ($orderItems->isNotEmpty())
 
-                        @foreach ($orderItems as $item)
-                        {{-- {{dd()}} --}}
-                        <tr class="odd" style="background-color: #f2f2f2;">
-                            <td>{{$item['collection_title']}}</td>
-                            <td class="">
-                                <div class="d-flex justify-content-start align-items-center product-name">
-                                    <div class="me-3">
-                                        @if (!empty($item['product_image']))
-                                        <div class="avatar avatar-sm rounded-2 bg-label-secondary">
-                                            <img src="{{ asset('storage/' . $item['product_image']) }}"
-                                                alt="Product Image" class="rounded-2">
+                            @foreach ($orderItems as $item)
+                            {{-- {{dd()}} --}}
+                            <tr class="odd" style="background-color: #f2f2f2;">
+                                <td>{{$item['collection_title']}}</td>
+                                <td class="">
+                                    <div class="d-flex justify-content-start align-items-center product-name">
+                                        <div class="me-3">
+                                            @if (!empty($item['product_image']))
+                                            <div class="avatar avatar-sm rounded-2 bg-label-secondary">
+                                                <img src="{{ asset('storage/' . $item['product_image']) }}"
+                                                    alt="Product Image" class="rounded-2">
+                                            </div>
+                                            @else
+                                            <div class="avatar avatar-sm rounded-2 bg-label-secondary">
+                                                <img src="{{asset('assets/img/cubes.png')}}" alt="Default Image"
+                                                    class="rounded-2">
+                                            </div>
+                                            @endif
                                         </div>
-                                        @else
-                                        <div class="avatar avatar-sm rounded-2 bg-label-secondary">
-                                            <img src="{{asset('assets/img/cubes.png')}}" alt="Default Image"
-                                                class="rounded-2">
+                                        <div class="d-flex flex-column">
+                                            <span
+                                                class="text-nowrap text-heading fw-medium">{{$item['product_name']}}</span>
                                         </div>
-                                        @endif
                                     </div>
-                                    <div class="d-flex flex-column">
-                                        <span
-                                            class="text-nowrap text-heading fw-medium">{{$item['product_name']}}</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span>{{number_format($item['price'], 2)}}</span></td>
-                            <td><span>{{$item['quantity']}}</span></td>
-                            <td><span>{{number_format($item['price']*$item['quantity'], 2)}}</span></td>
-                        </tr>
-                        @if(!empty($item['deliveries']) && count($item['deliveries'])>0)
-                        <tr>
-                            <td colspan="5">
-                                <div class="col-12 mb-2 measurement_div" style="background: #fdfdfd !important;">
-                                    <h6 class="badge bg-danger custom_success_badge">Delivery Logs</h6>
-                                    <div class="row">
-                                        <table class="table table-sm ledger">
-                                            <thead>
-                                                <tr>
-                                                    <th   rowspan="1" colspan="1"  aria-label="products" style="width: 5%;">
-                                                        Sl No</th>
-                                                    <th  rowspan="1" colspan="1"  aria-label="products">Delivery
-                                                        Date</th>
-                                                        <th  rowspan="1" colspan="1"  aria-label="products">
+                                </td>
+                                <td><span>{{number_format($item['price'], 2)}}</span></td>
+                                <td><span>{{$item['quantity']}}</span></td>
+                                <td><span>{{number_format($item['price']*$item['quantity'], 2)}}</span></td>
+                            </tr>
+                            @if(!empty($item['deliveries']) && count($item['deliveries'])>0)
+                            <tr>
+                                <td colspan="5">
+                                    <div class="col-12 mb-2 measurement_div" style="background: #fdfdfd !important;">
+                                        <h6 class="badge bg-danger custom_success_badge">Delivery Logs</h6>
+                                        <div class="row">
+                                            <table class="table table-sm ledger">
+                                                <thead>
+                                                    <tr>
+                                                        <th rowspan="1" colspan="1" aria-label="products"
+                                                            style="width: 5%;">
+                                                            Sl No</th>
+                                                        <th rowspan="1" colspan="1" aria-label="products">Delivery
+                                                            Date</th>
+                                                        <th rowspan="1" colspan="1" aria-label="products">
                                                             Status</th>
 
-                                                        <th  rowspan="1" colspan="1"  aria-label="products">Delivered BY  
-                                                             ({{ isset($item['deliveries'][0]['delivered_by']) && $item['deliveries'][0]['delivered_by'] != 1 ? 'Production' : 'Admin' }})
+                                                        <th rowspan="1" colspan="1" aria-label="products">Delivered BY
+                                                            ({{ isset($item['deliveries'][0]['delivered_by']) &&
+                                                            $item['deliveries'][0]['delivered_by'] != 1 ? 'Production' :
+                                                            'Admin' }})
                                                         </th>
-                                                    <th class="" rowspan="1" colspan="1"  aria-label="qty">
-                                                        qty</th>
-                                                        <th  rowspan="1" colspan="1" aria-label="products">
+                                                        <th class="" rowspan="1" colspan="1" aria-label="qty">
+                                                            qty</th>
+                                                        <th rowspan="1" colspan="1" aria-label="products">
                                                             Remarks</th>
-                                                    <th class="" rowspan="1" colspan="1"  aria-label="total">Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach ($item['deliveries'] as $index=> $delivery_data)
-                                                <tr class="odd" style="background-color: #f2f2f2;">
-                                                    <td >{{ ++$index }}</td>
-                                                    <td >{{ date('d-m-Y h:i A ',timestamp: strtotime($delivery_data['delivered_at'])) }}</td>
-                                                    <td>
+                                                        <th class="" rowspan="1" colspan="1" aria-label="total">Action
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($item['deliveries'] as $index=> $delivery_data)
+                                                    <tr class="odd" style="background-color: #f2f2f2;">
+                                                        <td>{{ ++$index }}</td>
+                                                        <td>{{ date('d-m-Y h:i A ',timestamp:
+                                                            strtotime($delivery_data['delivered_at'])) }}</td>
+                                                        <td>
 
 
-                                                        @if($delivery_data['status']=='Pending')
-                                                        <span class="badge bg-primary">Pending</span>
-                                                        @endif
-                                                        @if($delivery_data['status']=='Received by Sales Team')
-                                                        <span class="badge bg-warning">Received by Sales Team</span>
-                                                        @endif
-                                                        @if($delivery_data['status']=='Rejected')
-                                                        <span class="badge bg-danger">Rejected</span>
-                                                        @endif
-                                                        @if($delivery_data['status']=='Alteration Required')
-                                                        <span class="badge bg-info">Alteration Required</span>
-                                                        @endif
-                                                        @if($delivery_data['status']=='Delivered')
-                                                        <span class="badge bg-success">Delivered</span>
-                                                        @endif
-                                                    </td>
+                                                            @if($delivery_data['status']=='Pending')
+                                                            <span class="badge bg-primary">Pending</span>
+                                                            @endif
+                                                            @if($delivery_data['status']=='Received by Sales Team')
+                                                            <span class="badge bg-warning">Received by Sales Team</span>
+                                                            @endif
+                                                            @if($delivery_data['status']=='Rejected')
+                                                            <span class="badge bg-danger">Rejected</span>
+                                                            @endif
+                                                            @if($delivery_data['status']=='Alteration Required')
+                                                            <span class="badge bg-info">Alteration Required</span>
+                                                            @endif
+                                                            @if($delivery_data['status']=='Delivered')
+                                                            <span class="badge bg-success">Delivered</span>
+                                                            @endif
+                                                        </td>
 
-                                                    <td>{{ $delivery_data['user']['name'] }}</td>
+                                                        <td>{{ $delivery_data['user']['name'] }}</td>
 
-                                                    <td>
-                                                        @if ($delivery_data['collection_id'] == 1)
-                                                           {{ $delivery_data['fabric_quantity'] ?? '' }}
-                                                        @else
-                                                           {{ $delivery_data['delivered_quantity'] ?? '' }}
-                                                        @endif
-                                                    </td>
-                                                    <td>
-                                                        <button href="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="top" class="btn btn-outline-info select-md mt-3" title="{{ $delivery_data['remarks'] }}">Show Remarks Click Here</button>
-                                                    </td>
-                                                    <td>
-                                                        @if($delivery_data['status']=='Pending')
-                                                        <a
-                                                            wire:click="$dispatch('mark-as-received', {Id: {{ $delivery_data['id'] }}})"
-                                                            class="btn btn-outline-warning select-md btn_outline" data-toggle="tooltip">Receive by Sales Team</a>
-                                                        @endif
-                                                         @if($delivery_data['status']=='Received by Sales Team')
+                                                        <td>
+                                                            @if ($delivery_data['collection_id'] == 1)
+                                                            {{ $delivery_data['fabric_quantity'] ?? '' }}
+                                                            @else
+                                                            {{ $delivery_data['delivered_quantity'] ?? '' }}
+                                                            @endif
+                                                        </td>
+                                                        <td>
+                                                            <button href="javascript:void(0)" data-bs-toggle="tooltip"
+                                                                data-bs-placement="top"
+                                                                class="btn btn-outline-info select-md mt-3"
+                                                                title="{{ $delivery_data['remarks'] }}">Show Remarks
+                                                                Click Here</button>
+                                                        </td>
+                                                        <td>
+                                                            @if($delivery_data['status']=='Pending')
+                                                            <a wire:click="$dispatch('mark-as-received', {Id: {{ $delivery_data['id'] }}})"
+                                                                class="btn btn-outline-warning select-md btn_outline"
+                                                                data-toggle="tooltip">Receive by Sales Team</a>
+                                                            @endif
+                                                            @if($delivery_data['status']=='Received by Sales Team')
                                                             <a href="javascript:void(0)"
-                                                            wire:click="$dispatch('delivered-to-customer', {orderId: '{{ $order->id }}',Id:{{ $delivery_data['id'] }} })"
-                                                            class="btn btn-outline-success select-md btn_outline"  >Delivery to Customer
+                                                                wire:click="$dispatch('delivered-to-customer', {orderId: '{{ $order->id }}',Id:{{ $delivery_data['id'] }} })"
+                                                                class="btn btn-outline-success select-md btn_outline">Delivery
+                                                                to Customer
                                                             </a>
-                                                        @endif
+                                                            @endif
 
 
-                                                    </td>
+                                                        </td>
 
-                                                </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
+                                                    </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
 
 
+                                        </div>
                                     </div>
-                                </div>
-                            </td>
+                                </td>
 
-                        </tr>
-                        @endif
-                        @if($item['collection_id']==1)
+                            </tr>
+                            @endif
+                            @if($item['collection_id']==1)
                             <tr>
                                 <td colspan="2">
                                     <div class="col-12 mb-2 measurement_div" style="background: #fdfdfd !important;">
@@ -307,8 +330,8 @@
                                                     <strong>[{{$measurement['measurement_title_prefix']}}]</strong>
                                                 </label>
                                                 <input type="text"
-                                                    class="form-control form-control-sm border border-1 customer_input text-center measurement_input" readonly
-                                                    value="{{ $measurement['measurement_value'] }}">
+                                                    class="form-control form-control-sm border border-1 customer_input text-center measurement_input"
+                                                    readonly value="{{ $measurement['measurement_value'] }}">
                                             </div>
                                             @endforeach
 
@@ -317,7 +340,9 @@
                                 </td>
                                 <td colspan="3" class="pt-4" style="vertical-align: text-top !important;">
                                     <p>FABRIC : <strong>{{$item['fabrics']->title}}</strong></p>
-                                    <p>CATLOGUE : <strong>{{ optional(optional($item['catalogue'])->catalogueTitle)->title }}</strong> (PAGE:
+                                    <p>CATLOGUE : <strong>{{
+                                            optional(optional($item['catalogue'])->catalogueTitle)->title }}</strong>
+                                        (PAGE:
                                         <strong>{{$item['cat_page_number']}}</strong>)
                                     </p>
                                     @if(!empty($item['remarks']))
@@ -325,135 +350,138 @@
                                         <strong>{{$item['remarks']}}</strong>
                                     </p>
                                     @endif
-                                   {{-- Catalogue images --}}
+                                    {{-- Catalogue images --}}
                                     @if(!empty($item['catlogue_images']))
-                                        <p>CATALOGUE IMAGES :</p>
-                                        <div class="d-flex flex-wrap gap-2 z">
-                                            @foreach ($item['catlogue_images'] as $img)
-                                                <a target="_blank" href="{{ asset('storage/'.$img->image_path) }}">
-                                                    <img src="{{ asset('storage/'.$img->image_path) }}"
-                                                        class="img-fluid rounded shadow border border-secondary"
-                                                        style="width:100px;height:100px;"
-                                                        alt="Catalogue image">
-                                                </a>
-                                            @endforeach
-                                        </div>
+                                    <p>CATALOGUE IMAGES :</p>
+                                    <div class="d-flex flex-wrap gap-2 z">
+                                        @foreach ($item['catlogue_images'] as $img)
+                                        <a target="_blank" href="{{ asset('storage/'.$img->image_path) }}">
+                                            <img src="{{ asset('storage/'.$img->image_path) }}"
+                                                class="img-fluid rounded shadow border border-secondary"
+                                                style="width:100px;height:100px;" alt="Catalogue image">
+                                        </a>
+                                        @endforeach
+                                    </div>
                                     @endif
-
+                                    {{-- @dd($item['voice_remarks']) --}}
                                     @if(!empty($item['voice_remarks']))
                                     <p>VOICE REMARKS :
                                         @foreach ($item['voice_remarks'] as $voice)
-                                            <audio controls>
-                                                <source src="{{ asset('storage/'.$voice->voice_path) }}" type="audio/mpeg">
-                                                Your browser does not support the audio element.
-                                            </audio>
+                                        {{-- @dd($voice) --}}
+                                        <audio controls>
+                                            <source src="{{ asset('storage/'.$voice->voices_path) }}" type="audio/mpeg">
+                                            Your browser does not support the audio element.
+                                        </audio>
                                         @endforeach
                                     </p>
                                     @endif
-                                   
+
                                 </td>
                             </tr>
-                        @endif
-                        @endforeach
-                        @else
-                        <tr>
-                            <td>
-                                <p>No items found for this order.</p>
-                            </td>
-                        </tr>
-                        @endif
-                        <tr>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td class="text-left"><small>Total Amount:</small></td>
-                            <td><strong>{{number_format($order->total_amount, 2)}}</strong></td>
-                        </tr>
-                        <tr>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td class="text-left"><small>Paid Amount:</small></td>
-                            <td><strong>{{number_format($order->paid_amount, 2)}}</strong></td>
-                        </tr>
-                        @if ($order->remaining_amount > 0)
-                        <tr>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td class="text-left"><small>Remaining Amount:</small></td>
-                            <td><strong class="text-danger">{{number_format($order->remaining_amount, 2)}}</strong></td>
-                        </tr>
-                        @endif
-                    </tbody>
-                </table>
+                            @endif
+                            @endforeach
+                            @else
+                            <tr>
+                                <td>
+                                    <p>No items found for this order.</p>
+                                </td>
+                            </tr>
+                            @endif
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="text-left"><small>Total Amount:</small></td>
+                                <td><strong>{{number_format($order->total_amount, 2)}}</strong></td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="text-left"><small>Paid Amount:</small></td>
+                                <td><strong>{{number_format($order->paid_amount, 2)}}</strong></td>
+                            </tr>
+                            @if ($order->remaining_amount > 0)
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="text-left"><small>Remaining Amount:</small></td>
+                                <td><strong class="text-danger">{{number_format($order->remaining_amount, 2)}}</strong>
+                                </td>
+                            </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
-    </div>
-{{-- Modal Content  --}}
+    {{-- Modal Content --}}
 
-    <div wire:ignore.self class="modal fade" id="DeliveryModal" tabindex="-1" aria-labelledby="stockEntryModalLabel" aria-hidden="true">
+    <div wire:ignore.self class="modal fade" id="DeliveryModal" tabindex="-1" aria-labelledby="stockEntryModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="stockEntryModalLabel">Delivery Status</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="stockEntryModalLabel">Delivery Status</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
 
 
 
-                <div class="card">
-                    <form wire:submit.prevent="deliveredToCustomerPartial">
-                        <div class="card-body">
-                            <h6>Delivery Status</h6>
-                            <div class="row mb-3">
-                                <div class="col-md-12">
-                                    <label class="form-label">
-                                        <strong>Status</strong> <span class="text-danger">*</span>
-                                    </label>
-                                    <select class="form-control @error('status') is-invalid @enderror" wire:model="status" >
-                                        <option value="">Select Status</option>
-                                        <option value="Delivered">Delivered</option>
-                                        <option value="Alteration Required">Alteration Required</option>
-                                        <option value="Reject">Rejected</option>
+                    <div class="card">
+                        <form wire:submit.prevent="deliveredToCustomerPartial">
+                            <div class="card-body">
+                                <h6>Delivery Status</h6>
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <label class="form-label">
+                                            <strong>Status</strong> <span class="text-danger">*</span>
+                                        </label>
+                                        <select class="form-control @error('status') is-invalid @enderror"
+                                            wire:model="status">
+                                            <option value="">Select Status</option>
+                                            <option value="Delivered">Delivered</option>
+                                            <option value="Alteration Required">Alteration Required</option>
+                                            <option value="Reject">Rejected</option>
 
-                                    </select>
-                                    @error('status') <span class="text-danger">{{ $message }}</span> @enderror
+                                        </select>
+                                        @error('status') <span class="text-danger">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <label class="form-label">
+                                            <strong>Remarks</strong> <span class="text-danger">*</span>
+                                        </label>
+
+                                        <textarea
+                                            class="form-control @error('remarks') is-invalid @enderror" wire:model="remarks">
+                                        </textarea>
+                                        @error('remarks') <span class="text-danger">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-2 mt-4">
+                                        <button class="btn btn-outline-success select-md">Submit</button>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="row mb-3">
-                                <div class="col-md-12">
-                                    <label class="form-label">
-                                        <strong>Remarks</strong> <span class="text-danger">*</span>
-                                    </label>
+                        </form>
+                    </div>
 
-                                    <textarea class="form-control @error('remarks') is-invalid @enderror"" wire:model="remarks"></textarea>
-                                    @error('remarks') <span class="text-danger">{{ $message }}</span> @enderror
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-
-
-                                <div class="col-md-2 mt-4">
-                                    <button class="btn btn-outline-success select-md">Submit</button>
-
-                                </div>
-                            </div>
-                        </div>
-                   </form>
                 </div>
 
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                {{-- <button type="button"  class="btn btn-primary">Save Stock</button> --}}
-            </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    {{-- <button type="button" class="btn btn-primary">Save Stock</button> --}}
+                </div>
             </div>
         </div>
     </div>
+    @endif
 
 
 </div>
@@ -520,7 +548,7 @@ window.addEventListener('delivered-to-customer', event => {
     });
 </script>
 {{-- <script>
-  Fancybox.bind('[data-fancybox]', {
+    Fancybox.bind('[data-fancybox]', {
       Thumbs : false,          // hide bottom thumbnails
       Toolbar: { display: [ 'close' ] }, // only show close icon
       animated: true,          // smooth zoom (default true)
@@ -535,5 +563,3 @@ window.addEventListener('delivered-to-customer', event => {
 
 
 @endpush
-
-
