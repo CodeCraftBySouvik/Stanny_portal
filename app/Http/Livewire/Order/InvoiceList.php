@@ -108,7 +108,8 @@ class InvoiceList extends Component
 
             ->when($this->created_by, fn($query) => $query->where('created_by', $this->created_by))
             ->when(!$auth->is_super_admin, fn($query) => $query->where('created_by', $auth->id)) // Restrict non-admins
-            ->orderBy('created_at', 'asc')
+            // ->orderBy('created_at', 'asc')
+            ->orderBy('id','desc')
 
             ->paginate(20)->through(function ($item) use (&$customer_deposits,&$customer_netdue) {
                     if (!array_key_exists($item->customer_id, $customer_deposits))
@@ -147,10 +148,7 @@ class InvoiceList extends Component
 
 
                     return $item;
-            })
-
-
-            ;
+            });
 
 
             $manualInvoices = ManualInvoice::query()

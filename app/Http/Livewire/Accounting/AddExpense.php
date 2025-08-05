@@ -71,6 +71,7 @@ class AddExpense extends Component
     
     public function mount(){
         $this->voucher_no = 'EXPENSE'.time();
+        $this->payment_date = now()->format('Y-m-d');
         if (auth()->guard('admin')->user()->designation == 2) {
             $this->user_type = 'staff';
             $this->getUser('staff');

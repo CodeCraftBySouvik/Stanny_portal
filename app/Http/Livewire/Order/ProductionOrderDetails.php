@@ -909,7 +909,8 @@ public function revertBackStock($index, $inputName, $entryId)
 
     public function openGarmentDeliveryModal($index){
         $item = $this->orderItems[$index];
-        $fabricId = $item['fabrics']['id'] ?? null; // Use $item['fabrics']['id'] as you're likely using relationship data
+        $fabricId = $item['fabrics']['id'] ?? null; 
+        // Use $item['fabrics']['id'] as you're likely using relationship data
         $productId = $item['collection_id'] == 2 ? ($item['product']['id'] ?? null) : null;
 
         $totalUsed = OrderStockEntry::query()
@@ -950,7 +951,8 @@ public function revertBackStock($index, $inputName, $entryId)
         // Store quantity for wire:model binding
         $initialRowsData[$entryData['input_name']] = $entryData['quantity'];
         // ✅ Set delivered_meter = required_meter
-        $this->deliveryEntries[$i]['delivered_meter'] = $entryData['quantity'];
+        // $this->deliveryEntries[$i]['delivered_meter'] = $entryData['quantity'];
+        $this->deliveryEntries[$i]['delivered_meter'] = 0;
         $this->stockEntries[] = $entryData;
     }
 
@@ -1345,39 +1347,12 @@ public function revertBackStock($index, $inputName, $entryId)
                         'delivered_at' => now(),
                     ]);
 
-                    // Decrease fabric stock
-                    // $stock = StockFabric::where('fabric_id', $fabricId)->first();
-                    // if ($stock) {
-                    //     $stock->decrement('qty_in_meter', $deliveredQty);
-                    // }
-
-                    // Update OrderStockEntry
-                    // $ose = OrderStockEntry::where('order_item_id', $itemId)
-                    //     ->where('fabric_id', $fabricId)
-                    //     ->first();
-
-                    // if ($ose) {
-                    //     $ose->quantity -= $deliveredQty;
-                    //     $ose->save();
-                    // }
+                   
                 }
             }
         }
 
-        // ========= Log Change =========
-        // Changelog::create([
-        //     'done_by' => auth()->guard('admin')->user()->id,
-        //     'purpose' => 'delivery_proceed',
-        //     'order_id' => $this->orderId,
-        //     'data_details' => json_encode([
-        //         'order_id' => $this->orderId,
-        //         'order_item_id' => $itemId,
-        //         'collection_id' => $collectionId,
-        //         'delivered_quantity' => $collectionId == 2 ? $actual : '',
-        //         'unit' => $item['unit'] ?? ($collectionId == 2 ? 'pieces' : 'meters'),
-        //         'timestamp' => now(),
-        //     ]),
-        // ]);
+      
 
         $logDetails = [
             'order_id' => $this->orderId,
@@ -1469,6 +1444,18 @@ public function revertBackStock($index, $inputName, $entryId)
 }
 
 
+    public function updated($propertyName, $value)
+{
+    // Match pattern: rows.required_meter_0, rows.required_meter_1, etc.
+    if (preg_match('/^rows\.required_meter_(\d+)$/', $propertyName, $matches)) {
+        $index = (int) $matches[1];
+        
+        // Only update if delivered_meter is 0 or null (i.e., not manually changed)
+        if (!isset($this->deliveryEntries[$index]['delivered_meter']) || $this->deliveryEntries[$index]['delivered_meter'] == 0) {
+            $this->deliveryEntries[$index]['delivered_meter'] = $value;
+        }
+    }
+}
 
 
     public function render()

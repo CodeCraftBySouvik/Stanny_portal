@@ -80,7 +80,7 @@
                                 {{-- @dd($item) --}}
                                     @if($item->stock_type === 'product')
                                         <tr>
-                                            <td>{{$index}}</td>
+                                            <td>{{$index + 1}}</td>
                                             <td>{{ ucwords($item->product_name) }}</td>
                                             <td>{{$item->qty_in_pieces }}</td>
                                             <td>{{ intval($item->qty_while_grn_product) }}</td>

@@ -412,7 +412,10 @@
                                                 <input type="text" value="{{ $selectedItem['collection_title'] ?? '' }}"
                                                     class="form-control form-control-sm border border-1 p-2" disabled>
                                             </div>
-                                            <div class="col-md-3 mt-4">
+                                            <div class="col-md-3">
+                                                <label class="form-label">
+                                                    <strong>Fabric</strong> <span class="text-danger">*</span>
+                                                </label>
                                                 @if ($entryIndex === 0)
                                                 {{-- First row: show disabled input --}}
                                                 <input type="text"
@@ -554,7 +557,10 @@
                                                 <input type="text" value="{{ $selectedItem['collection_title'] ?? '' }}"
                                                     class="form-control form-control-sm border border-1 p-2" disabled>
                                             </div>
-                                            <div class="col-md-2 mt-4">
+                                            <div class="col-md-2">
+                                                <label class="form-label">
+                                                    <strong>Fabric</strong> <span class="text-danger">*</span>
+                                                </label>
                                                 @if ($entryIndex === 0)
                                                 {{-- First row: show disabled input --}}
                                                 <input type="text"
@@ -618,14 +624,16 @@
                                             </div>
                                             {{-- NEW -> Delivered meter (what team is handing out now) --}}
                                             <div class="col-md-2">
-                                                <label class="form-label">Delivered&nbsp;Meter</label>
+                                                <label class="form-label">Extra&nbsp;Meter</label>
                                                 <input type="number"
                                                     wire:model="deliveryEntries.{{ $entryIndex }}.delivered_meter"
                                                     class="form-control form-control-sm border border-1 p-2">
                                                 @error('deliveryEntries.' . $entryIndex . '.delivered_meter')
                                                 <span class="invalid-feedback d-block">{{ $message }}</span>
                                                 @enderror
-
+                                                 @if (session()->has('stock_error'))
+                                                <p class="small text-danger">{{ session('stock_error') }}</p>
+                                                @endif
                                             </div>
                                             {{-- Row‑level Add Extra button --}}
                                             <div class="col-md-2 mt-4">
@@ -647,7 +655,7 @@
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-sm btn-outline-dark"
                                     data-bs-dismiss="modal">Close</button>
-                                <button type="button" class="btn btn-sm btn-outline-primary mt-2"
+                                <button type="button" class="btn btn-sm btn-outline-primary"
                                     wire:click="processDelivery">
                                     Process Delivery
                                 </button>

@@ -37,11 +37,11 @@
         </div>
     </section>
     <div class="d-flex justify-start gap-4 mb-4">
-        <button
+        {{-- <button
             class="btn btn-outline-denger select-md btn_outline {{ $activeTab === 'normal' ? 'btn-primary' : 'btn-outline-secondary' }}"
             wire:click="setActiveTab('normal')">
             Normal
-        </button>
+        </button> --}}
         {{-- <button
             class="btn btn-outline-success select-md btn_outline {{ $activeTab === 'manual' ? 'btn-primary' : 'btn-outline-secondary' }}"
             wire:click="setActiveTab('manual')">

@@ -29,8 +29,7 @@
                     </div>
                     @endif
                     <div class="col-md-auto mt-3">
-                        <a href="{{route('purchase_order.create')}}" class="btn btn-outline-success select-md">Add New
-                            PO</a>
+                        <a href="{{route('purchase_order.create')}}" class="btn btn-outline-success select-md">Add New PO</a>
                     </div>
                 </div>
             </div>
@@ -60,6 +59,7 @@
                                 <thead>
                                     <tr>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Ordered At</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Created By</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">PO Number</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Net Amount</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Supplier</th>
@@ -72,6 +72,10 @@
                                     <tr>
                                         <td>
                                             <p class="text-xs font-weight-bold mb-0">{{ $purchaseOrder->created_at?->format('d-m-Y') ?? 'N/A' }}
+                                            </p>
+                                        </td>
+                                        <td>
+                                            <p class="text-xs font-weight-bold mb-0">{{$purchaseOrder->createdBy ? $purchaseOrder->createdBy->name : 'N/A'}}
                                             </p>
                                         </td>
                                         <td>
@@ -113,7 +117,7 @@
                                                      $designationId = auth()->guard('admin')->user()->id;
                                                 @endphp
                                             @if ($purchaseOrder->is_approved == 0 && $designationId == 1)
-                                                <button wire:click="approveOrder({{ $purchaseOrder->id }})" class="btn btn-outline-success select-md btn_outline">
+                                                <button wire:click="approveConfirmOrder({{ $purchaseOrder->id }})" class="btn btn-outline-success select-md btn_outline">
                                                     Approve
                                                 </button>
                                             @endif
@@ -137,5 +141,30 @@
         </div>
     </div>
 </div>
+@push('js')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+   <script>
+    window.addEventListener('confirmApprove', function (event) {
+        const purchaseOrderId = event.detail[0].purchaseOrderId;
 
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You want to approve this order.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, Approve it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Call Livewire method directly
+                @this.call('approveOrder', purchaseOrderId);
+
+                // Optional success message
+                Swal.fire("Approved!", "The purchase order has been approved.", "success");
+            }
+        });
+    });
+    </script>
+@endpush
 

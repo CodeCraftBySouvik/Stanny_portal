@@ -628,7 +628,7 @@
                                     </label>
                                     <input type="number" wire:model="items.{{ $index }}.quantity" class="form-control form-control-sm border border-1 customer_input
                                         @error('items.' . $index . '.quantity') border-danger @enderror"
-                                        placeholder="Enter quantity" min="1">
+                                        placeholder="Enter quantity" min="1" wire:keyup="updateTotalAmount">
                                     @error('items.' . $index . '.quantity')
                                     <div class="text-danger error-message">{{ $message }}</div>
                                     @enderror
@@ -1108,8 +1108,7 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td class="w-70"><label class="form-label"><strong>Total
-                                                        Amount</strong></label>
+                                            <td class="w-70"><label class="form-label"><strong>Total Amount</strong></label>
                                             </td>
                                             <td>
                                                 <!-- Sub Total -->

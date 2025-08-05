@@ -665,9 +665,23 @@ class OrderNew extends Component
         }
 
     }
+     
+    public function updateTotalAmount()
+    {
+        $total = 0;
+
+        foreach ($this->items as $item) {
+            $quantity = isset($item['quantity']) ? floatval($item['quantity']) : 0;
+            $price = isset($item['price']) ? floatval($item['price']) : 0;
+
+            $total += $quantity * $price;
+        }
+
+        $this->billing_amount = round($total, 2);
+    }
 
 
-
+    
     public function checkproductPrice($value, $index)
     {
         $selectedFabricId = $this->items[$index]['selected_fabric'] ?? null;
@@ -697,16 +711,35 @@ class OrderNew extends Component
         $this->updateBillingAmount(); // Update billing after validation
     }
 
+    // public function updateBillingAmount()
+    // {
+    //     // Recalculate the total billing amount
+    //     $itemTotal = array_sum(array_column($this->items, 'price'));
+    //     $airMail = floatval($this->air_mail);
+    //     $this->billing_amount = $airMail > 0 ? ($itemTotal + $airMail) : $itemTotal;
+    //     $this->paid_amount = $this->billing_amount;
+    //     $this->GetRemainingAmount($this->paid_amount);
+    //     return;
+    // }
+
     public function updateBillingAmount()
     {
-        // Recalculate the total billing amount
-        $itemTotal = array_sum(array_column($this->items, 'price'));
-        $airMail = floatval($this->air_mail);
-        $this->billing_amount = $airMail > 0 ? ($itemTotal + $airMail) : $itemTotal;
+        $total = 0;
+
+        foreach ($this->items as $item) {
+            $quantity = isset($item['quantity']) ? floatval($item['quantity']) : 0;
+            $price = isset($item['price']) ? floatval($item['price']) : 0;
+
+            $total += $quantity * $price;
+        }
+
+        $airMail = floatval($this->air_mail ?? 0);
+        $this->billing_amount = $total + $airMail;
         $this->paid_amount = $this->billing_amount;
+
         $this->GetRemainingAmount($this->paid_amount);
-        return;
     }
+
     public function GetRemainingAmount($paid_amount)
     {
        // Remove leading zeros if present in the paid amount

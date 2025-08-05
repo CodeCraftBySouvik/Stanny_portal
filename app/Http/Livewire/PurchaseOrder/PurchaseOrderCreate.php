@@ -113,6 +113,7 @@ class PurchaseOrderCreate extends Component
             $productIds = [];
             $fabricIds = [];
             $purchaseOrder->is_approved = ($designationId == 1) ? 1 : 0;
+            $purchaseOrder->created_by = $designationId ?? null;
             $purchaseOrder->save();
 
             // Insert related purchase order products

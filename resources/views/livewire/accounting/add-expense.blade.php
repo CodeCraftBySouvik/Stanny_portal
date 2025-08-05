@@ -122,7 +122,7 @@
                         <!-- Date -->
                         <div class="mb-3 col-md-4">
                             <label class="form-label"><strong>Date <span class="text-danger">*</span></strong></label>
-                            <input type="date" wire:model="payment_date" class="form-control bg-white" placeholder="Select Date">
+                            <input type="date" wire:model="payment_date" class="form-control bg-white" placeholder="Select Date" disabled>
                             @error('payment_date') <div class="text-danger">{{ $message }}</div> @enderror
                         </div>
 
