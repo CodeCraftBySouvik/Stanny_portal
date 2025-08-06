@@ -151,11 +151,13 @@
                                     <h5 class="accordion-header" id="headingInvoices">
                                         Invoice List
                                     </h5>
+                                    @if (count($rest_invoices) > 0)
                                     {{-- Toggle Button --}}
                                     <div class="mt-2">
                                         <button type="button" id="toggleMoreRows"
                                             class="btn btn-sm btn-outline-primary">Show ALL</button>
                                     </div>
+                                    @endif
                                     <div id="collapseInvoices" class="accordion-collapse collapse show"
                                         aria-labelledby="headingInvoices" data-bs-parent="#invoiceAccordion">
                                         <div class="accordion-body">
@@ -389,7 +391,7 @@
                             @php
                             $user = auth()->guard('admin')->user();
                             @endphp
-                            <div class="{{ $user->designation == 1 ? 'col-sm-2' : 'col-sm-3' }}">
+                            <div class="{{ ($user->designation == 1 && $order_item->status == 'Process') ? 'col-sm-2' : 'col-sm-3' }}">
                                 <div class="form-group mb-3">
                                     @if ($key == 0)
                                     <label>Quantity</label>
@@ -398,7 +400,7 @@
                                         value="{{ $order_item->quantity }}" disabled {{ $readonly }}>
                                 </div>
                             </div>
-                            <div class="{{ $user->designation == 1 ? 'col-sm-2' : 'col-sm-3' }}">
+                            <div class="{{ ($user->designation == 1 && $order_item->status == 'Process') ? 'col-sm-2' : 'col-sm-3' }}">
                                 <div class="form-group mb-3">
                                     @if ($key == 0)
                                     <label for="">Price</label>
@@ -467,7 +469,7 @@
                             </div>
                             {{-- Team Dropdown start --}}
                             {{-- Only Admin Can select the team --}}
-                            @if ($user->designation == 1)
+                            @if ($user->designation == 1 && $order_item->status == 'Process')
                             <div class="col-sm-2">
                                 <div class="form-group mb-3">
                                     @if ($key == 0)

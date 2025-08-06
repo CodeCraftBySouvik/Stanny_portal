@@ -13,6 +13,7 @@ class OrderStockEntry extends Model
         'product_id', 
         'fabric_id', 
         'quantity', 
+        'extra_meter',
         'unit', 
         'created_by'        
     ];

@@ -236,7 +236,8 @@
                                         @endif
                                     </button>
                                     @if ($item['has_stock_entry'])
-                                    <button class="btn btn-outline-success select-md"
+                                    <button  id="delivery-btn-{{ $loop->index }}"
+                                         class="btn btn-outline-success select-md"
                                         wire:click="openGarmentDeliveryModal({{ $loop->index }})">
                                         Delivery
                                     </button>
@@ -782,5 +783,26 @@
         let myModal = new bootstrap.Modal(document.getElementById('delieveryGarmentProcessModal'));
          myModal.show();
      });
+
+      window.addEventListener('close-delivery-modal', () => {
+        const modal = document.getElementById('delieveryGarmentProcessModal');
+        if (modal) {
+            const bsModal = bootstrap.Modal.getInstance(modal);
+            if (bsModal) {
+                bsModal.hide();
+            }
+        }
+    });
+
+      window.addEventListener('livewire:load', () => {
+        Livewire.on('trigger-delivery-click', (index) => {
+            setTimeout(() => {
+                const btn = document.getElementById(`delivery-btn-${index}`);
+                if (btn) {
+                    btn.click();
+                }
+            }, 500); // Delay to ensure modal is closed before re-triggering
+        });
+    });
 
 </script>

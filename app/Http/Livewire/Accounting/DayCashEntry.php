@@ -155,7 +155,7 @@ class DayCashEntry extends Component
             }
         }
 
-        // ✅ Handle 'given' entries
+        //  Handle 'given' entries
        if ($this->entry_type === 'given') {
     // 1. Add to wallet balance (NOT expense)
     Payment::create([
@@ -175,8 +175,7 @@ class DayCashEntry extends Component
         'created_at' => now(),
     ]);
 
-    // ✅ DO NOT include this in expense calculation
-}
+   }
 
 
         \DB::commit();

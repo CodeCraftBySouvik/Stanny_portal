@@ -348,7 +348,7 @@ class CashBookModule extends Component
         // $this->totalExpenses = $expenseQuery->sum('transaction_amount');
 
         $expenseQuery = Journal::where('is_debit', 1)
-            ->whereNotNull('payment_id') // ✅ Exclude wallet-given entries
+            // ->whereNotNull('payment_id') // ✅ Exclude wallet-given entries
             ->when(!$user->is_super_admin, function ($query) use ($user) {
                 $query->whereHas('payment', function ($q) use ($user) {
                     $q->whereNotNull('stuff_id')->where('stuff_id', $user->id);
@@ -362,13 +362,18 @@ class CashBookModule extends Component
         $this->totalExpenses = $expenseQuery->sum('transaction_amount');
 
         // Wallet given 
-        $walletCredits = Journal::where('is_debit', 1)
-            ->whereNull('payment_id') // ✅ Only wallet top-ups
-            ->when(!$user->is_super_admin, function ($query) use ($user) {
-                $query->whereHas('payment', function ($q) use ($user) {
-                    $q->where('stuff_id', $user->id);
+       $walletCredits = Journal::where('is_debit', 1)
+        ->where(function ($query) use ($user) {
+            if (!$user->is_super_admin) {
+                $query->where(function ($subQuery) use ($user) {
+                    $subQuery->whereHas('payment', function ($q) use ($user) {
+                        $q->where('stuff_id', $user->id);
+                    })
+                    ->orWhereNull('payment_id'); // Include wallet top-ups (given)
                 });
-            });
+            }
+        });
+
 
         if ($this->start_date && $this->end_date) {
             $walletCredits->whereBetween('created_at', [$startDate, $endDate]);
