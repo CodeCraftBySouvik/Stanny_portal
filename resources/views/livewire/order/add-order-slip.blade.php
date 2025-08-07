@@ -337,7 +337,7 @@
         </div>
         <div class="card">
             <div class="card-body">
-                <div class="row">
+                <div class="row ">
                     <div class="col-md-12">
                         @if (session()->has('success'))
                         <div class="alert alert-success">
@@ -350,7 +350,7 @@
                             {{ session('error') }}
                         </div>
                         @endif
-                        <div class="row">
+                        <div class="row align-items-center">
                             @foreach ($order->items as $key => $order_item)
                             @php
                             $magrin = '';
@@ -475,24 +475,29 @@
                                     @if ($key == 0)
                                     <label>Delivery</label>
                                     @endif
-
-                                    <select wire:model="order_item.{{ $key }}.team" class="form-control form-control-sm"
-                                        @if (!empty($order_item[$key]['team'])) disabled @endif>
+                                    <select wire:model="order_item.{{ $key }}.team" class="form-control form-control-sm" @if ($this->order_item[$key]['team'])
+                                        disabled
+                                    @endif> 
                                         <option value="" selected hidden>Select Team</option>
                                         <option value="sales">Sales Team</option>
                                         <option value="production">Production Team</option>
                                     </select>
+                                   
                                 </div>
                             </div>
                             @endif
                             {{-- Team Dropdown end --}}
                             {{-- Start the measurement section --}}
                             @if ($order_item->collection == 1 && !empty($order_item->measurements))
-                            <div class="row">
-                                <div class="col-sm-7">
-                                    <div class="section-title"
+                            <div class="row mt-4 mb-4">
+                                <div class="col-md-12">
+                                    <div class="section-title badge"
                                         style="background: black; color: white; padding: 5px 10px; border-radius: 5px; display: inline-block; margin-bottom: 10px;">
-                                        Measurements</div>
+                                        Measurements
+                                    </div>
+                                </div>
+                                <div class="col-sm-9">
+                                    
 
                                     @php
                                     $measurements = collect($order_item['measurements'])->mapWithKeys(
@@ -534,7 +539,7 @@
                                         @endforeach
                                     </table>
                                 </div>
-                                <div class="col-sm-5">
+                                <div class="col-sm-3">
                                     <p><strong>Fabric:</strong> {{ $order_item['fabric']->title ?? 'N/A' }}</p>
                                     <p><strong>Catalogue:</strong>
                                         {{ optional(optional($order_item['catalogue'])->catalogueTitle)->title ?? 'N/A'

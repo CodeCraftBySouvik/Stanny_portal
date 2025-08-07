@@ -35,7 +35,7 @@ class AddPaymentReceipt extends Component
     public $readonly = "readonly";
     public $customer,$customer_id, $customer_name, $staff_id, $amount, $voucher_no, $payment_date,$next_payment_date,$credit_date,$deposit_date,$payment_mode, $chq_utr_no, $bank_name, $receipt_for = "Customer",$cheque_photo,$cheque_file,$transaction_no;
     public $mobileLengthPhone,$countries,$selectedCountryPhone,$phone,$customer_email,$customer_company,$customer_address,$withdrawal_charge,$payment_data;
-   use WithFileUploads;
+    use WithFileUploads;
 
     public function boot(AccountingRepositoryInterface $accountingRepository)
     {
@@ -238,9 +238,6 @@ class AddPaymentReceipt extends Component
 
 
                 }
-
-
-
                 session()->flash('success', 'Payment receipt added successfully.');
                 DB::commit();
                 return redirect()->route('admin.accounting.payment_collection');
@@ -295,30 +292,24 @@ class AddPaymentReceipt extends Component
         $this->payment_date=date('Y-m-d');
         if(!empty($this->payment_data))
         {
-
-        return view('livewire.accounting.update-cheque');
-
+            return view('livewire.accounting.update-cheque');
         }
         else{
-        return view('livewire.accounting.add-payment-receipt');
-
+            return view('livewire.accounting.add-payment-receipt');
         }
     }
     public function editReceipt()
     {
-    try {
-       $this->validate();
+        try {
+        $this->validate();
 
-        $payment_collection = PaymentCollection::find($this->payment_collection_id); // Replace 'User' with your model name
-        $payment_collection->credit_date = $this->credit_date; // Replace 'name' with your field
-        $payment_collection->save();
-         session()->flash('success', 'Credit Date  Added successfully.');
-        return redirect()->route('admin.accounting.payment_collection');
-    } catch (\Exception $e) {
-    session()->flash('error', $e->getMessage());
-
-    }
-
-
+            $payment_collection = PaymentCollection::find($this->payment_collection_id); // Replace 'User' with your model name
+            $payment_collection->credit_date = $this->credit_date; // Replace 'name' with your field
+            $payment_collection->save();
+            session()->flash('success', 'Credit Date  Added successfully.');
+            return redirect()->route('admin.accounting.payment_collection');
+        } catch (\Exception $e) {
+           session()->flash('error', $e->getMessage());
+        }
     }
 }

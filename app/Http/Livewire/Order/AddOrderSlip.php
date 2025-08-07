@@ -56,7 +56,7 @@ class AddOrderSlip extends Component
                 'team' => $order_item->assigned_team,
                 'tl_approved' => $order_item->tl_status == 'Approved',
                 'admin_approved' => $order_item->admin_status == 'Approved',
-               'measurements' => $order_item->measurements->map(function ($m) {
+                'measurements' => $order_item->measurements->map(function ($m) {
                     return [
                         'measurement_name' => $m->name,
                         'measurement_title_prefix' => $m->title_prefix,
@@ -76,7 +76,7 @@ class AddOrderSlip extends Component
                 // $this->order_item[$key]['piece_price']= (int)$order_item->piece_price;
                 // $this->order_item[$key]['quantity']= $order_item->quantity;
                 // $this->order_item[$key]['measurements']= $order_item->measurements->toArray();
-
+            //  dd($this->order_item[$key]['team']);
             }
             $this->total_amount = $this->order->total_amount;
             $this->actual_amount = $this->order->total_amount;
@@ -120,7 +120,14 @@ class AddOrderSlip extends Component
 
                 // Auto deliver logic for sales team
                 if ($itemData['team'] === 'sales') {
+                  
                     $this->autoDeliverItem($item);
+                       //  Update delivery status to 'Received by Sales Team'
+                       $delivery = Delivery::where('order_item_id',$item->id)->latest()->first();
+                       if($delivery){
+                            $delivery->status = "Received by Sales Team";
+                            $delivery->save();
+                       }
                 }
             }
         }
@@ -398,6 +405,7 @@ class AddOrderSlip extends Component
                 session()->flash('success', 'Order Approved successfully.');
                 return redirect()->route('admin.order.index');
             } catch (\Exception $e) {
+                dd($e->getMessage());
                 DB::rollBack();
                 session()->flash('error', $e->getMessage());
             }

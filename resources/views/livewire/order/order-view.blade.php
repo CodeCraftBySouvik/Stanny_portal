@@ -4,6 +4,33 @@
             font-size: 24px !important;
             margin-top: 8px !important;
         }
+        .catelog-wrap {
+            margin-bottom: 25px;
+        }
+        .audio-stack {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .audio-stack audio {
+            max-width: 214px;
+        }
+
+        p{
+            font-size:13px;
+        }
+
+        .td-details {
+            padding:15px 0;
+        }
+
+        .odd {
+            border-bottom: 1px solid #ccc;
+        }
+
+        .odd:last-child{
+            border-bottom:0;
+        }
         
     </style>
     <section class="admin__title">
@@ -158,9 +185,6 @@
                                     </a>
                                 </div>
                             </div>
-
-
-
                         </div>
                     </div>
                 </div>
@@ -185,9 +209,7 @@
                         </thead>
                         <tbody>
                             @if ($orderItems->isNotEmpty())
-
                             @foreach ($orderItems as $item)
-                            {{-- {{dd()}} --}}
                             <tr class="odd" style="background-color: #f2f2f2;">
                                 <td>{{$item['collection_title']}}</td>
                                 <td class="">
@@ -215,6 +237,7 @@
                                 <td><span>{{$item['quantity']}}</span></td>
                                 <td><span>{{number_format($item['price']*$item['quantity'], 2)}}</span></td>
                             </tr>
+                            {{-- Delivery Logs Section --}}
                             @if(!empty($item['deliveries']) && count($item['deliveries'])>0)
                             <tr>
                                 <td colspan="5">
@@ -318,64 +341,77 @@
                             @endif
                             @if($item['collection_id']==1)
                             <tr>
-                                <td colspan="2">
-                                    <div class="col-12 mb-2 measurement_div" style="background: #fdfdfd !important;">
-                                        <h6 class="badge bg-danger custom_success_badge">Measurements</h6>
+                                <td colspan="6">
+                                    <div class="td-details">
                                         <div class="row">
+                                            <div class="col-lg-6">
+                                                <h6 class="badge bg-danger custom_success_badge">Measurements</h6>
+                                                <div class="row">
 
-                                            @foreach ($item['measurements'] as $index => $measurement)
-                                            <div class="col-md-3">
-                                                <label>
-                                                    {{$measurement['measurement_name']}}
-                                                    <strong>[{{$measurement['measurement_title_prefix']}}]</strong>
-                                                </label>
-                                                <input type="text"
-                                                    class="form-control form-control-sm border border-1 customer_input text-center measurement_input"
-                                                    readonly value="{{ $measurement['measurement_value'] }}">
+                                                    @foreach ($item['measurements'] as $index => $measurement)
+                                                    <div class="col-md-3 mb-2">
+                                                        <label>
+                                                            {{$measurement['measurement_name']}}
+                                                            <strong style="display:block;">[{{$measurement['measurement_title_prefix']}}]</strong>
+                                                        </label>
+                                                        <input type="text"
+                                                            class="form-control form-control-sm border border-1 customer_input text-center measurement_input"
+                                                            readonly value="{{ $measurement['measurement_value'] }}">
+                                                    </div>
+                                                    @endforeach
+                                                </div>
+                                                {{-- @dd($item) --}}
+                                                @if(!empty($item['remarks']))
+                                                <div class="mt-3">
+                                                    <label for="remarks"><strong>Remarks:</strong></label>
+                                                    <textarea  class="form-control form-control-sm border border-1" rows="3" disabled>{{$item['remarks']}}</textarea>
+                                                </div>
+                                                @endif
                                             </div>
-                                            @endforeach
-
+                                            <div class="col-lg-6">
+                                                <p>FABRIC : <strong>{{$item['fabrics']->title}}</strong></p>
+                                                <p>CATLOGUE : <strong>{{
+                                                        optional(optional($item['catalogue'])->catalogueTitle)->title }}</strong>
+                                                    (PAGE:
+                                                    <strong>{{$item['cat_page_number']}}</strong>)
+                                                </p>
+                                                @if(!empty($item['remarks']))
+                                                <p>Remark :
+                                                    <strong>{{$item['remarks']}}</strong>
+                                                </p>
+                                                @endif
+                                                {{-- Catalogue images --}}
+                                                @if(!empty($item['catlogue_images']))
+                                                <div class="catelog-wrap">
+                                                    <p>CATALOGUE IMAGES :</p>
+                                                    <div class="d-flex flex-wrap gap-2">
+                                                        @foreach ($item['catlogue_images'] as $img)
+                                                        <a target="_blank" href="{{ asset('storage/'.$img->image_path) }}">
+                                                            <img src="{{ asset('storage/'.$img->image_path) }}"
+                                                                class="img-fluid rounded shadow border border-secondary"
+                                                                style="width:50px;height:50px;" alt="Catalogue image">
+                                                        </a>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                                @endif
+                                                {{-- @dd($item['voice_remarks']) --}}
+                                                @if(!empty($item['voice_remarks']))
+                                                <p>VOICE REMARKS : </p>
+                                                <div class="audio-stack">
+                                                
+                                                    @foreach ($item['voice_remarks'] as $voice)
+                                                    {{-- @dd($voice) --}}
+                                                    <audio controls>
+                                                        <source src="{{ asset('storage/'.$voice->voices_path) }}" type="audio/mpeg">
+                                                        Your browser does not support the audio element.
+                                                    </audio>
+                                                    @endforeach
+                                                </div>
+                                                @endif
+                                            </div>
                                         </div>
                                     </div>
-                                </td>
-                                <td colspan="3" class="pt-4" style="vertical-align: text-top !important;">
-                                    <p>FABRIC : <strong>{{$item['fabrics']->title}}</strong></p>
-                                    <p>CATLOGUE : <strong>{{
-                                            optional(optional($item['catalogue'])->catalogueTitle)->title }}</strong>
-                                        (PAGE:
-                                        <strong>{{$item['cat_page_number']}}</strong>)
-                                    </p>
-                                    @if(!empty($item['remarks']))
-                                    <p>Remark :
-                                        <strong>{{$item['remarks']}}</strong>
-                                    </p>
-                                    @endif
-                                    {{-- Catalogue images --}}
-                                    @if(!empty($item['catlogue_images']))
-                                    <p>CATALOGUE IMAGES :</p>
-                                    <div class="d-flex flex-wrap gap-2 z">
-                                        @foreach ($item['catlogue_images'] as $img)
-                                        <a target="_blank" href="{{ asset('storage/'.$img->image_path) }}">
-                                            <img src="{{ asset('storage/'.$img->image_path) }}"
-                                                class="img-fluid rounded shadow border border-secondary"
-                                                style="width:100px;height:100px;" alt="Catalogue image">
-                                        </a>
-                                        @endforeach
-                                    </div>
-                                    @endif
-                                    {{-- @dd($item['voice_remarks']) --}}
-                                    @if(!empty($item['voice_remarks']))
-                                    <p>VOICE REMARKS :
-                                        @foreach ($item['voice_remarks'] as $voice)
-                                        {{-- @dd($voice) --}}
-                                        <audio controls>
-                                            <source src="{{ asset('storage/'.$voice->voices_path) }}" type="audio/mpeg">
-                                            Your browser does not support the audio element.
-                                        </audio>
-                                        @endforeach
-                                    </p>
-                                    @endif
-
                                 </td>
                             </tr>
                             @endif
