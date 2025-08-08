@@ -428,11 +428,12 @@ public function revertBackStock($index, $inputName, $entryId)
                 ->whereIn('purpose', ['stock_entry_update', 'extra_stock_entry', 'delivery_proceed'])
                 ->get();
 
+            $latestDeliveryLog = $logs->where('purpose', 'delivery_proceed')->last();
             $deliveryCount = 0;
 
-           $logTooltip = $logs->map(function ($log) use ($item, &$deliveryCount) {
+           $logTooltip = $logs->map(function ($log) use ($item, &$deliveryCount,$latestDeliveryLog) {
             $details = json_decode($log->data_details, true);
-
+            // Find the latest delivery_proceed log (if any)
             return match ($log->purpose) {
                 // For product-based collections (collection_id = 2)
                 'stock_entry_update' => $item->collection == 2
@@ -445,11 +446,12 @@ public function revertBackStock($index, $inputName, $entryId)
 
                 'delivery_proceed' => match (true) {
                     // For fabric-based collections (collection_id = 1)
-                    $item->collection == 1 && isset($details['delivered_fabrics']) => collect($details['delivered_fabrics'])->map(function ($fabric) {
+                    $item->collection == 1 && isset($details['delivered_fabrics']) && $log->id === $latestDeliveryLog->id => collect($details['delivered_fabrics'])->map(function ($fabric) {
                         $name = $fabric['fabric'] ?? 'Unknown';
                         // $entered = $fabric['entered_quantity'] ?? '-';
                         $delivered = $fabric['delivered_quantity'] ?? '-';
-                        return "$name: delivered quantity $delivered";
+                        $extra_quantity = $fabric['extra_meter'] ?? '-';
+                        return "$name:extra_meter $extra_quantity , delivered quantity $delivered";
                     })->implode(' | '),
 
                     // For product-based collections (collection_id = 2)
@@ -1664,32 +1666,36 @@ public function revertBackStock($index, $inputName, $entryId)
 
         // ========== FOR COLLECTION 1 (FABRIC) ==========
         if ($collectionId == 1) {
+            // $this->stockEntries = collect($this->stockEntries)
+            //     ->sortByDesc('id')          // Latest first
+            //     ->unique('fabric_id')       // Only one per fabric
+            //     ->values()
+            //     ->toArray();
             $this->stockEntries = collect($this->stockEntries)
-                ->sortByDesc('id')          // Latest first
-                ->unique('fabric_id')       // Only one per fabric
+                ->where('order_id', $this->orderId)
+                ->groupBy('fabric_id')
+                ->map(function ($entries) {
+                    return [
+                        'fabric_id'        => $entries->first()['fabric_id'],
+                        'total_quantity'   => $entries->sum('quantity'),
+                        'total_extra_meter'=> $entries->sum('extra_meter'),
+                        'available_value'  => $entries->sum('available_value'), // keep stock info
+                    ];
+                })
                 ->values()
                 ->toArray();
+            // dd($this->stockEntries);
             $totalDelivered = 0;
 
-            foreach ($this->deliveryEntries as $index => $entry) {
+            foreach ($this->stockEntries as $index => $entry) {
                 $fabricId = $this->stockEntries[$index]['fabric_id'] ?? null;
-                $requiredQty = floatval($this->stockEntries[$index]['quantity'] ?? 0);
+                $requiredQty = floatval($this->stockEntries[$index]['total_quantity'] ?? 0);
                 $deliveredQty = $requiredQty;
                 $availableStock = floatval($this->stockEntries[$index]['available_value'] ?? 0);
 
-            //     if ($deliveredQty > $requiredQty) {
-            //     session()->flash('stock_error', "Delivered quantity ($deliveredQty) can't be greater than required quantity ($requiredQty) for fabric at row " . ($index + 1) . ".");
-            //     return;
-            // }
-
-            // if ($deliveredQty > $availableStock) {
-            //     session()->flash('stock_error', "Delivered quantity ($deliveredQty) can't exceed available stock ($availableStock) for fabric at row " . ($index + 1) . ".");
-            //     return;
-            // }
-
-
                 $totalDelivered += $deliveredQty;
             }
+            // dd($totalDelivered);
 
             if ($totalDelivered <= 0) {
                 session()->flash('stock_error', 'Please enter a valid delivery quantity.');
@@ -1725,9 +1731,9 @@ public function revertBackStock($index, $inputName, $entryId)
 
             // ========= Process FABRIC DELIVERY (COLLECTION 1) =========
             if ($collectionId == 1) {
-                foreach ($this->deliveryEntries as $index => $entry) {
+                foreach ($this->stockEntries as $index => $entry) {
                     $fabricId = $this->stockEntries[$index]['fabric_id'] ?? null;
-                    $requiredQty = floatval($this->stockEntries[$index]['quantity'] ?? 0);
+                    $requiredQty = floatval($this->stockEntries[$index]['total_quantity'] ?? 0);
                     $deliveredQty = $requiredQty;
                     // dd($requiredQty,$deliveredQty);
                     if ($deliveredQty > 0 && $fabricId) {
@@ -1759,12 +1765,15 @@ public function revertBackStock($index, $inputName, $entryId)
             // For collection 1, list each fabric + delivered meter
             if ($collectionId == 1) {
                 $fabricLogs = [];
-
+                // dd($this->stockEntries);
                 foreach ($this->deliveryEntries as $index => $entry) {
+                    // dd($entry);
                     $fabricId = $this->stockEntries[$index]['fabric_id'] ?? null;
-                    $requiredQty = floatval($this->stockEntries[$index]['quantity'] ?? 0); 
+                    $requiredQty = floatval($entry['required_meter'] ?? 0); 
+                     // Delivered meter (extra meter)
+                    $extraQty = floatval($entry['delivered_meter'] ?? 0);
                     $deliveredQty = $requiredQty;
-
+                    
                     if ($deliveredQty > 0 && $fabricId) {
                         $fabric = Fabric::find($fabricId);
                         $fabricName = $fabric ? $fabric->title : 'Unknown Fabric';
@@ -1772,9 +1781,11 @@ public function revertBackStock($index, $inputName, $entryId)
                         $fabricLogs[] = [
                             'fabric' => $fabricName,
                             'delivered_quantity' => $deliveredQty,
+                            'extra_meter' => $extraQty
                         ];
                     }
                 }
+                // dd($fabricLogs);
 
                 $logDetails['delivered_fabrics'] = $fabricLogs;
             } elseif($collectionId == 2 && $actual !== null)  {

@@ -108,11 +108,11 @@
                                                     <h6 class="mb-0 text-sm">{{ $todolists->firstItem() + $k }}</h6>
                                                 </td>
                                                 <td>
-                                                    <p class="text-xs font-weight-bold mb-0">{{ $todo->staff->name }}
+                                                    <p class="text-xs font-weight-bold mb-0">{{ $todo->staff ?$todo->staff->name : "" }}
                                                     </p>
                                                 </td>
                                                 <td>
-                                                    <p class="text-xs font-weight-bold mb-0">{{ $todo->customer->name }}
+                                                    <p class="text-xs font-weight-bold mb-0">{{ $todo->customer ? $todo->customer->name : "" }}
                                                     </p>
                                                 </td>
                                                 <td>
