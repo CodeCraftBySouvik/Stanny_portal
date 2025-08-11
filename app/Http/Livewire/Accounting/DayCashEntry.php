@@ -78,8 +78,13 @@ class DayCashEntry extends Component
         $this->totalCash = $collections->where('payment_type', 'cash')->sum('collection_amount');
         $this->totalNEFT = $collections->where('payment_type', 'neft')->sum('collection_amount');
         $this->totalCheque = $collections->where('payment_type', 'cheque')->sum('collection_amount');
-        $this->totalDigital = $collections->where('payment_type', 'digital_payment')->sum('collection_amount');
-
+        // $this->totalDigital = $collections->where('payment_type', 'digital_payment')->sum('collection_amount');
+         $this->totalDigital = $collections
+        ->where('payment_type', 'digital_payment')
+        ->sum(function ($item) {
+            return $item->collection_amount + $item->withdrawal_charge;
+        });
+        
         $total = $this->totalCash + $this->totalNEFT + $this->totalCheque + $this->totalDigital;
 
         $this->totalWallet = "{$total} (Cash={$this->totalCash}, NEFT={$this->totalNEFT}, Cheque={$this->totalCheque}, Digi Payment={$this->totalDigital})";
@@ -129,7 +134,7 @@ class DayCashEntry extends Component
                 ->get();
 
             foreach ($collections as $collection) {
-                if (in_array($collection->payment_type, ['digital_payment', 'cheque', 'neft'])) {
+                if (in_array($collection->payment_type, ['cheque', 'neft'])) {
                     $collection->update([
                         'collection_amount' => 0,
                         'is_settled' => 1,

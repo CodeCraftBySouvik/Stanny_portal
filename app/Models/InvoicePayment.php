@@ -14,11 +14,11 @@ class InvoicePayment extends Model
   ];
 
     public function collection(){
-        return $this->belongsTo(PaymentCollection::class, 'payment_collection_id ', 'id');
+        return $this->belongsTo(PaymentCollection::class, 'payment_collection_id', 'id');
     }
 
     public function invoice(){
-        return $this->belongsTo(Invoice::class, 'invoice_id ', 'id');
+        return $this->belongsTo(Invoice::class, 'invoice_id', 'id');
     }
     
 }

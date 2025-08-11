@@ -375,11 +375,7 @@
                                                     (PAGE:
                                                     <strong>{{$item['cat_page_number']}}</strong>)
                                                 </p>
-                                                @if(!empty($item['remarks']))
-                                                <p>Remark :
-                                                    <strong>{{$item['remarks']}}</strong>
-                                                </p>
-                                                @endif
+                                               
                                                 {{-- Catalogue images --}}
                                                 @if(!empty($item['catlogue_images']))
                                                 <div class="catelog-wrap">

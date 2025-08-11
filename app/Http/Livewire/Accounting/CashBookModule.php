@@ -348,7 +348,7 @@ class CashBookModule extends Component
         // $this->totalExpenses = $expenseQuery->sum('transaction_amount');
 
         $expenseQuery = Journal::where('is_debit', 1)
-            // ->whereNotNull('payment_id') // ✅ Exclude wallet-given entries
+            ->whereNotNull('payment_id') // ✅ Exclude wallet-given entries
             ->when(!$user->is_super_admin, function ($query) use ($user) {
                 $query->whereHas('payment', function ($q) use ($user) {
                     $q->whereNotNull('stuff_id')->where('stuff_id', $user->id);
