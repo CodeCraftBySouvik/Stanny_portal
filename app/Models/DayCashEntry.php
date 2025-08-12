@@ -10,6 +10,8 @@ class DayCashEntry extends Model
     protected $fillable = [
         'staff_id',
         'payment_date',
-        'amount'
+        'amount',
+        'payment_cash',
+        'payment_digital'
     ];
 }

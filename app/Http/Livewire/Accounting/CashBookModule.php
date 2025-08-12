@@ -287,7 +287,7 @@ class CashBookModule extends Component
         if ($this->start_date && $this->end_date) {
             $collectionQuery->whereBetween('created_at', [$startDate, $endDate]);
         }
-        $this->totalCollections = $collectionQuery->sum('collection_amount');
+        $this->totalCollections = $collectionQuery->sum('collection_amount') + $collectionQuery->sum('withdrawal_charge');
 
         $collectionQuery = PaymentCollection::where('is_approve', 1)
             ->where('payment_type','cash')

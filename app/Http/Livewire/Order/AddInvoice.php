@@ -436,6 +436,7 @@ class AddInvoice extends Component
              foreach ($orderItems as $key => $item) {
                 InvoiceProduct::create([
                     'invoice_id' =>  $invoice->id,
+                    'order_item_id'=>$item->id,
                     'product_id' => $item->product_id,
                     'product_name'=> $item->product? $item->product->name : "",
                     'quantity' => $item->quantity,

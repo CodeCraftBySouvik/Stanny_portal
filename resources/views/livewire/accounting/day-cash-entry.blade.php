@@ -85,27 +85,52 @@
                                                         @error('todo_date')
                                                         <p class='text-danger'>{{ $message }}</p>
                                                         @enderror
-                                                        @if (!empty($entry_type))
+                                                        {{-- New checkboxes for payment method --}}
+                                                        @if (!empty($entry_type) && $entry_type == 'collect')
+                                                        <div class="form-check">
+                                                            <input type="checkbox" wire:change="toggleCashCheckbox">
+                                                            <label for="cashCheck">Cash</label>
+                                                        </div>
+
+                                                        @if($payment_cash)
+                                                            <div class="form-group">
+                                                                <label>Cash Collected Amount</label>
+                                                                <input type="number" wire:model="cashCollectedAmount" class="form-control">
+                                                                @error('cashCollectedAmount') <span class="text-danger">{{ $message }}</span> @enderror
+                                                            </div>
+                                                        @endif
+
+                                                        <div class="form-check">
+                                                            <input type="checkbox" wire:change="toggleDigitalCheckbox">
+                                                            <label for="digitalCheck">Digital Payment</label>
+                                                        </div>
+
+                                                        @if($payment_digital)
+                                                            <div class="form-group">
+                                                                <label>Digital Payment Collected Amount</label>
+                                                                <input type="number" wire:model="digitalCollectedAmount" class="form-control">
+                                                                @error('digitalCollectedAmount') <span class="text-danger">{{ $message }}</span> @enderror
+                                                            </div>
+                                                        @endif
+
+                                                        @error('payment_cash')
+                                                        <p class='text-danger'>{{ $message }}</p>
+                                                        @enderror
+                                                        @endif
+                                                        @if (!empty($entry_type) && $entry_type == 'given')
                                                         <label class="form-label">
-                                                            @if ($entry_type=='collect')
-                                                            Collected Amount
-                                                            @endif
                                                             @if ($entry_type=='given')
                                                             Given Amount
                                                             @endif
                                                             <span class="text-danger">*</span></label>
                                                         <div class="ms-md-auto pe-md-3 d-flex align-items-center mb-2">
                                                             <input type="text"
-                                                                class="form-control  @error('collectedAmount') is-invalid @enderror"
-                                                                wire:model="collectedAmount" placeholder="{{$entry_type=='collect' ? 'Enter Collected Amount' : 'Enter Disbursed Amount'}}">
+                                                                class="form-control"
+                                                                wire:model="collectedAmount" placeholder="Enter Disbursed Amount">
 
                                                         </div>
-                                                        @error('collectedAmount')
-                                                        <p class='text-danger'>{{ $message }}</p>
-                                                        @enderror
+                                                        
                                                         @endif
-
-                                                      
 
                                                         <div class="mb-2 text-end mt-4">
                                                             <button type="submit"

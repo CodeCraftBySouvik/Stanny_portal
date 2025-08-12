@@ -429,7 +429,7 @@
                     <div class="loop">
                         <div class="row">
                             <div class="col-md-3">
-                                <label class="date_lable">Customer Name</label>
+                                <label class="date_lable">Product Name</label>
                                 <select class="form-control product-select"
 
                                 wire:model="rows.{{ $index }}.product_id">
