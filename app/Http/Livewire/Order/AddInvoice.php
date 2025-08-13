@@ -330,7 +330,7 @@ class AddInvoice extends Component
             $this->updateOrder($order->id);
             $this->updateOrderItems($order->id);
             $this->createPackingSlip($order->id);
-
+            
             // Payment Receipt
             $this->voucher_no = 'PAYRECEIPT'.time();            
             $this->payment_date = $this->invoice_date;

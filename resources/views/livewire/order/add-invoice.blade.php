@@ -618,7 +618,7 @@
                     </div>
                     
                     <div class="col-md-2">
-                        <button type="submit" id="submit_btn" class="btn btn-sm btn-success" wire:click.prevent="savePayment"><i class="material-icons text-white" style="font-size: 15px;">add</i>Save</button>
+                        <button type="submit" id="submit_btn" class="btn btn-sm btn-success mt-4" wire:click.prevent="savePayment"><i class="material-icons text-white" style="font-size: 15px;">add</i>Save</button>
                     </div>
                 </div>
                 

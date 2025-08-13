@@ -118,9 +118,9 @@ class AccountingRepository implements AccountingRepositoryInterface
             'is_approve' => 1,
             'created_from' => 'web',
             'credit_date' => !empty($data['credit_date'])?$data['credit_date']:null,
-            'cheque_photo' => $data['cheque_photo'],
-            'withdrawal_charge' => $data['withdrawal_charge'],
-            'transaction_no' => $data['transaction_no'],
+            'cheque_photo' => $data['cheque_photo'] ?? null,
+            'withdrawal_charge' => $data['withdrawal_charge'] ?? null,
+            'transaction_no' => $data['transaction_no'] ?? null,
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s')
             );

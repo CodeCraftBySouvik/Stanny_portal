@@ -1626,233 +1626,431 @@ public function revertBackStock($index, $inputName, $entryId)
 //     }
 // }
 
-    // New
-      public function processDelivery()
-    {
-        // Decide which item to process
-        $item = ($this->selectedDeliveryItem['collection_id'] ?? null) == 2
-            ? $this->selectedDeliveryItem
-            : $this->selectedItem;
+    // 13-08-2025
+    //   public function processDelivery()
+    // {
+    //     // Decide which item to process
+    //     $item = ($this->selectedDeliveryItem['collection_id'] ?? null) == 2
+    //         ? $this->selectedDeliveryItem
+    //         : $this->selectedItem;
 
-        $itemId = $item['item_id'] ?? $item['id'] ?? null;
-        $collectionId = $item['collection_id'] ?? null;
+    //     $itemId = $item['item_id'] ?? $item['id'] ?? null;
+    //     $collectionId = $item['collection_id'] ?? null;
 
-        // ========== FOR COLLECTION 2 (PRODUCTS) ==========
-        if ($collectionId == 2) {
-            $this->validate([
-                'actualUsage.' . $itemId => 'required|numeric|min:1',
-            ], [
-                'actualUsage.*.required' => 'Please enter the actual usage.',
-                'actualUsage.*.numeric'  => 'The actual usage must be a number.',
-                'actualUsage.*.min'      => 'The actual usage must be at least 1.',
-            ]);
+    //     // ========== FOR COLLECTION 2 (PRODUCTS) ==========
+    //     if ($collectionId == 2) {
+    //         $this->validate([
+    //             'actualUsage.' . $itemId => 'required|numeric|min:1',
+    //         ], [
+    //             'actualUsage.*.required' => 'Please enter the actual usage.',
+    //             'actualUsage.*.numeric'  => 'The actual usage must be a number.',
+    //             'actualUsage.*.min'      => 'The actual usage must be at least 1.',
+    //         ]);
 
-            $actual = floatval($this->actualUsage[$itemId]);
-            $orderedQty = floatval($item['ordered_quantity'] ?? 0);
-            $alreadyDelivered = floatval($item['delivered_quantity'] ?? 0);
-            $remainingToDeliver = $orderedQty - $alreadyDelivered;
-            $availableStock = floatval($item['stock_product'] ?? 0);
+    //         $actual = floatval($this->actualUsage[$itemId]);
+    //         $orderedQty = floatval($item['ordered_quantity'] ?? 0);
+    //         $alreadyDelivered = floatval($item['delivered_quantity'] ?? 0);
+    //         $remainingToDeliver = $orderedQty - $alreadyDelivered;
+    //         $availableStock = floatval($item['stock_product'] ?? 0);
 
-            if ($actual > $remainingToDeliver) {
-                session()->flash('stock_error', 'You are trying to deliver more (' . $actual . ') than remaining quantity (' . $remainingToDeliver . ').');
-                return;
-            }
+    //         if ($actual > $remainingToDeliver) {
+    //             session()->flash('stock_error', 'You are trying to deliver more (' . $actual . ') than remaining quantity (' . $remainingToDeliver . ').');
+    //             return;
+    //         }
 
-            if ($availableStock < $actual) {
-                session()->flash('stock_error', 'Available stock (' . $availableStock . ') is less than entered quantity (' . $actual . ').');
-                return;
-            }
-        }
+    //         if ($availableStock < $actual) {
+    //             session()->flash('stock_error', 'Available stock (' . $availableStock . ') is less than entered quantity (' . $actual . ').');
+    //             return;
+    //         }
+    //     }
 
-        // ========== FOR COLLECTION 1 (FABRIC) ==========
-        if ($collectionId == 1) {
-            // $this->stockEntries = collect($this->stockEntries)
-            //     ->sortByDesc('id')          // Latest first
-            //     ->unique('fabric_id')       // Only one per fabric
-            //     ->values()
-            //     ->toArray();
-            $this->stockEntries = collect($this->stockEntries)
-                ->where('order_id', $this->orderId)
-                ->groupBy('fabric_id')
-                ->map(function ($entries) {
-                    return [
-                        'fabric_id'        => $entries->first()['fabric_id'],
-                        'total_quantity'   => $entries->sum('quantity'),
-                        'total_extra_meter'=> $entries->sum('extra_meter'),
-                        'available_value'  => $entries->sum('available_value'), // keep stock info
-                    ];
-                })
-                ->values()
-                ->toArray();
-            // dd($this->stockEntries);
-            $totalDelivered = 0;
+    //     // ========== FOR COLLECTION 1 (FABRIC) ==========
+    //     if ($collectionId == 1) {
+    //         // $this->stockEntries = collect($this->stockEntries)
+    //         //     ->sortByDesc('id')          // Latest first
+    //         //     ->unique('fabric_id')       // Only one per fabric
+    //         //     ->values()
+    //         //     ->toArray();
+    //         $this->stockEntries = collect($this->stockEntries)
+    //             ->where('order_id', $this->orderId)
+    //             ->groupBy('fabric_id')
+    //             ->map(function ($entries) {
+    //                 return [
+    //                     'fabric_id'        => $entries->first()['fabric_id'],
+    //                     'total_quantity'   => $entries->sum('quantity'),
+    //                     'total_extra_meter'=> $entries->sum('extra_meter'),
+    //                     'available_value'  => $entries->sum('available_value'), // keep stock info
+    //                 ];
+    //             })
+    //             ->values()
+    //             ->toArray();
+    //         // dd($this->stockEntries);
+    //         $totalDelivered = 0;
 
-            foreach ($this->stockEntries as $index => $entry) {
-                $fabricId = $this->stockEntries[$index]['fabric_id'] ?? null;
-                $requiredQty = floatval($this->stockEntries[$index]['total_quantity'] ?? 0);
-                $deliveredQty = $requiredQty;
-                $availableStock = floatval($this->stockEntries[$index]['available_value'] ?? 0);
+    //         foreach ($this->stockEntries as $index => $entry) {
+    //             $fabricId = $this->stockEntries[$index]['fabric_id'] ?? null;
+    //             $requiredQty = floatval($this->stockEntries[$index]['total_quantity'] ?? 0);
+    //             $deliveredQty = $requiredQty;
+    //             $availableStock = floatval($this->stockEntries[$index]['available_value'] ?? 0);
 
-                $totalDelivered += $deliveredQty;
-            }
-            // dd($totalDelivered);
+    //             $totalDelivered += $deliveredQty;
+    //         }
+    //         // dd($totalDelivered);
 
-            if ($totalDelivered <= 0) {
-                session()->flash('stock_error', 'Please enter a valid delivery quantity.');
-                return;
-            }
-        }
+    //         if ($totalDelivered <= 0) {
+    //             session()->flash('stock_error', 'Please enter a valid delivery quantity.');
+    //             return;
+    //         }
+    //     }
 
-        // ========== TRANSACTION START ==========
-        DB::beginTransaction();
-        try {
-            $orderItemModel = OrderItem::find($itemId);
+    //     // ========== TRANSACTION START ==========
+    //     DB::beginTransaction();
+    //     try {
+    //         $orderItemModel = OrderItem::find($itemId);
 
-            // ========= Process PRODUCT DELIVERY (COLLECTION 2) =========
-            if ($collectionId == 2) {
-                $actual = floatval($this->actualUsage[$itemId]);
-                // Create delivery record
-                Delivery::create([
-                    'order_id' => $this->orderId,
-                    'order_item_id' => $itemId,
-                    'product_id' => $item['product_id'] ?? null,
-                    'delivered_quantity' => $actual,
-                    'unit' => 'pieces',
-                    'delivered_by' => auth()->guard('admin')->user()->id,
-                    'delivered_at' => now(),
-                ]);
+    //         // ========= Process PRODUCT DELIVERY (COLLECTION 2) =========
+    //         if ($collectionId == 2) {
+    //             $actual = floatval($this->actualUsage[$itemId]);
+    //             // Create delivery record
+    //             Delivery::create([
+    //                 'order_id' => $this->orderId,
+    //                 'order_item_id' => $itemId,
+    //                 'product_id' => $item['product_id'] ?? null,
+    //                 'delivered_quantity' => $actual,
+    //                 'unit' => 'pieces',
+    //                 'delivered_by' => auth()->guard('admin')->user()->id,
+    //                 'delivered_at' => now(),
+    //             ]);
 
-                // Reduce product stock
-                $productStock = StockProduct::where('product_id', $item['product_id'])->first();
-                if ($productStock) {
-                    $productStock->decrement('qty_in_pieces', $actual);
-                }
-            }
+    //             // Reduce product stock
+    //             $productStock = StockProduct::where('product_id', $item['product_id'])->first();
+    //             if ($productStock) {
+    //                 $productStock->decrement('qty_in_pieces', $actual);
+    //             }
+    //         }
 
-            // ========= Process FABRIC DELIVERY (COLLECTION 1) =========
-            if ($collectionId == 1) {
-                foreach ($this->stockEntries as $index => $entry) {
-                    $fabricId = $this->stockEntries[$index]['fabric_id'] ?? null;
-                    $requiredQty = floatval($this->stockEntries[$index]['total_quantity'] ?? 0);
-                    $deliveredQty = $requiredQty;
-                    // dd($requiredQty,$deliveredQty);
-                    if ($deliveredQty > 0 && $fabricId) {
-                        // Insert delivery entry
-                        Delivery::create([
-                            'order_id' => $this->orderId,
-                            'order_item_id' => $itemId,
-                            'fabric_id' => $fabricId,
-                            'fabric_quantity' => $requiredQty,
-                            'delivered_quantity' => $deliveredQty,
-                            'unit' => 'meters',
-                            'delivered_by' => auth()->guard('admin')->user()->id,
-                            'delivered_at' => now(),
-                        ]);
-                    }
-                }
-            }
+    //         // ========= Process FABRIC DELIVERY (COLLECTION 1) =========
+    //         if ($collectionId == 1) {
+    //             foreach ($this->stockEntries as $index => $entry) {
+    //                 $fabricId = $this->stockEntries[$index]['fabric_id'] ?? null;
+    //                 $requiredQty = floatval($this->stockEntries[$index]['total_quantity'] ?? 0);
+    //                 $deliveredQty = $requiredQty;
+    //                 // dd($requiredQty,$deliveredQty);
+    //                 if ($deliveredQty > 0 && $fabricId) {
+    //                     // Insert delivery entry
+    //                     Delivery::create([
+    //                         'order_id' => $this->orderId,
+    //                         'order_item_id' => $itemId,
+    //                         'fabric_id' => $fabricId,
+    //                         'fabric_quantity' => $requiredQty,
+    //                         'delivered_quantity' => $deliveredQty,
+    //                         'unit' => 'meters',
+    //                         'delivered_by' => auth()->guard('admin')->user()->id,
+    //                         'delivered_at' => now(),
+    //                     ]);
+    //                 }
+    //             }
+    //         }
 
         
 
-            $logDetails = [
-                'order_id' => $this->orderId,
-                'order_item_id' => $itemId,
-                'collection_id' => $collectionId,
-                'unit' => $item['unit'] ?? ($collectionId == 2 ? 'pieces' : 'meters'),
-                'timestamp' => now(),
-            ];
+    //         $logDetails = [
+    //             'order_id' => $this->orderId,
+    //             'order_item_id' => $itemId,
+    //             'collection_id' => $collectionId,
+    //             'unit' => $item['unit'] ?? ($collectionId == 2 ? 'pieces' : 'meters'),
+    //             'timestamp' => now(),
+    //         ];
 
-            // For collection 1, list each fabric + delivered meter
-            if ($collectionId == 1) {
-                $fabricLogs = [];
-                // dd($this->stockEntries);
-                foreach ($this->deliveryEntries as $index => $entry) {
-                    // dd($entry);
-                    $fabricId = $this->stockEntries[$index]['fabric_id'] ?? null;
-                    $requiredQty = floatval($entry['required_meter'] ?? 0); 
-                     // Delivered meter (extra meter)
-                    $extraQty = floatval($entry['delivered_meter'] ?? 0);
-                    $deliveredQty = $requiredQty;
+    //         // For collection 1, list each fabric + delivered meter
+    //         if ($collectionId == 1) {
+    //             $fabricLogs = [];
+    //             // dd($this->stockEntries);
+    //             foreach ($this->deliveryEntries as $index => $entry) {
+    //                 // dd($entry);
+    //                 $fabricId = $this->stockEntries[$index]['fabric_id'] ?? null;
+    //                 $requiredQty = floatval($entry['required_meter'] ?? 0); 
+    //                  // Delivered meter (extra meter)
+    //                 $extraQty = floatval($entry['delivered_meter'] ?? 0);
+    //                 $deliveredQty = $requiredQty;
                     
-                    if ($deliveredQty > 0 && $fabricId) {
-                        $fabric = Fabric::find($fabricId);
-                        $fabricName = $fabric ? $fabric->title : 'Unknown Fabric';
+    //                 if ($deliveredQty > 0 && $fabricId) {
+    //                     $fabric = Fabric::find($fabricId);
+    //                     $fabricName = $fabric ? $fabric->title : 'Unknown Fabric';
 
-                        $fabricLogs[] = [
-                            'fabric' => $fabricName,
-                            'delivered_quantity' => $deliveredQty,
-                            'extra_meter' => $extraQty
-                        ];
-                    }
-                }
-                // dd($fabricLogs);
+    //                     $fabricLogs[] = [
+    //                         'fabric' => $fabricName,
+    //                         'delivered_quantity' => $deliveredQty,
+    //                         'extra_meter' => $extraQty
+    //                     ];
+    //                 }
+    //             }
+    //             // dd($fabricLogs);
 
-                $logDetails['delivered_fabrics'] = $fabricLogs;
-            } elseif($collectionId == 2 && $actual !== null)  {
-                // For collection 2 (products)
-                $logDetails['delivered_quantity'] = $actual;
-            }
+    //             $logDetails['delivered_fabrics'] = $fabricLogs;
+    //         } elseif($collectionId == 2 && $actual !== null)  {
+    //             // For collection 2 (products)
+    //             $logDetails['delivered_quantity'] = $actual;
+    //         }
 
-            Changelog::create([
-                'done_by' => auth()->guard('admin')->user()->id,
-                'purpose' => 'delivery_proceed',
-                'order_id' => $this->orderId,
-                'data_details' => json_encode($logDetails),
-            ]);
+    //         Changelog::create([
+    //             'done_by' => auth()->guard('admin')->user()->id,
+    //             'purpose' => 'delivery_proceed',
+    //             'order_id' => $this->orderId,
+    //             'data_details' => json_encode($logDetails),
+    //         ]);
 
 
-            // ========= Update Order Status =========
-            $order = Order::find($this->orderId);
-            $items = $order->items;
+    //         // ========= Update Order Status =========
+    //         $order = Order::find($this->orderId);
+    //         $items = $order->items;
 
-            $allDelivered = true;
-            $anyDelivered = false;
+    //         $allDelivered = true;
+    //         $anyDelivered = false;
 
-            // only consider items assigned to production team
-            $productionItems = $items->filter(fn($itm) => $itm->assigned_team === 'production');
-            foreach ($productionItems as $itm) {
-                if ($itm->collection == 2) {
-                    $deliveredQty = Delivery::where('order_item_id', $itm->id)->sum('delivered_quantity');
-                    if ($deliveredQty >= $itm->quantity) {
-                        $anyDelivered = true;
-                    } else {
-                        $allDelivered = false;
-                        if ($deliveredQty > 0) {
-                            $anyDelivered = true;
-                        }
-                    }
-                } else {
-                    // For fabric collection
-                    $hasDelivery = Delivery::where('order_item_id', $itm->id)->exists();
-                    if ($hasDelivery) {
-                        $anyDelivered = true;
-                    } else {
-                        $allDelivered = false;
-                    }
-                }
-            }
+    //         // only consider items assigned to production team
+    //         $productionItems = $items->filter(fn($itm) => $itm->assigned_team === 'production');
+    //         foreach ($productionItems as $itm) {
+    //             if ($itm->collection == 2) {
+    //                 $deliveredQty = Delivery::where('order_item_id', $itm->id)->sum('delivered_quantity');
+    //                 if ($deliveredQty >= $itm->quantity) {
+    //                     $anyDelivered = true;
+    //                 } else {
+    //                     $allDelivered = false;
+    //                     if ($deliveredQty > 0) {
+    //                         $anyDelivered = true;
+    //                     }
+    //                 }
+    //             } else {
+    //                 // For fabric collection
+    //                 $hasDelivery = Delivery::where('order_item_id', $itm->id)->exists();
+    //                 if ($hasDelivery) {
+    //                     $anyDelivered = true;
+    //                 } else {
+    //                     $allDelivered = false;
+    //                 }
+    //             }
+    //         }
 
-            if ($productionItems->count() > 0) {
-                if ($allDelivered) {
-                    $order->update(['status' => 'Fully Delivered By Production']);
-                } elseif ($anyDelivered) {
-                    $order->update(['status' => 'Partial Delivered By Production']);
-                }
-            }
+    //         if ($productionItems->count() > 0) {
+    //             if ($allDelivered) {
+    //                 $order->update(['status' => 'Fully Delivered By Production']);
+    //             } elseif ($anyDelivered) {
+    //                 $order->update(['status' => 'Partial Delivered By Production']);
+    //             }
+    //         }
 
-            DB::commit();
+    //         DB::commit();
 
-            // Cleanup
-            unset($this->actualUsage[$itemId]);
-            $this->loadOrderItems();
-            $this->dispatch('close-delivery-modal');
+    //         // Cleanup
+    //         unset($this->actualUsage[$itemId]);
+    //         $this->loadOrderItems();
+    //         $this->dispatch('close-delivery-modal');
 
-            return redirect()->route('production.order.details', $this->orderId);
-        } catch (\Throwable $e) {
-            dd($e->getMessage());
-            DB::rollBack();
+    //         return redirect()->route('production.order.details', $this->orderId);
+    //     } catch (\Throwable $e) {
+    //         dd($e->getMessage());
+    //         DB::rollBack();
+    //     }
+    // }
+
+    public function processDelivery()
+{
+    // Decide which item to process
+    $item = ($this->selectedDeliveryItem['collection_id'] ?? null) == 2
+        ? $this->selectedDeliveryItem
+        : $this->selectedItem;
+
+    $itemId = $item['item_id'] ?? $item['id'] ?? null;
+    $collectionId = $item['collection_id'] ?? null;
+
+    // ========== FOR COLLECTION 2 (PRODUCTS) ==========
+    if ($collectionId == 2) {
+        $this->validate([
+            'actualUsage.' . $itemId => 'required|numeric|min:1',
+        ], [
+            'actualUsage.*.required' => 'Please enter the actual usage.',
+            'actualUsage.*.numeric'  => 'The actual usage must be a number.',
+            'actualUsage.*.min'      => 'The actual usage must be at least 1.',
+        ]);
+
+        $actual = floatval($this->actualUsage[$itemId]);
+        $orderedQty = floatval($item['ordered_quantity'] ?? 0);
+        $alreadyDelivered = floatval($item['delivered_quantity'] ?? 0);
+        $remainingToDeliver = $orderedQty - $alreadyDelivered;
+        $availableStock = floatval($item['stock_product'] ?? 0);
+
+        if ($actual > $remainingToDeliver) {
+            session()->flash('stock_error', 'You are trying to deliver more (' . $actual . ') than remaining quantity (' . $remainingToDeliver . ').');
+            return;
+        }
+
+        if ($availableStock < $actual) {
+            session()->flash('stock_error', 'Available stock (' . $availableStock . ') is less than entered quantity (' . $actual . ').');
+            return;
         }
     }
+
+    // ========== FOR COLLECTION 1 (FABRIC) ==========
+    if ($collectionId == 1) {
+        // Only take latest matching stock entries for this delivery
+        $this->stockEntries = collect($this->stockEntries)
+            ->where('order_id', $this->orderId)
+            ->where('order_item_id', $itemId)
+            ->sortBy('id') // ensure delivery order
+            ->values()
+            ->toArray();
+
+        $totalDelivered = 0;
+
+        foreach ($this->stockEntries as $entry) {
+            $requiredQty = floatval($entry['quantity'] ?? 0);
+            if ($requiredQty > 0) {
+                $totalDelivered += $requiredQty;
+            }
+        }
+
+        if ($totalDelivered <= 0) {
+            session()->flash('stock_error', 'Please enter a valid delivery quantity.');
+            return;
+        }
+    }
+
+    // ========== TRANSACTION START ==========
+    DB::beginTransaction();
+    try {
+        $orderItemModel = OrderItem::find($itemId);
+
+        // ========= Process PRODUCT DELIVERY (COLLECTION 2) =========
+        if ($collectionId == 2) {
+            $actual = floatval($this->actualUsage[$itemId]);
+
+            Delivery::create([
+                'order_id' => $this->orderId,
+                'order_item_id' => $itemId,
+                'product_id' => $item['product_id'] ?? null,
+                'delivered_quantity' => $actual,
+                'unit' => 'pieces',
+                'delivered_by' => auth()->guard('admin')->user()->id,
+                'delivered_at' => now(),
+            ]);
+
+            $productStock = StockProduct::where('product_id', $item['product_id'])->first();
+            if ($productStock) {
+                $productStock->decrement('qty_in_pieces', $actual);
+            }
+        }
+
+        // ========= Process FABRIC DELIVERY (COLLECTION 1) =========
+        if ($collectionId == 1) {
+            foreach ($this->stockEntries as $entry) {
+                $fabricId = $entry['fabric_id'] ?? null;
+                $requiredQty = floatval($entry['quantity'] ?? 0); // Take per stock entry quantity
+
+                if ($requiredQty > 0 && $fabricId) {
+                    Delivery::create([
+                        'order_id' => $this->orderId,
+                        'order_item_id' => $itemId,
+                        'fabric_id' => $fabricId,
+                        'fabric_quantity' => $requiredQty,
+                        'delivered_quantity' => $requiredQty, // per delivery
+                        'unit' => 'meters',
+                        'delivered_by' => auth()->guard('admin')->user()->id,
+                        'delivered_at' => now(),
+                    ]);
+                }
+            }
+        }
+
+        // ========= Change Log =========
+        $logDetails = [
+            'order_id' => $this->orderId,
+            'order_item_id' => $itemId,
+            'collection_id' => $collectionId,
+            'unit' => $item['unit'] ?? ($collectionId == 2 ? 'pieces' : 'meters'),
+            'timestamp' => now(),
+        ];
+
+        if ($collectionId == 1) {
+            $fabricLogs = [];
+            foreach ($this->stockEntries as $entry) {
+                $fabricId = $entry['fabric_id'] ?? null;
+                $requiredQty = floatval($entry['quantity'] ?? 0);
+                $extraQty = floatval($entry['extra_meter'] ?? 0);
+
+                if ($requiredQty > 0 && $fabricId) {
+                    $fabric = Fabric::find($fabricId);
+                    $fabricName = $fabric ? $fabric->title : 'Unknown Fabric';
+
+                    $fabricLogs[] = [
+                        'fabric' => $fabricName,
+                        'delivered_quantity' => $requiredQty,
+                        'extra_meter' => $extraQty
+                    ];
+                }
+            }
+            $logDetails['delivered_fabrics'] = $fabricLogs;
+        } elseif ($collectionId == 2 && isset($actual)) {
+            $logDetails['delivered_quantity'] = $actual;
+        }
+
+        Changelog::create([
+            'done_by' => auth()->guard('admin')->user()->id,
+            'purpose' => 'delivery_proceed',
+            'order_id' => $this->orderId,
+            'data_details' => json_encode($logDetails),
+        ]);
+
+        // ========= Update Order Status =========
+        $order = Order::find($this->orderId);
+        $items = $order->items;
+
+        $allDelivered = true;
+        $anyDelivered = false;
+
+        $productionItems = $items->filter(fn($itm) => $itm->assigned_team === 'production');
+        foreach ($productionItems as $itm) {
+            if ($itm->collection == 2) {
+                $deliveredQty = Delivery::where('order_item_id', $itm->id)->sum('delivered_quantity');
+                if ($deliveredQty >= $itm->quantity) {
+                    $anyDelivered = true;
+                } else {
+                    $allDelivered = false;
+                    if ($deliveredQty > 0) {
+                        $anyDelivered = true;
+                    }
+                }
+            } else {
+                $hasDelivery = Delivery::where('order_item_id', $itm->id)->exists();
+                if ($hasDelivery) {
+                    $anyDelivered = true;
+                } else {
+                    $allDelivered = false;
+                }
+            }
+        }
+
+        if ($productionItems->count() > 0) {
+            if ($allDelivered) {
+                $order->update(['status' => 'Fully Delivered By Production']);
+            } elseif ($anyDelivered) {
+                $order->update(['status' => 'Partial Delivered By Production']);
+            }
+        }
+
+        DB::commit();
+
+        unset($this->actualUsage[$itemId]);
+        $this->loadOrderItems();
+        $this->dispatch('close-delivery-modal');
+
+        return redirect()->route('production.order.details', $this->orderId);
+    } catch (\Throwable $e) {
+        dd($e->getMessage());
+        DB::rollBack();
+    }
+}
+
 
 
     public function updated($propertyName, $value)

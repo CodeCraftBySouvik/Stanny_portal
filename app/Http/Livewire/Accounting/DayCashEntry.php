@@ -80,6 +80,7 @@ class DayCashEntry extends Component
         $total = $this->totalCash + $this->totalNEFT + $this->totalCheque + $this->totalDigital;
         $this->totalWallet = "{$total} (Cash={$this->totalCash}, NEFT={$this->totalNEFT}, Cheque={$this->totalCheque}, Digi Payment={$this->totalDigital})";
     }
+
     public function submit()
 {
     if ($this->entry_type === 'given') {
@@ -154,6 +155,7 @@ class DayCashEntry extends Component
         ]);
         
         session()->flash('success', 'Day cash entry submitted successfully!');
+        return redirect()->route('admin.accounting.cashbook_module');
     } catch (\Exception $e) {
         DB::rollBack();
         session()->flash('error', 'Error: ' . $e->getMessage());

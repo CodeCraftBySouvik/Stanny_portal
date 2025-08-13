@@ -16,8 +16,6 @@
         >
             Fabric Stock
         </button>
-        
-
     </div>
 
     <div>
@@ -81,8 +79,8 @@
                                 <tr class="text-center">
                                     <th>#</th>
                                     <th>Product Name</th>
-                                    <th>Order Quantity (Pieces)</th>
                                     <th>GRN Quantity (Pieces)</th>
+                                    <th>Order Quantity (Pieces)</th>
                                     <th>Piece Price</th>
                                     <th>Total Price</th>
                                     <th>Entry Date</th>
@@ -93,8 +91,8 @@
                                     <tr class="text-center">
                                         <td>{{ $index + 1 }}</td>
                                         <td>{{ $product->product->name ?? 'N/A' }}</td>
-                                        <td>{{ intval($product->qty_in_pieces) }}</td>
                                         <td>{{ intval($product->qty_while_grn) }}</td>
+                                        <td>{{ intval($product->qty_in_pieces) }}</td>
                                         <td>Rs. {{ number_format($product->piece_price, 2) }}</td>
                                         <td>Rs. {{ number_format($product->total_price, 2) }}</td>
                                         <td> {{ date('d-m-Y',strtotime($product->created_at))}}</td>
@@ -156,8 +154,8 @@
                                 <tr class="text-center">
                                     <th>#</th>
                                     <th>Fabric Name</th>
-                                    <th>Order Quantity (Meters)</th>
                                     <th>GRN Quantity (Meters)</th>
+                                    <th>Order Quantity (Meters)</th>
                                     <th>Piece Price</th>
                                     <th>Total Price</th>
                                     <th>Entry Date</th>
@@ -168,8 +166,8 @@
                                     <tr class="text-center">
                                         <td>{{ $index + 1 }}</td>
                                         <td>{{ $fabric->fabric->title ?? 'N/A' }}</td>
-                                        <td>{{ intval($fabric->qty_in_meter) }}</td>
                                         <td>{{ intval($fabric->qty_while_grn) }}</td>
+                                        <td>{{ intval($fabric->qty_in_meter) }}</td>
                                         <td>Rs. {{ number_format($fabric->piece_price, 2) }}</td>
                                         <td>Rs. {{ number_format($fabric->total_price, 2) }}</td>
                                         <td> {{ date('d-m-Y', strtotime($fabric->created_at))}}</td>
