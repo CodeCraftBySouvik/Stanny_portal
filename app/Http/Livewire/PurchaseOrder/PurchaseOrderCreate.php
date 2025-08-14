@@ -230,6 +230,13 @@ class PurchaseOrderCreate extends Component
     }
 
     public function removeRow($index){
+        if (!is_array($this->rows)) {
+             $this->rows = [];
+        }
+        if (!is_array($this->isFabricSelected)) {
+            $this->isFabricSelected = [];
+        }
+
         unset($this->rows[$index]);
         unset($this->isFabricSelected[$index]);
         $this->rows = array_values($this->rows);

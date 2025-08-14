@@ -1943,10 +1943,13 @@ public function revertBackStock($index, $inputName, $entryId)
 
         // ========= Process FABRIC DELIVERY (COLLECTION 1) =========
         if ($collectionId == 1) {
-            foreach ($this->stockEntries as $entry) {
+            foreach ($this->stockEntries as $index => $entry) {
+               // dd($this->rows["required_meter_" . $index]);
+               
                 $fabricId = $entry['fabric_id'] ?? null;
-                $requiredQty = floatval($entry['quantity'] ?? 0); // Take per stock entry quantity
-
+                //$requiredQty = floatval($entry['quantity'] ?? 0); // Take per stock entry quantity
+                $requiredQty = $this->rows['required_meter_'. $index];
+                
                 if ($requiredQty > 0 && $fabricId) {
                     Delivery::create([
                         'order_id' => $this->orderId,
@@ -1973,9 +1976,10 @@ public function revertBackStock($index, $inputName, $entryId)
 
         if ($collectionId == 1) {
             $fabricLogs = [];
-            foreach ($this->stockEntries as $entry) {
+            foreach ($this->stockEntries as $index => $entry) {
                 $fabricId = $entry['fabric_id'] ?? null;
-                $requiredQty = floatval($entry['quantity'] ?? 0);
+                //$requiredQty = floatval($entry['quantity'] ?? 0);
+                $requiredQty = $this->rows['required_meter_'. $index];
                 $extraQty = floatval($entry['extra_meter'] ?? 0);
 
                 if ($requiredQty > 0 && $fabricId) {

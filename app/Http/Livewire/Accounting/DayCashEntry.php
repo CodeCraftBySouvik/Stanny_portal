@@ -128,6 +128,18 @@ class DayCashEntry extends Component
     $digitalAmount = $this->digitalCollectedAmount ?? 0;
     $totalAmount = $cashAmount + $digitalAmount;
 
+    // NEW VALIDATION
+    if ($this->entry_type === 'collect') {
+        if ($this->payment_cash && $cashAmount > $this->totalCash) {
+            $this->addError('cashCollectedAmount', 'Cash amount exceeds available cash.');
+            return;
+        }
+        if ($this->payment_digital && $digitalAmount > $this->totalDigital) {
+            $this->addError('digitalCollectedAmount', 'Digital amount exceeds available digital payments.');
+            return;
+        }
+    }
+
     if ($totalAmount <= 0) {
         $this->addError('amount', 'Please enter a valid amount for at least one payment type.');
         return;
@@ -266,7 +278,11 @@ class DayCashEntry extends Component
             ->where('is_approve', 1)
             ->where('is_settled', 0)
             ->whereIn('payment_type', ['cheque', 'neft'])
-            ->update(['is_settled' => 1]);
+            ->update([
+                'collection_amount' => 0,
+                'withdrawal_charge' => 0, 
+                'is_settled' => 1
+            ]);
 
     }
 

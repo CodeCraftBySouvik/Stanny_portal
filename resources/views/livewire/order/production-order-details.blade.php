@@ -794,15 +794,5 @@
         }
     });
 
-      window.addEventListener('livewire:load', () => {
-        Livewire.on('trigger-delivery-click', (index) => {
-            setTimeout(() => {
-                const btn = document.getElementById(`delivery-btn-${index}`);
-                if (btn) {
-                    btn.click();
-                }
-            }, 500); // Delay to ensure modal is closed before re-triggering
-        });
-    });
-
+   
 </script>
