@@ -243,13 +243,30 @@
             </div>
 
             <!-- Today's Expense -->
-            <div class="col-xl-3 col-sm-6">
+            <!--<div class="col-xl-3 col-sm-6">-->
+            <!--    <div class="card data-card">-->
+            <!--        <a href="#">-->
+            <!--            <div class="card-header p-3 pt-2 mt-3">-->
+            <!--                <div-->
+            <!--                    class="icon icon-lg icon-shape bg-gradient-danger shadow-danger text-center border-radius-xl position-absolute">-->
+            <!--                    <i class="material-icons opacity-10">account_balance_wallet</i>-->
+            <!--                </div>-->
+            <!--                <div class="text-end pt-1">-->
+            <!--                    <p class="text-sm mb-0 text-capitalize">Today's Expense</p>-->
+            <!--                    <h4 class="mb-0">{{$todays_expense}}</h4>-->
+            <!--                </div>-->
+            <!--            </div>-->
+            <!--        </a>-->
+            <!--    </div>-->
+            <!--</div>-->
+            
+            <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
                 <div class="card data-card">
                     <a href="#">
-                        <div class="card-header p-3 pt-2 mt-3">
+                        <div class="card-header p-3 pt-2">
                             <div
-                                class="icon icon-lg icon-shape bg-gradient-danger shadow-danger text-center border-radius-xl position-absolute">
-                                <i class="material-icons opacity-10">account_balance_wallet</i>
+                                class="icon icon-lg icon-shape bg-gradient-info shadow-info text-center border-radius-xl position-absolute">
+                                <i class="material-icons opacity-10">FC</i>
                             </div>
                             <div class="text-end pt-1">
                                 <p class="text-sm mb-0 text-capitalize">Today's Expense</p>
@@ -260,7 +277,7 @@
                 </div>
             </div>
             {{-- Add Expense --}}
-            <div class="col-xl-3 col-sm-6">
+            <div class="col-xl-3 col-sm-6 mt-2">
                 <div class="card data-card">
                     <a href="{{route('admin.accounting.list.depot_expense')}}">
                         <div class="card-header p-3 pt-2">
@@ -278,7 +295,7 @@
             </div>
 
             {{-- Add Payment --}}
-            <div class="col-xl-3 col-sm-6">
+            <div class="col-xl-3 col-sm-6 mt-2">
                 <div class="card data-card">
                     <a href="{{route('admin.accounting.add_payment_receipt')}}">
                         <div class="card-header p-3 pt-2">
@@ -296,7 +313,7 @@
             </div>
 
             {{-- Add Order --}}
-            <div class="col-xl-3 col-sm-6">
+            <div class="col-xl-3 col-sm-6 mt-2">
                 <div class="card data-card">
                     <a href="{{route('admin.order.new')}}">
                         <div class="card-header p-3 pt-2">
@@ -312,18 +329,31 @@
                     </a>
                 </div>
             </div>
-
-            <div class="col-xl-3 col-sm-6">
+             {{-- Add Delivery --}}
+            <!--<div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">-->
+            <!--    <div class="card data-card">-->
+            <!--        <a href="{{route('admin.order.index')}}">-->
+            <!--            <div class="card-header p-3 pt-2">-->
+            <!--                {{-- <div-->
+            <!--                    class="icon icon-lg icon-shape bg-gradient-primary shadow-primary text-center border-radius-xl position-absolute">-->
+            <!--                    <i class="material-icons opacity-10">account_balance_wallet</i>-->
+            <!--                </div> --}}-->
+            <!--                <div class="text-end pt-1">-->
+            <!--                    <p class="text-sm mb-0 text-capitalize">Add Delivery</p>-->
+            <!--                    {{-- <h4 class="mb-0">{{$todays_expense}}</h4> --}}-->
+            <!--                </div>-->
+            <!--            </div>-->
+            <!--        </a>-->
+            <!--    </div>-->
+            <!--</div>-->
+            
+            <div class="col-xl-3 col-sm-6 mt-2">
                 <div class="card data-card">
                     <a href="{{route('admin.order.index')}}">
                         <div class="card-header p-3 pt-2">
-                            {{-- <div
-                                class="icon icon-lg icon-shape bg-gradient-danger shadow-danger text-center border-radius-xl position-absolute">
-                                <i class="material-icons opacity-10">account_balance_wallet</i>
-                            </div> --}}
+                            
                             <div class="text-end pt-1">
                                 <p class="text-sm mb-0 text-capitalize">Add Delivery</p>
-                                {{-- <h4 class="mb-0">{{$todays_expense}}</h4> --}}
                             </div>
                         </div>
                     </a>

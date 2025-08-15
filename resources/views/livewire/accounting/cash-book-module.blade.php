@@ -99,7 +99,7 @@
                         <div class="card-header p-3 pt-2">
                             <div
                                 class="icon icon-lg icon-shape bg-gradient-primary shadow-primary text-center border-radius-xl  position-absolute">
-                                <i class="material-icons opacity-10">attach_money</i>
+                                <i class="material-icons opacity-10">FC</i>
                             </div>
                             <div class="text-end pt-1">
                                 <p class="text-sm mb-0 text-capitalize">Total Collection</p>
@@ -119,7 +119,7 @@
                         <div class="card-header p-3 pt-2">
                             <div
                                 class="icon icon-lg icon-shape bg-gradient-success shadow-success text-center border-radius-xl  position-absolute">
-                                <i class="material-icons opacity-10">money_off</i>
+                                <i class="material-icons opacity-10">FC</i>
                             </div>
                             <div class="text-end pt-1">
                                 <p class="text-sm mb-0 text-capitalize">Total Expenses</p>
@@ -161,7 +161,7 @@
                         <div class="card-header p-3 pt-2">
                             <div
                                 class="icon icon-lg icon-shape bg-gradient-primary shadow-primary text-center border-radius-xl  position-absolute">
-                                <i class="material-icons opacity-10">attach_money</i>
+                                <i class="material-icons opacity-10">FC</i>
                             </div>
                             <div class="text-end pt-1">
                                 <p class="text-sm mb-0 text-capitalize">Total Cash</p>
@@ -180,7 +180,7 @@
                         <div class="card-header p-3 pt-2">
                             <div
                                 class="icon icon-lg icon-shape bg-gradient-success shadow-success text-center border-radius-xl  position-absolute">
-                                <i class="material-icons opacity-10">attach_money</i>
+                                <i class="material-icons opacity-10">FC</i>
                             </div>
                             <div class="text-end pt-1">
                                 <p class="text-sm mb-0 text-capitalize">Total NEFT</p>
@@ -197,7 +197,7 @@
                         <div class="card-header p-3 pt-2">
                             <div
                                 class="icon icon-lg icon-shape bg-gradient-success shadow-success text-center border-radius-xl  position-absolute">
-                                <i class="material-icons opacity-10">attach_money</i>
+                                <i class="material-icons opacity-10">FC</i>
                             </div>
                             <div class="text-end pt-1">
                                 <p class="text-sm mb-0 text-capitalize">Total Cheque</p>
@@ -215,7 +215,7 @@
                         <div class="card-header p-3 pt-2">
                             <div
                                 class="icon icon-lg icon-shape bg-gradient-success shadow-success text-center border-radius-xl  position-absolute">
-                                <i class="material-icons opacity-10">attach_money</i>
+                                <i class="material-icons opacity-10">FC</i>
                             </div>
                             <div class="text-end pt-1">
                                 <p class="text-sm mb-0 text-capitalize">Total Digital Payment</p>
