@@ -50,6 +50,7 @@ class OrderView extends Component
          $orderItems = $order->items->map(function ($item) use($order) {
 
             $product = Product::find($item->product_id);
+            $delivery = $item->deliveries->first();
             return [
                 'product_name' => $item->product_name ?? $product->name,
                 'collection_id' => $item->collection,
@@ -60,23 +61,32 @@ class OrderView extends Component
                 'catalogue_id' => $item->catalogue_id,
                 'cat_page_number' => $item->cat_page_number,
                 'price' => $item->piece_price,
-                // 'deliveries' => !empty($item->deliveries)?
-                //     $item->deliveries:"",
-                'deliveries' => !empty($item->deliveries)
-                    ? $item->deliveries->map(function ($delivery) use ($item) {
-                        return [
-                            'id' => $delivery->id,
-                            'delivered_at' => $delivery->delivered_at,
-                            'delivered_by' => $delivery->delivered_by,
-                            'status' => $delivery->status,
-                            'remarks' => $delivery->remarks,
-                            'fabric_quantity' => $delivery->fabric_quantity,
-                            'delivered_quantity' => $delivery->delivered_quantity,
-                            'user' => $delivery->user ? ['name' => $delivery->user->name] : ['name' => 'N/A'],
-                            'collection_id' => $item->collection, // inject here for later use
-                        ];
-                    })
-                    : [],
+                // 'deliveries' => !empty($item->deliveries)
+                //     ? $item->deliveries->map(function ($delivery) use ($item) {
+                //         return [
+                //             'id' => $delivery->id,
+                //             'delivered_at' => $delivery->delivered_at,
+                //             'delivered_by' => $delivery->delivered_by,
+                //             'status' => $delivery->status,
+                //             'remarks' => $delivery->remarks,
+                //             'fabric_quantity' => $delivery->fabric_quantity,
+                //             'delivered_quantity' => $delivery->delivered_quantity,
+                //             'user' => $delivery->user ? ['name' => $delivery->user->name] : ['name' => 'N/A'],
+                //             'collection_id' => $item->collection, // inject here for later use
+                //         ];
+                //     })
+                //     : [],
+                'deliveries' => $delivery ? [
+                    'id' => $delivery->id,
+                    'delivered_at' => $delivery->delivered_at,
+                    'delivered_by' => $delivery->delivered_by,
+                    'status' => $delivery->status,
+                    'remarks' => $delivery->remarks,
+                    'fabric_quantity' => $delivery->fabric_quantity,
+                    'delivered_quantity' => $delivery->delivered_quantity,
+                    'user' => $delivery->user ? ['name' => $delivery->user->name] : ['name' => 'N/A'],
+                    'collection_id' => $item->collection,
+                ] : null,
                 'quantity' => $item->quantity,
                 'remarks' => $item->remarks,
                 'catlogue_images' => $item->catlogue_image,
@@ -93,7 +103,6 @@ class OrderView extends Component
         ]);
     }
    
-
     public function deliveredToCustomerPartial()
     {
         $this->validate();
@@ -109,41 +118,97 @@ class OrderView extends Component
             'customer_delivered_by' => auth()->guard('admin')->user()->id,
         ]);
 
+        // Flags for collection-wise delivery
+        $collection1Delivered = false;
+        $collection2Delivered = false;
+
         // Get all order items
         $orderItems = OrderItem::where('order_id', $this->orderId)->get();
 
-        $totalQuantity = 0;
-        $totalDelivery = 0;
-
         foreach ($orderItems as $item) {
-            $totalQuantity += $item->quantity;
-
-            // For this item, get all Delivered deliveries
-            $deliveries = Delivery::where('order_item_id', $item->id)
+            $delivered = Delivery::where('order_item_id', $item->id)
                 ->where('status', 'Delivered')
-                ->get();
+                ->exists();
 
-            foreach ($deliveries as $delivery) {
+            if ($delivered) {
                 if ($item->collection == 1) {
-                    $totalDelivery += (int)$delivery->fabric_quantity;
-                } else {
-                    $totalDelivery += (int)$delivery->delivered_quantity;
+                    $collection1Delivered = true;
+                } elseif ($item->collection == 2) {
+                    $collection2Delivered = true;
                 }
             }
         }
 
-        // dd($totalQuantity, $totalDelivery);
-
-        // Update order status
-        if ($totalQuantity == $totalDelivery) {
-            Order::where('id', $this->orderId)->update(['status' => 'Delivered to Customer']);
-        } elseif ($this->status == 'Delivered') {
-            Order::where('id', $this->orderId)->update(['status' => 'Partial Delivered to Customer']);
+        // Decide final order status
+        if ($collection1Delivered && $collection2Delivered) {
+            $newStatus = 'Delivered to Customer';
+        } elseif ($collection1Delivered || $collection2Delivered) {
+            $newStatus = 'Partial Delivered to Customer';
+        } else {
+            $newStatus = 'Pending'; // optional fallback
         }
+
+        Order::where('id', $this->orderId)->update(['status' => $newStatus]);
 
         session()->flash('success', 'Order delivery updated successfully!');
         $this->dispatch('close-delivery-modal');
     }
+
+    // public function deliveredToCustomerPartial()
+    // {
+    //     $this->validate();
+
+    //     if (!$this->Id) {
+    //         throw new \Exception("Order ID is required but received null.");
+    //     }
+
+    //     // Update the current delivery
+    //     Delivery::where('id', $this->Id)->update([
+    //         'status' => $this->status,
+    //         'remarks' => $this->remarks,
+    //         'customer_delivered_by' => auth()->guard('admin')->user()->id,
+    //     ]);
+
+    //     // Get all order items
+    //     $orderItems = OrderItem::where('order_id', $this->orderId)->get();
+
+    //     $totalQuantity = 0;
+    //     $totalDelivery = 0;
+
+    //     foreach ($orderItems as $item) {
+    //         $totalQuantity += $item->quantity;
+
+    //         // For this item, get all Delivered deliveries
+    //         // $deliveries = Delivery::where('order_item_id', $item->id)
+    //         //     ->where('status', 'Delivered')
+    //         //     ->get();
+
+    //         $deliveries = Delivery::where('order_item_id', $item->id)
+    //             ->where('status', 'Delivered')
+    //             ->orderBy('id', 'asc') 
+    //             ->first();
+
+    //         foreach ($deliveries as $delivery) {
+    //             if ($item->collection == 1) {
+    //                 $totalDelivery += (int)$delivery->fabric_quantity;
+    //             } else {
+    //                 $totalDelivery += (int)$delivery->delivered_quantity;
+    //             }
+    //         }
+    //     }
+
+    //     dd($totalQuantity, $totalDelivery);
+
+    //     // Update order status
+    //     if ($totalQuantity == $totalDelivery) {
+    //         Order::where('id', $this->orderId)->update(['status' => 'Delivered to Customer']);
+    //     } elseif ($this->status == 'Delivered') {
+    //         Order::where('id', $this->orderId)->update(['status' => 'Partial Delivered to Customer']);
+    //     }
+
+    //     session()->flash('success', 'Order delivery updated successfully!');
+    //     $this->dispatch('close-delivery-modal');
+    // }
 
     public function openDeliveryModal($Id=null,$orderId=null)
     {

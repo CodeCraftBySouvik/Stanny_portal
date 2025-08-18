@@ -101,16 +101,25 @@
 
                     <div class="col-sm-6">
                         <div class="form-group mb-3">
-                            @php
+                            {{-- @php
                             $hasDelivered = false;
                             foreach ($orderItems as $key => $item) {
-                            foreach ($item['deliveries'] as $delivery) {
-                            if($delivery['status'] == 'Delivered'){
-                            $hasDelivered = true;
-                            break 2; // exit both loops
+                                foreach ($item['deliveries'] as $delivery) {
+                                    if($delivery['status'] == 'Delivered'){
+                                    $hasDelivered = true;
+                                    break 2; // exit both loops
+                                }
                             }
                             }
-                            }
+                            @endphp --}}
+                            @php
+                                $hasDelivered = false;
+                                foreach ($orderItems as $item) {
+                                    if (!empty($item['deliveries']) && $item['deliveries']['status'] === 'Delivered') {
+                                        $hasDelivered = true;
+                                        break;
+                                    }
+                                }
                             @endphp
                             <div class="d-flex justify-content-between align-items-center">
                                 <h6>Customer Details</h6>
@@ -247,9 +256,9 @@
                                             <table class="table table-sm ledger">
                                                 <thead>
                                                     <tr>
-                                                        <th rowspan="1" colspan="1" aria-label="products"
+                                                        {{-- <th rowspan="1" colspan="1" aria-label="products"
                                                             style="width: 5%;">
-                                                            Sl No</th>
+                                                            Sl No</th> --}}
                                                         <th rowspan="1" colspan="1" aria-label="products">Delivery
                                                             Date</th>
                                                         <th rowspan="1" colspan="1" aria-label="products">
@@ -269,56 +278,58 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    @foreach ($item['deliveries'] as $index=> $delivery_data)
+                                                    {{-- @foreach ($item['deliveries'] as $index=> $item['deliveries']) --}}
+                                                    {{-- @dd($item['deliveries']) --}}
+                                                    @if ($item['deliveries'])
                                                     <tr class="odd" style="background-color: #f2f2f2;">
-                                                        <td>{{ ++$index }}</td>
+                                                        {{-- <td>{{ ++$index }}</td> --}}
                                                         <td>{{ date('d-m-Y h:i A ',timestamp:
-                                                            strtotime($delivery_data['delivered_at'])) }}</td>
+                                                            strtotime($item['deliveries']['delivered_at'])) }}</td>
                                                         <td>
 
 
-                                                            @if($delivery_data['status']=='Pending')
+                                                            @if($item['deliveries']['status']=='Pending')
                                                             <span class="badge bg-primary">Pending</span>
                                                             @endif
-                                                            @if($delivery_data['status']=='Received by Sales Team')
+                                                            @if($item['deliveries']['status']=='Received by Sales Team')
                                                             <span class="badge bg-warning">Received by Sales Team</span>
                                                             @endif
-                                                            @if($delivery_data['status']=='Rejected')
+                                                            @if($item['deliveries']['status']=='Rejected')
                                                             <span class="badge bg-danger">Rejected</span>
                                                             @endif
-                                                            @if($delivery_data['status']=='Alteration Required')
+                                                            @if($item['deliveries']['status']=='Alteration Required')
                                                             <span class="badge bg-info">Alteration Required</span>
                                                             @endif
-                                                            @if($delivery_data['status']=='Delivered')
+                                                            @if($item['deliveries']['status']=='Delivered')
                                                             <span class="badge bg-success">Delivered</span>
                                                             @endif
                                                         </td>
 
-                                                        <td>{{ $delivery_data['user']['name'] }}</td>
+                                                        <td>{{ $item['deliveries']['user']['name'] }}</td>
 
                                                         <td>
-                                                            @if ($delivery_data['collection_id'] == 1)
-                                                            {{ $delivery_data['fabric_quantity'] ?? '' }}
+                                                            @if ($item['deliveries']['collection_id'] == 1)
+                                                            {{ $item['deliveries']['fabric_quantity'] ?? '' }}
                                                             @else
-                                                            {{ $delivery_data['delivered_quantity'] ?? '' }}
+                                                            {{ $item['deliveries']['delivered_quantity'] ?? '' }}
                                                             @endif
                                                         </td>
                                                         <td>
                                                             <button href="javascript:void(0)" data-bs-toggle="tooltip"
                                                                 data-bs-placement="top"
                                                                 class="btn btn-outline-info select-md mt-3"
-                                                                title="{{ $delivery_data['remarks'] }}">Show Remarks
+                                                                title="{{ $item['deliveries']['remarks'] }}">Show Remarks
                                                                 Click Here</button>
                                                         </td>
                                                         <td>
-                                                            @if($delivery_data['status']=='Pending')
-                                                            <a wire:click="$dispatch('mark-as-received', {Id: {{ $delivery_data['id'] }}})"
+                                                            @if($item['deliveries']['status']=='Pending')
+                                                            <a wire:click="$dispatch('mark-as-received', {Id: {{ $item['deliveries']['id'] }}})"
                                                                 class="btn btn-outline-warning select-md btn_outline"
                                                                 data-toggle="tooltip">Receive by Sales Team</a>
                                                             @endif
-                                                            @if($delivery_data['status']=='Received by Sales Team')
+                                                            @if($item['deliveries']['status']=='Received by Sales Team')
                                                             <a href="javascript:void(0)"
-                                                                wire:click="$dispatch('delivered-to-customer', {orderId: '{{ $order->id }}',Id:{{ $delivery_data['id'] }} })"
+                                                                wire:click="$dispatch('delivered-to-customer', {orderId: '{{ $order->id }}',Id:{{ $item['deliveries']['id'] }} })"
                                                                 class="btn btn-outline-success select-md btn_outline">Delivery
                                                                 to Customer
                                                             </a>
@@ -328,7 +339,8 @@
                                                         </td>
 
                                                     </tr>
-                                                    @endforeach
+                                                     @endif
+                                                    {{-- @endforeach --}}
                                                 </tbody>
                                             </table>
 

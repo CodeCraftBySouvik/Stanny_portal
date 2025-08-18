@@ -4,43 +4,7 @@
     </section>
     <section>
         <div class="search__filter">
-            {{-- <div class="row align-items-center justify-content-end">
-                <div class="col-auto">
-                    <div class="row g-3 align-items-center">
-                        <div class="col-auto" style="margin-top: -27px;">
-                            <label for="" class="date_lable">Start Date</label>
-                            <input type="date" wire:model="start_date" wire:change="AddStartDate($event.target.value)"
-                                class="form-control select-md bg-white" placeholder="Start Date">
-                        </div>
-                        <div class="col-auto" style="margin-top: -27px;">
-                            <label for="" class="date_lable">End date</label>
-                            <input type="date" wire:model="end_date" wire:change="AddEndDate($event.target.value)"
-                                class="form-control select-md bg-white" placeholder="End Date">
-                        </div>
-                        <div class="col-auto" style="margin-top: -27px;">
-                            <label for="" class="date_lable">Status</label>
-                            <select class="form-control select-md bg-white" wire:change="setStatus($event.target.value)">
-                                <option value="">Status</option>
-                                <option value="Approval Pending">Approval Pending</option>
-                                <option value="Approved">Approved</option>
-                                <option value="Ready for Delivery">Ready for Delivery</option>
-                                <option value="Partial Delivered By Production">Partial Delivered By Production</option>
-                                <option value="Fully Delivered By Production">Fully Delivered By Production</option>
-                                <option value="Cancelled">Cancelled</option>
-                                <option value="Returned">Returned</option>
-                                <option value="Delivered to Customer">Delivered to Customer</option>
-                                <option value="Partial Delivered to Customer">Partial Delivered to Customer</option>
-                                <option value="Approved By TL">Approved By TL</option>
-
-
-                            </select>
-                        </div>
-                        <div class="col-auto" style="">
-
-                        </div>
-                    </div>
-                </div>
-            </div> --}}
+          
             <div class="row align-items-center justify-content-between">
                 <div class="col-auto">
                     <p class="text-sm font-weight-bold">{{ env('ORDER_PREFIX'). $order->order_number }}</p>
@@ -48,23 +12,7 @@
                 <div class="col-auto mt-3">
                     <a href="{{route('admin.order.index')}}" class="btn btn-outline-danger select-md">Back</a>
                 </div>
-                {{-- <div class="col-auto">
-                    <div class="row g-3 align-items-center mt-0">
-                        <div class="col-auto mt-0">
-                            <input type="text" wire:model="search" class="form-control select-md bg-white search-input" id="customer"
-                                placeholder="Search by customer detail or Order number" value="" style="width: 350px;"
-                                wire:keyup="FindCustomer($event.target.value)">
-                        </div>
-
-                        <div class="col-auto mt-3">
-                            <button type="button" wire:click="resetForm"
-                                class="btn btn-outline-danger select-md">Clear</button>
-                        </div>
-                        <div class="col-auto">
-
-                        </div>
-                    </div>
-                </div> --}}
+                
             </div>
         </div>
     </section>

@@ -405,7 +405,7 @@ class CashBookModule extends Component
         if ($this->start_date && $this->end_date) {
             $paymentQuery->whereBetween('created_at', [$startDate, $endDate]);
         }
-        $this->paymentCollections = $paymentQuery->orderByDesc('created_at')->get();
+        $this->paymentCollections = $paymentQuery->orderByDesc('created_at')->where('collection_amount','>',0)->get();
 
          $validPaymentIds = Journal::whereNotNull('payment_id')->pluck('payment_id');
         // Expenses Table

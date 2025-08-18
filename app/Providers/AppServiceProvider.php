@@ -22,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot()
     {
-        // 🟩 Track Order changes
+        //  Track Order changes
         Order::updating(function ($order) {
             ChangeTracker::setOrderId($order->id);
 
@@ -64,7 +64,7 @@ class AppServiceProvider extends ServiceProvider
             }
         });
 
-        // 🟩 Handle logging at the end of request
+        //  Handle logging at the end of request
         app()->terminating(function () {
             $allChanges = ChangeTracker::getAll();
             if (empty($allChanges)) return;
@@ -74,7 +74,7 @@ class AppServiceProvider extends ServiceProvider
                 'after'  => [],
             ];
 
-            // 📦 Nesting rules: model => ['parent', 'child_key']
+            //  Nesting rules: model => ['parent', 'child_key']
             $nestingRules = [
                 'measurements'    => ['items', 'measurements'],
                 'voice_messages'  => ['items', 'voice_messages'],
@@ -95,7 +95,7 @@ class AppServiceProvider extends ServiceProvider
                     if (isset($nestingRules[$modelType])) {
                         [$parentKey, $childKey] = $nestingRules[$modelType];
 
-                        // 🟨 Special case for create/delete-only types like voice_messages
+                        //  Special case for create/delete-only types like voice_messages
                         if (isset($entry['action']) && in_array($entry['action'], ['created', 'deleted'])) {
                             $data = $entry['data'] ?? [];
 
@@ -113,10 +113,10 @@ class AppServiceProvider extends ServiceProvider
                                 $formatted['before'][$parentKey][$childKey][] = array_merge(['id' => $modelId], $data);
                             }
 
-                            continue; // 🛑 Skip default logic for this entry
+                            continue; //  Skip default logic for this entry
                         }
 
-                        // ✅ Default before/after logic for nested models
+                        //  Default before/after logic for nested models
                         if (!empty($entry['before'])) {
                             if ($parentId !== null) {
                                 $formatted['before'][$parentKey]['id'] = $parentId;
@@ -139,7 +139,7 @@ class AppServiceProvider extends ServiceProvider
                             );
                         }
                     } else {
-                        // 🔁 Fallback for non-nested types (like items)
+                        //  Fallback for non-nested types (like items)
 
                         if (!empty($entry['before'])) {
                             $formatted['before'][$modelType][] = $injectId($entry['before'], $modelId);

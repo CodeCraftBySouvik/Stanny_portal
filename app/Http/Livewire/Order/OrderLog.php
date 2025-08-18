@@ -86,19 +86,20 @@ class OrderLog extends Component
         $sl_no=1;
         $logs=ChangeLog::where('order_id',$this->orderId)
         ->with('user:id,name')
+        ->where('purpose', '!=', 'delivery_proceed')
         ->orderBy('created_at', 'desc')  // Order by created_at in descending order
         ->get();
 
         $logs = $logs->map(function ($item) use (&$sl_no)  {
-            $data_details=json_decode($item->data_details,true);
-            $before = $data_details['before']; // stdClass
-            $after = $data_details['after'];
+            $data_details=json_decode($item->data_details,true) ?? [];
+            $before = $data_details['before'] ?? null; // stdClass
+            $after = $data_details['after'] ?? null;
 
             // Convert to array recursively
+            
+            $item->before=trim($this->renderDiff($before ?? []));
 
-            $item->before=trim($this->renderDiff($before));
-
-            $item->after=$this->renderDiff($after);
+            $item->after=$this->renderDiff($after ?? []);
 
 
             $item->sl_no=$sl_no++;
@@ -110,152 +111,241 @@ class OrderLog extends Component
             'order'=>$this->order
         ]);
     }
+    // private function renderDiff($data)
+    // {
+    //     $label="";
+    //     foreach($data as $key =>$val)
+    //     {
+
+    //       if($key=='items')
+    //       {
+
+    //         if($this->isAssoc($val))
+    //         {
+    //             $label.='Item>>'.$this->fetchItem($val['id']);
+    //             foreach($val as $key=> $sub_val)
+    //             {
+    //                 //$label.=$sub_val;
+    //              if(is_array($sub_val))
+    //              {
+    //                 $label.='>>'.$this->subObject($sub_val,$key);
+
+    //                 //$label.=$this->subObject($sub_val,$key);exit;
+    //              }
+    //              else{
+    //                 if(!in_array($key,$this->ignore_fields))
+    //                 {
+    //                     if($key=='expected_delivery_date')
+    //                     {
+    //                         $sub_val= Date('Y-m-d',strtotime($sub_val));
+    //                     }
+    //                     $title=Str::title(value: $key);
+    //                     if(!empty($this->fields[$key]))
+    //                     {
+    //                         $title=$this->fields[$key];
+    //                     }
+    //                     if(empty($sub_val))
+    //                     {
+    //                         $sub_val="N/A";
+    //                     }
+    //                     $label.='>>'.$title.'>>'.$sub_val;
+
+    //                 }
+    //              }
+    //             }
+    //         }
+    //         else{
+    //             foreach($val as $key=> $sub_val)
+    //             {
+    //             $label.='Item>>'.$this->fetchItem($sub_val['id']);
+    //             foreach($sub_val as $sub_key=> $sub_sub_val)
+    //             {
+    //                 //$label.=$sub_val;
+    //                 if(is_array($sub_sub_val))
+    //                 {
+    //                 $label.='>>'.$this->subObject($sub_sub_val,$sub_key);
+
+    //                 //$label.=$this->subObject($sub_val,$key);exit;
+    //                 }
+    //                 else{
+    //                 if(!in_array($sub_key,$this->ignore_fields))
+    //                 {
+    //                     $title=Str::title(value: $sub_key);
+    //                     if(!empty($this->fields[$sub_key]))
+    //                     {
+    //                         $title=$this->fields[$sub_key];
+    //                     }
+    //                     if($sub_key=='expected_delivery_date')
+    //                     {
+    //                         $sub_sub_val= Date('Y-m-d',strtotime($sub_sub_val));
+    //                         $label.='>>'.$title.'>>'.$sub_sub_val;
+
+
+    //                     }
+    //                     else if(in_array($sub_key,$this->relational_tables))
+    //                     {
+    //                         if(empty($sub_sub_val))
+    //                         {
+    //                             $sub_sub_val="N/A";
+    //                         }
+    //                         $label.='>>'.$this->subObject(['id'=>$sub_sub_val],$sub_key);
+
+    //                     }
+
+    //                     else{
+    //                         if(empty($sub_sub_val))
+    //                         {
+    //                             $sub_sub_val="N/A";
+    //                         }
+    //                         $label.='>>'.$title.'>>'.$sub_sub_val;
+
+    //                     }
+
+    //                 }
+    //                 }
+    //                 $label.='<br>';
+    //             }
+
+    //             }
+
+    //         }
+    //       }
+    //       else{
+    //          if($key=='customer')
+    //          {
+    //             $label.='Customer>>';
+    //          }
+    //         foreach($val as $key=> $sub_val)
+    //         {
+
+    //             foreach($sub_val as $sub_key=> $sub_sub_val)
+    //             {
+    //                  $title=Str::title($sub_key);
+
+    //                  if(!empty($this->fields[$sub_key]))
+    //                  {
+
+    //                     $title=$this->fields[$sub_key];
+    //                  }
+    //                 if(!in_array($sub_key,$this->ignore_fields))
+    //                 {
+    //                     if ($sub_key=='dob')
+    //                     {
+    //                         $sub_sub_val= Date('Y-m-d',strtotime($sub_sub_val));
+    //                     }
+    //                     else if($sub_key=='customer_image'){
+    //                         if(!empty($sub_sub_val))
+    //                         {
+    //                             $sub_sub_val='<img src="'.asset($sub_sub_val).'" alt="" class="img-thumbnail" width="100">';
+
+    //                         }
+    //                     }
+    //                     if(empty($sub_sub_val))
+    //                     {
+    //                         $sub_sub_val="N/A";
+    //                     }
+    //                     $label.=$title.'>>'.$sub_sub_val;
+    //                 }
+    //                 $label.="<br>";
+    //             }
+
+    //         }
+    //       }
+
+    //     }
+    //     //echo $label;
+    //     return  preg_replace('/\s*>>\s*/', '>>', $label);
+    // }
+
     private function renderDiff($data)
-    {
-        //echo "<pre>";print_r($data);exit;
-        $label="";
-        foreach($data as $key =>$val)
-        {
+{
+    $label = "";
 
-          if($key=='items')
-          {
+    foreach ($data as $key => $val) {
+        if ($key == 'items') {
 
-            if($this->isAssoc($val))
-            {
-                $label.='Item>>'.$this->fetchItem($val['id']);
-                foreach($val as $key=> $sub_val)
-                {
-                    //$label.=$sub_val;
-                 if(is_array($sub_val))
-                 {
-                    $label.='>>'.$this->subObject($sub_val,$key);
+            if ($this->isAssoc($val)) {
+                $label .= 'Item>>' . $this->fetchItem($val['id']);
 
-                    //$label.=$this->subObject($sub_val,$key);exit;
-                 }
-                 else{
-                    if(!in_array($key,$this->ignore_fields))
-                    {
-                        if($key=='expected_delivery_date')
-                        {
-                            $sub_val= Date('Y-m-d',strtotime($sub_val));
+                foreach ($val as $subKey => $subVal) {
+                    if (is_array($subVal)) {
+                        $label .= '>>' . $this->subObject($subVal, $subKey);
+                    } else {
+                        if (!in_array($subKey, $this->ignore_fields)) {
+                            if ($subKey == 'expected_delivery_date') {
+                                $subVal = Date('Y-m-d', strtotime($subVal));
+                            }
+                            $title = $this->fields[$subKey] ?? Str::title($subKey);
+                            $subVal = $subVal ?: "N/A";
+                            $label .= '>>' . $title . '>>' . $subVal;
                         }
-                        $title=Str::title(value: $key);
-                        if(!empty($this->fields[$key]))
-                        {
-                            $title=$this->fields[$key];
-                        }
-                        if(empty($sub_val))
-                        {
-                            $sub_val="N/A";
-                        }
-                        $label.='>>'.$title.'>>'.$sub_val;
-
                     }
-                 }
+                }
+            } else {
+                if (is_iterable($val)) {
+                    foreach ($val as $subVal) {
+                        if (!is_array($subVal)) {
+                            continue; // skip non-arrays safely
+                        }
+                        $label .= 'Item>>' . $this->fetchItem($subVal['id']);
+
+                        foreach ($subVal as $subKey => $subSubVal) {
+                            if (is_array($subSubVal)) {
+                                $label .= '>>' . $this->subObject($subSubVal, $subKey);
+                            } else {
+                                if (!in_array($subKey, $this->ignore_fields)) {
+                                    $title = $this->fields[$subKey] ?? Str::title($subKey);
+
+                                    if ($subKey == 'expected_delivery_date') {
+                                        $subSubVal = Date('Y-m-d', strtotime($subSubVal));
+                                    } elseif (in_array($subKey, $this->relational_tables)) {
+                                        $subSubVal = $subSubVal ?: "N/A";
+                                        $label .= '>>' . $this->subObject(['id' => $subSubVal], $subKey);
+                                        continue;
+                                    }
+
+                                    $subSubVal = $subSubVal ?: "N/A";
+                                    $label .= '>>' . $title . '>>' . $subSubVal;
+                                }
+                            }
+                            $label .= '<br>';
+                        }
+                    }
                 }
             }
-            else{
-                foreach($val as $key=> $sub_val)
-                {
-                $label.='Item>>'.$this->fetchItem($sub_val['id']);
-                foreach($sub_val as $sub_key=> $sub_sub_val)
-                {
-                    //$label.=$sub_val;
-                    if(is_array($sub_sub_val))
-                    {
-                    $label.='>>'.$this->subObject($sub_sub_val,$sub_key);
-
-                    //$label.=$this->subObject($sub_val,$key);exit;
-                    }
-                    else{
-                    if(!in_array($sub_key,$this->ignore_fields))
-                    {
-                        $title=Str::title(value: $sub_key);
-                        if(!empty($this->fields[$sub_key]))
-                        {
-                            $title=$this->fields[$sub_key];
-                        }
-                        if($sub_key=='expected_delivery_date')
-                        {
-                            $sub_sub_val= Date('Y-m-d',strtotime($sub_sub_val));
-                            $label.='>>'.$title.'>>'.$sub_sub_val;
-
-
-                        }
-                        else if(in_array($sub_key,$this->relational_tables))
-                        {
-                            if(empty($sub_sub_val))
-                            {
-                                $sub_sub_val="N/A";
-                            }
-                            $label.='>>'.$this->subObject(['id'=>$sub_sub_val],$sub_key);
-
-                        }
-
-                        else{
-                            if(empty($sub_sub_val))
-                            {
-                                $sub_sub_val="N/A";
-                            }
-                            $label.='>>'.$title.'>>'.$sub_sub_val;
-
-                        }
-
-                    }
-                    }
-                    $label.='<br>';
-                }
-
-                }
-
+        } else {
+            if ($key == 'customer') {
+                $label .= 'Customer>>';
             }
-          }
-          else{
-             if($key=='customer')
-             {
-                $label.='Customer>>';
-             }
-            foreach($val as $key=> $sub_val)
-            {
 
-                foreach($sub_val as $sub_key=> $sub_sub_val)
-                {
-                     $title=Str::title($sub_key);
-
-                     if(!empty($this->fields[$sub_key]))
-                     {
-
-                        $title=$this->fields[$sub_key];
-                     }
-                    if(!in_array($sub_key,$this->ignore_fields))
-                    {
-                        if ($sub_key=='dob')
-                        {
-                            $sub_sub_val= Date('Y-m-d',strtotime($sub_sub_val));
-                        }
-                        else if($sub_key=='customer_image'){
-                            if(!empty($sub_sub_val))
-                            {
-                                $sub_sub_val='<img src="'.asset($sub_sub_val).'" alt="" class="img-thumbnail" width="100">';
-
-                            }
-                        }
-                        if(empty($sub_sub_val))
-                        {
-                            $sub_sub_val="N/A";
-                        }
-                        $label.=$title.'>>'.$sub_sub_val;
+            if (is_iterable($val)) {
+                foreach ($val as $subVal) {
+                    if (!is_iterable($subVal)) {
+                        continue; // skip if it’s just int/string
                     }
-                    $label.="<br>";
+
+                    foreach ($subVal as $subKey => $subSubVal) {
+                        $title = $this->fields[$subKey] ?? Str::title($subKey);
+
+                        if (!in_array($subKey, $this->ignore_fields)) {
+                            if ($subKey == 'dob') {
+                                $subSubVal = Date('Y-m-d', strtotime($subSubVal));
+                            } elseif ($subKey == 'customer_image' && !empty($subSubVal)) {
+                                $subSubVal = '<img src="' . asset($subSubVal) . '" alt="" class="img-thumbnail" width="100">';
+                            }
+                            $subSubVal = $subSubVal ?: "N/A";
+                            $label .= $title . '>>' . $subSubVal;
+                        }
+                        $label .= "<br>";
+                    }
                 }
-
             }
-          }
-
         }
-        //echo $label;
-        return  preg_replace('/\s*>>\s*/', '>>', $label);
     }
+
+    return preg_replace('/\s*>>\s*/', '>>', $label);
+}
+
     private function isIndexed(array $arr): bool
     {
         return array_keys($arr) === range(0, count($arr) - 1);

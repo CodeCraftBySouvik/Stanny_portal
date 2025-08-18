@@ -88,7 +88,7 @@ class AccountingRepository implements AccountingRepositoryInterface
 
         /* Entry in journal */
         Journal::insert([
-        'transaction_amount' => $data['amount'],
+        'transaction_amount' => $data['amount'] ?? null,
         'is_credit' => $is_credit,
         'is_debit' => $is_debit,
         'entry_date' => $data['payment_date'],

@@ -237,7 +237,7 @@ class AddInvoice extends Component
             'chq_utr_no' => 'required_if:payment_mode,cheque,neft',
             'bank_name' => 'required_if:payment_mode,cheque,neft',
             'amount' => [
-            'required',
+            'nullable',
             'numeric',
             'min:0',
                 function ($attribute, $value, $fail) {
@@ -256,7 +256,7 @@ class AddInvoice extends Component
             'chq_utr_no.required_if' => 'Cheque/UTR number is required for Cheque or NEFT payments.',
             'bank_name.required_if' => 'Bank name is required for Cheque or NEFT payments.',
         
-            'amount.required' => 'Amount is required.',
+            // 'amount.required' => 'Amount is required.',
             'amount.numeric' => 'Amount must be a number.',
             'amount.min' => 'Amount must be at least 0.',
             'amount.max' => 'Amount cannot be greater than the actual amount.',
@@ -422,8 +422,8 @@ class AddInvoice extends Component
                 'user_id' => $order->created_by,
                 'packingslip_id' => $packingSlip->id,
                 'invoice_no' => $invoice_no,
-                'net_price' => $order->total_amount,
-                'required_payment_amount' =>$order->total_amount,
+                'net_price' => $order->total_amount ?? null,
+                'required_payment_amount' =>$order->total_amount ?? null,
                 'created_by' =>  $order->created_by,
                 'created_at' => now(),
                 // 'updated_by' => auth()->id(),
@@ -452,7 +452,7 @@ class AddInvoice extends Component
                 'user_type' => 'customer',
                 'transaction_id' => $invoice_no,
                 'customer_id' => $order->customer_id,
-                'transaction_amount' => $order->total_amount,
+                'transaction_amount' => $order->total_amount ?? null,
                 'bank_cash' => 'cash',
                 'is_credit' => 0,
                 'is_debit' => 1,

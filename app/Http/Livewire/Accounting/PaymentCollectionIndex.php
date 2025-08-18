@@ -55,6 +55,7 @@ class PaymentCollectionIndex extends Component
             ->when(!empty($customer_id), fn($query) => $query->where('customer_id', $customer_id))
             ->when(!empty($staff_id), fn($query) => $query->where('user_id', $staff_id))
             ->when(!$this->auth->is_super_admin, fn($query) => $query->where('user_id', $this->auth->id)) // Auth-wise data filtering
+            ->where('collection_amount','>',0)
             ->orderBy('cheque_date', 'desc');
 
         // Set total count
