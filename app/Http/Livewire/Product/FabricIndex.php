@@ -182,7 +182,7 @@ class FabricIndex extends Component
         $this->threshold_price = null;
         
         session()->flash('message', 'Fabric updated successfully!');
-       
+       $this->resetFields();
     }
 
     // Delete Fabric
@@ -210,6 +210,10 @@ class FabricIndex extends Component
         } else {
             session()->flash('error', 'File not found.');
         }
+    }
+
+    public function resetFields(){
+        $this->reset(['fabricId','title','image','threshold_price']);
     }
     // Render Method with Search and Pagination
     public function render()
