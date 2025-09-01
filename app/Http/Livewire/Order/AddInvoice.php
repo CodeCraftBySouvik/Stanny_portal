@@ -120,7 +120,7 @@ class AddInvoice extends Component
         $this->salesman = auth()->guard('admin')->user()->id;
         $this->bill_book = Helper::generateInvoiceBill($this->salesman);
         $this->order_number = $this->bill_book['number'] ?? '';
-        $this->products = Product::all();
+        $this->products = Product::whereNull('deleted_at')->get();
         $this->invoice_date = Carbon::now()->format('Y-m-d');
         $this->due_date = Carbon::now()->format('Y-m-d');
         $this->rows = [

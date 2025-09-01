@@ -298,7 +298,7 @@
 
             <!-- Submenu -->
             <ul id="productManagementSubmenu"
-                class="collapse list-unstyled ms-4 {{ in_array(Route::currentRouteName(), ['product.view', 'product.gallery', 'product.add', 'product.update', 'admin.categories', 'admin.subcategories', 'measurements.index', 'product.fabrics','admin.collections.index','admin.fabrics.index','product.catalogue']) ? 'show' : '' }}">
+                class="collapse list-unstyled ms-4 {{ in_array(Route::currentRouteName(), ['product.view', 'product.gallery', 'product.add', 'product.update', 'admin.categories', 'admin.subcategories', 'measurements.index', 'product.fabrics','admin.collections.index','admin.fabrics.index','admin.fabrics.category','product.catalogue']) ? 'show' : '' }}">
                 {{-- Catalogue --}}
                 @if ($this->hasPermission('catalogue_details'))
                     <li class="nav-item">
@@ -330,6 +330,14 @@
                 @endif
 
                 {{-- Fabrics --}}
+                @if ($this->hasPermission('fabric_category'))
+                    <li class="nav-item">
+                        <a class="nav-link text-white {{ Route::currentRouteName() == 'admin.fabrics.category' ? 'active ' : '' }}"
+                            href="{{route('admin.fabrics.category')}}">
+                            Fabrics Category
+                        </a>
+                    </li>
+                @endif
                 @if ($this->hasPermission('fabric_details'))
                     <li class="nav-item">
                         <a class="nav-link text-white {{ Route::currentRouteName() == 'admin.fabrics.index' ? 'active ' : '' }}"

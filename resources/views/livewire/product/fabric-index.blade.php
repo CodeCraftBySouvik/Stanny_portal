@@ -157,10 +157,22 @@
                                 <h5>{{ $fabricId ? 'Update Fabric' : 'Create Fabric' }}</h5>
                             </div>
                             <form wire:submit.prevent="{{ $fabricId ? 'update' : 'store' }}">
-                                <!-- Measurement Title -->
+                                {{-- Fabric Category --}}
+                                <div class="form-group mb-3">
+                                    <label for="category"> Category <span class="text-danger">*</span></label>
+                                    <select name="category" id="category" class="form-control" required>
+                                        <option value="">-- Select Category --</option>
+                                        <option value="electronics" {{ old('category') == 'electronics' ? 'selected' : '' }}>Electronics</option>
+                                        <option value="fashion" {{ old('category') == 'fashion' ? 'selected' : '' }}>Fashion</option>
+                                    </select>
+                                    @error('category') 
+                                        <small id="categoryHelp" class="text-danger">{{ $message }}</small> 
+                                    @enderror
+                                </div>
+                                <!-- Fabric Title -->
                                 <div class="form-group mb-3">
                                     <input type="hidden" wire:model="product_id" id="product_id">
-                                    <label for="title">Fabric Title <span class="text-danger">*</span></label>
+                                    <label for="title"> Title <span class="text-danger">*</span></label>
                                     <input 
                                         type="text" 
                                         id="title" 
@@ -170,6 +182,21 @@
                                         aria-describedby="titleHelp">
                                     @error('title') 
                                         <small id="titleHelp" class="text-danger">{{ $message }}</small> 
+                                    @enderror
+                                </div>
+                                <!-- Fabric Pseudo Name -->
+                                <div class="form-group mb-3">
+                                    <input type="hidden" wire:model="product_id" id="product_id">
+                                    <label for="pseudo_name"> Pseudo Name <span class="text-danger">*</span></label>
+                                    <input 
+                                        type="text" 
+                                        id="pseudo_name" 
+                                        wire:model="pseudo_name" 
+                                        class="form-control border border-2 p-2" 
+                                        placeholder="Enter Pseudo Name" 
+                                        aria-describedby="pseudoNameHelp">
+                                    @error('pseudo_name') 
+                                        <small id="pseudoHelp" class="text-danger">{{ $message }}</small> 
                                     @enderror
                                 </div>
                                 
@@ -190,7 +217,7 @@
                             
                                 <!--  Code -->
                                 <div class="form-group mb-3">
-                                    <label for="image">Color Image</label>
+                                    <label for="image">Fabric Image</label>
                                     <input 
                                         type="file" 
                                         id="image" 

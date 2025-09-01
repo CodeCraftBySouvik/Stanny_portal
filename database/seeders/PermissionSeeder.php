@@ -37,6 +37,7 @@ class PermissionSeeder extends Seeder
             ['parent_name' => 'product_management', 'name' => 'collection_details', 'route' => 'admin.collections.index'],
             ['parent_name' => 'product_management', 'name' => 'category_details', 'route' => 'admin.categories'],
             ['parent_name' => 'product_management', 'name' => 'fabric_details', 'route' => 'admin.fabrics.index'],
+            ['parent_name' => 'product_management', 'name' => 'fabric_category', 'route' => 'admin.fabrics.category'],
 
             ['parent_name' => 'product_management', 'name' => 'product_listing', 'route' => 'product.view'],
             ['parent_name' => 'product_management', 'name' => 'product_create', 'route' => 'product.add'],

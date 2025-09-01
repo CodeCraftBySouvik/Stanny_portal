@@ -4,19 +4,9 @@
     </section>
     <section>
         <div class="search__filter">
-            <!-- <div class="row align-items-center justify-content-end">
-                <div class="col-auto">
-                    <div class="row g-3 align-items-center">
-                        <div class="col-md-auto mt-3">
-                            
-                        </div>
-                    </div>
-                </div>
-            </div> -->
+          
             <div class="row align-items-center justify-content-end">
-                <!-- <div class="col-auto">
-                    <p class="text-sm font-weight-bold">Items</p>
-                </div> -->
+                
                 <div class="col-auto">
                     <div class="row g-3 align-items-center">
 

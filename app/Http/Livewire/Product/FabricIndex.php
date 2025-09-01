@@ -21,7 +21,7 @@ class FabricIndex extends Component
 {
     use WithFileUploads;
     use WithPagination;
-    public  $image, $title, $status = 1, $fabricId,$threshold_price;
+    public  $image, $title,$category,$pseudo_name, $status = 1, $fabricId,$threshold_price;
     public $search = '';
     public $file;
     public $processedFileHash = null; // Store the hash of the last processed file
@@ -30,26 +30,7 @@ class FabricIndex extends Component
     public function confirmDelete($id){
         $this->dispatch('showDeleteConfirm',['itemId' => $id]);
     }
-    // public function import()
-    // {
-    //     $this->validate([
-    //         'file' => 'required|mimes:xlsx,csv|max:2048',
-    //     ]);
     
-    //     try {
-    //         \Maatwebsite\Excel\Facades\Excel::import(new FabricsImport, $this->file);
-    
-    //         if (session()->has('duplicate_fabrics')) {
-    //             session()->flash('error', 'These fabrics already exist: ' . session('duplicate_fabrics'));
-    //         } else {
-    //             session()->flash('success', 'File imported successfully.');
-    //         }
-    //     } catch (\Exception $e) {
-    //         session()->flash('error', 'Error importing file: ' . $e->getMessage());
-    //     }
-    
-    //     $this->reset('file');
-    // }
     public function import()
     {
         $this->validate([
@@ -89,11 +70,20 @@ class FabricIndex extends Component
     public function store()
     {
         $this->validate([
+             'category' =>[
+                 'required',
+                'string',
+                'max:255',
+            ],
             'title' => [
                 'required',
                 'string',
                 'max:255',
                 'unique:fabrics,title', 
+            ],
+            'pseudo_name' => [
+                'required',
+                'max:255'
             ],
             'image' => [
                 'nullable',
@@ -145,11 +135,20 @@ class FabricIndex extends Component
     public function update()
     {
         $this->validate([
+            'category' =>[
+                 'required',
+                'string',
+                'max:255',
+            ],
             'title' => [
                 'required',
                 'string',
                 'max:255',
                 Rule::unique('fabrics', 'title')->ignore($this->fabricId), 
+            ],
+            'pseudo_name' => [
+                'required',
+                'max:255'
             ],
             'image' => [
                 'nullable',

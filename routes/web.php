@@ -33,7 +33,7 @@ use App\Http\Livewire\Supplier\SupplierAdd;
 use App\Http\Livewire\Supplier\SupplierEdit;
 use App\Http\Livewire\Supplier\SupplierDetails;
 use App\Http\Livewire\Measurement\MeasurementIndex;
-use App\Http\Livewire\Fabric\FabricsIndex;
+use App\Http\Livewire\Fabric\{FabricsIndex,FabricCategoryIndex};
 use App\Http\Livewire\PurchaseOrder\{PurchaseOrderIndex,PurchaseOrderCreate,PurchaseOrderEdit,GenerateGrn,PurchaseOrderDetails,GeneratePdf};
 use App\Http\Livewire\Stock\{StockIndex,UserLedger};
 use App\Http\Livewire\Report\{UserLedgerReport};
@@ -121,7 +121,7 @@ Route::group(['prefix' => 'admin','middleware' => 'admin'], function () {
         Route::get('/fabrics/{product_id}', FabricsIndex::class)->name('product_fabrics.index')->middleware('check.permission');
         Route::post('/measurements/update-positions', [MeasurementIndex::class, 'updatePositions'])->name('measurements.updatePositions');
         Route::get('/fabrics', FabricIndex::class)->name('admin.fabrics.index')->middleware('check.permission');
-
+        Route::get('/fabrics/category', FabricCategoryIndex::class)->name('admin.fabrics.category');
         Route::get('/collections', CollectionIndex::class)->name('admin.collections.index')->middleware('check.permission');
         Route::get('/gallery/{product_id}', GalleryIndex::class)->name('product.gallery');
         Route::get('/catalogue', MasterCatalogue::class)->name('product.catalogue')->middleware('check.permission');
