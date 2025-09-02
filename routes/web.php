@@ -121,7 +121,7 @@ Route::group(['prefix' => 'admin','middleware' => 'admin'], function () {
         Route::get('/fabrics/{product_id}', FabricsIndex::class)->name('product_fabrics.index')->middleware('check.permission');
         Route::post('/measurements/update-positions', [MeasurementIndex::class, 'updatePositions'])->name('measurements.updatePositions');
         Route::get('/fabrics', FabricIndex::class)->name('admin.fabrics.index')->middleware('check.permission');
-        Route::get('/fabrics/category', FabricCategoryIndex::class)->name('admin.fabrics.category');
+        Route::get('/fabric/category', FabricCategoryIndex::class)->name('admin.fabrics.category')->middleware('check.permission');
         Route::get('/collections', CollectionIndex::class)->name('admin.collections.index')->middleware('check.permission');
         Route::get('/gallery/{product_id}', GalleryIndex::class)->name('product.gallery');
         Route::get('/catalogue', MasterCatalogue::class)->name('product.catalogue')->middleware('check.permission');

@@ -105,14 +105,16 @@
                                     <thead>
                                         <tr>
                                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Image</th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Title</th>
+                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Style</th>
+                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Radhey's Ref. No.</th>
+                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Ref Number Company</th>
                                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Status</th>
                                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody id="">
                                         @foreach ($fabrics as $fabric)
-                                      
+                                        
                                             <tr data-id="{{ $fabric->id }}" class="handle">
                                                 <td class="align-middle">
                                                      @if ($fabric->image)
@@ -121,7 +123,9 @@
                                                          <img src="{{ asset('assets/img/fabric.webp') }}" alt="Fabric Image" width="70" style="border-radius: 10px;">
                                                      @endif
                                                 </td>
+                                                <td><h6 class="mb-0 text-sm">{{ ucwords($fabric->fabric_category ? $fabric->fabric_category->title : "") }}</h6></td>
                                                 <td><h6 class="mb-0 text-sm">{{ ucwords($fabric->title) }}</h6></td>
+                                                <td><h6 class="mb-0 text-sm">{{ ucwords($fabric->pseudo_name) }}</h6></td>
                                                 <td class="align-middle text-center">
                                                     <div class="form-check form-switch">
                                                         <input type="checkbox" 
@@ -159,11 +163,12 @@
                             <form wire:submit.prevent="{{ $fabricId ? 'update' : 'store' }}">
                                 {{-- Fabric Category --}}
                                 <div class="form-group mb-3">
-                                    <label for="category"> Category <span class="text-danger">*</span></label>
-                                    <select name="category" id="category" class="form-control" required>
-                                        <option value="">-- Select Category --</option>
-                                        <option value="electronics" {{ old('category') == 'electronics' ? 'selected' : '' }}>Electronics</option>
-                                        <option value="fashion" {{ old('category') == 'fashion' ? 'selected' : '' }}>Fashion</option>
+                                    <label for="category"> Style <span class="text-danger">*</span></label>
+                                    <select wire:model="category" wire:change="loadLatestCategoryData" id="category" class="form-control" required>
+                                        <option value="" selected hidden>-- Select Category --</option>
+                                        @foreach ($fabricCategories as $item)
+                                             <option value="{{ $item->id }}" {{ old('category') == $item->id ? 'selected' : '' }}>{{ ucwords($item->title) }}</option>
+                                        @endforeach
                                     </select>
                                     @error('category') 
                                         <small id="categoryHelp" class="text-danger">{{ $message }}</small> 
@@ -172,13 +177,13 @@
                                 <!-- Fabric Title -->
                                 <div class="form-group mb-3">
                                     <input type="hidden" wire:model="product_id" id="product_id">
-                                    <label for="title"> Title <span class="text-danger">*</span></label>
+                                    <label for="title"> Radhey's Ref. No. <span class="text-danger">*</span></label>
                                     <input 
                                         type="text" 
                                         id="title" 
                                         wire:model="title" 
                                         class="form-control border border-2 p-2" 
-                                        placeholder="Enter Title" 
+                                         placeholder="{{ $latestTitle ?? 'Enter Radhey\'s Ref. No.' }}" 
                                         aria-describedby="titleHelp">
                                     @error('title') 
                                         <small id="titleHelp" class="text-danger">{{ $message }}</small> 
@@ -187,13 +192,13 @@
                                 <!-- Fabric Pseudo Name -->
                                 <div class="form-group mb-3">
                                     <input type="hidden" wire:model="product_id" id="product_id">
-                                    <label for="pseudo_name"> Pseudo Name <span class="text-danger">*</span></label>
+                                    <label for="pseudo_name"> Ref Number Company <span class="text-danger">*</span></label>
                                     <input 
                                         type="text" 
                                         id="pseudo_name" 
                                         wire:model="pseudo_name" 
                                         class="form-control border border-2 p-2" 
-                                        placeholder="Enter Pseudo Name" 
+                                        placeholder="{{ $latestPseudoName ?? 'Enter Ref Number Company' }}" 
                                         aria-describedby="pseudoNameHelp">
                                     @error('pseudo_name') 
                                         <small id="pseudoHelp" class="text-danger">{{ $message }}</small> 
@@ -224,8 +229,12 @@
                                         wire:model="image" 
                                         class="form-control border border-2 p-2" 
                                         aria-describedby="imageHelp">
+                                             {{--  If new image is uploaded --}}
                                         @if(is_object($image))
                                             <img src="{{ $image->temporaryUrl() }}" alt="Preview" width="100">
+                                             {{-- If editing and existing image is available --}}
+                                        @elseif($image)
+                                            <img src="{{ asset($image) }}" alt="Existing Image" width="100">
                                         @endif
                                     @error('image') 
                                         <small id="imageHelp" class="text-danger">{{ $message }}</small> 

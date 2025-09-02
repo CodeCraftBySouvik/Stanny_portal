@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Fabric extends Model
 {
     protected $table = "fabrics";
-    protected $fillable = ['collection_id','category','title', 'image','threshold_price' ,'status'];
+    protected $fillable = ['collection_id','fabric_category_id','title','pseudo_name', 'image','threshold_price' ,'status'];
 
     public function products()  
     {
@@ -16,5 +16,9 @@ class Fabric extends Model
     public function collection()
     {
         return $this->belongsTo(Collection::class, 'collection_id', 'id');
+    }
+
+    public function fabric_category(){
+        return $this->belongsTo(FabricCategory::class, 'fabric_category_id','id');
     }
 }
