@@ -41,16 +41,16 @@
         </div>
         <div class="d-flex justify-start gap-4 mb-4">
             <button
-                class="btn btn-sm px-4 py-2 {{ $activeTab === 'product' ? 'btn-primary' : 'btn-outline-secondary' }}"
-                wire:click="setActiveTab('product')"
-            >
-                Product Details
-            </button>
-            <button
                 class="btn btn-sm px-4 py-2 {{ $activeTab === 'fabric' ? 'btn-primary' : 'btn-outline-secondary' }}"
                 wire:click="setActiveTab('fabric')"
             >
                 Fabric Details
+            </button>
+             <button
+                class="btn btn-sm px-4 py-2 {{ $activeTab === 'product' ? 'btn-primary' : 'btn-outline-secondary' }}"
+                wire:click="setActiveTab('product')"
+            >
+                Product Details
             </button>
         </div>
         @if($activeTab === 'product')
@@ -133,7 +133,7 @@
                                     @if($item->stock_type === 'fabric')
                                         <tr>
                                             <td>{{ $index + 1 }}</td>
-                                            <td>{{ $item->fabric_name }}</td>
+                                            <td>{{ $item->fabric ? $item->fabric->pseudo_name : '' }}</td>
                                             <td>{{ intval($item->qty_in_meter) }}</td>
                                             <td>{{ intval($item->qty_while_grn_fabric) }}</td>
                                             <td>Rs. {{ number_format($item->piece_price, 2) }}</td>

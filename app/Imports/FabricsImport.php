@@ -19,7 +19,7 @@ class FabricsImport implements ToModel, WithHeadingRow
         $this->totalRows++; // Count total rows
 
         // Get or create the collection ID
-        $collection = Collection::firstOrCreate(['title' => $row['collection_title']]);
+        // $collection = Collection::firstOrCreate(['title' => $row['collection_title']]);
 
         // Find fabric category by title
         $fabricCategory = FabricCategory::where('title', $row['style'])->first();
@@ -31,7 +31,7 @@ class FabricsImport implements ToModel, WithHeadingRow
 
         // Check if fabric exists with the same title in the same collection
         $existingFabric = Fabric::where('title', $row['radheys_ref_no'])
-            ->where('collection_id', $collection->id)
+            // ->where('collection_id', $collection->id)
              ->where('fabric_category_id', $fabricCategory->id)
             ->first();
 
@@ -41,13 +41,13 @@ class FabricsImport implements ToModel, WithHeadingRow
         }
 
         return new Fabric([
-            'collection_id' => $collection->id,
+            'collection_id' => 1,
             'fabric_category_id' => $fabricCategory->id, 
             'title' => $row['radheys_ref_no'],
             'pseudo_name' => $row['ref_number_company'] ?? null,
             'threshold_price' => $row['threshold_price'] ?? 0,
-            'image' => $row['image'] ?? null,
-            'status' => strtolower($row['status']) === 'active' ? 1 : 0,
+            // 'image' => $row['image'] ?? null,
+            // 'status' => strtolower($row['status']) === 'active' ? 1 : 0,
         ]);
     }
 

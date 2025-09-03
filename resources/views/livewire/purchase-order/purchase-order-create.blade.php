@@ -87,7 +87,9 @@
                                             <select wire:model="rows.{{$index}}.fabric" id="fabric_{{$index}}" class="form-control form-control-sm border border-1 p-2">
                                                 <option value="" selected hidden>Select Fabric</option>
                                                 @foreach ($row['fabrics'] as $fabric)
-                                                    <option value="{{ $fabric['id'] }}">{{ $fabric['title'] }}</option>
+                                                    <option value="{{ $fabric['id'] }}">
+                                                        {{ $fabric['title'] }} ({{ $fabric['pseudo_name'] }})
+                                                    </option>
                                                 @endforeach
                                             </select>
                                             @error('rows.'.$index.'.fabric')
@@ -170,8 +172,7 @@
                     <!-- Actions -->
                     <div class="row">
                         <div class="col-md-12 text-end">
-                            {{-- <button type="reset" class="btn btn-warning" wire:click="resetForm">Reset Form</button>
-                            <button type="reset" class="btn btn-danger" wire:click="resetItems">Reset Items</button> --}}
+                           
                             <button type="submit" class="btn btn-sm btn-success"><i class="material-icons text-white"
                             style="font-size: 15px;">add</i>Add</button>
                         </div>

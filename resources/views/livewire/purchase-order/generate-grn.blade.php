@@ -54,7 +54,7 @@
                                                 <input type="checkbox" wire:model="selectedFabricBulkIn" value="{{ $orderProduct->id }}" disabled>
                                             </td>
                                             <td>{{ $orderProduct->collection ? $orderProduct->collection->title : '' }}</td>
-                                            <td>{{ $orderProduct->fabric ? $orderProduct->fabric->title : 'N/A' }}</td>
+                                            <td>{{ $orderProduct->fabric ? $orderProduct->fabric->pseudo_name : 'N/A' }}</td>
                                             <td>{{ intval($orderProduct->qty_in_meter) }}</td>
                                             <td>
                                                 <button type="button" wire:click="decrementGrnQuantity({{ $orderProduct->id }})">-</button>

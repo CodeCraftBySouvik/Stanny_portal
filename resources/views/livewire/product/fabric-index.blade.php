@@ -36,6 +36,14 @@
                                     <div class="col-auto">
                                         <div class="row g-3 align-items-center">
                                             <div class="col-auto">
+                                               <select wire:model="fabric_category" wire:change="FabricCategoryFilter" id="fabric_category" class="form-control select-md bg-white mb-3">
+                                                <option value="" selected hidden>Select Fabric</option>
+                                                @foreach($fabricCategories as $item)
+                                                    <option value="{{ $item->id }}">{{ ucwords($item->title) }}</option>
+                                                @endforeach
+                                            </select>    
+                                            </div>
+                                            <div class="col-auto">
                                                 <button type="button" class="btn btn-outline-primary select-md" data-bs-toggle="modal" data-bs-target="#importModal">
                                                     <i class="fas fa-file-csv me-1"></i> Import
                                                 </button>
@@ -113,7 +121,7 @@
                                         </tr>
                                     </thead>
                                     <tbody id="">
-                                        @foreach ($fabrics as $fabric)
+                                        @forelse ($fabrics as $fabric)
                                         
                                             <tr data-id="{{ $fabric->id }}" class="handle">
                                                 <td class="align-middle">
@@ -140,7 +148,11 @@
                                                     <a class="btn btn-outline-danger select-md btn_outline" wire:click="confirmDelete({{ $fabric->id }})" @click.stop>Delete</a>
                                                 </td>
                                             </tr>
-                                        @endforeach
+                                        @empty
+                                            <tr>
+                                                <td colspan="6" class="text-center">No fabrics found.</td>
+                                            </tr>
+                                        @endforelse
                                     </tbody>
                                 </table>
                                 <div class="d-flex justify-content-end mt-2">

@@ -11,20 +11,22 @@ class FabricsExport implements FromCollection, WithHeadings, WithMapping
 {
     public function collection()
     {
-        return Fabric::with('collection','fabric_category')->select('id', 'collection_id','fabric_category_id', 'title','pseudo_name','threshold_price', 'status')->get();
+        return Fabric::with('collection','fabric_category')
+               ->select( 'collection_id','fabric_category_id', 'title','pseudo_name','threshold_price', 'status')
+               ->get();
     }
 
     // Define Column Headers
     public function headings(): array
     {
-        return ['ID', 'Collection Title','Style',"Radhey's Ref. No.",'Ref Number Company','Threshold Price', 'Status'];
+        return [ 'Collection Title','Style',"Radhey's Ref. No.",'Ref Number Company','Threshold Price', 'Status'];
     }
 
     // Map the data to the correct format
     public function map($fabric): array
     {
         return [
-            $fabric->id,
+            // $fabric->id,
             optional($fabric->collection)->title ?? 'No Collection', // Get collection title
             optional($fabric->fabric_category)->title ?? 'No Category',
             $fabric->title,

@@ -28,7 +28,7 @@ class FabricIndex extends Component
     public $processedFileHash = null; // Store the hash of the last processed file
     protected $paginationTheme = 'bootstrap'; 
     public $fabricCategories = [];
-
+    public $fabric_category;
     public $latestTitle;
     public $latestPseudoName;
 
@@ -38,7 +38,9 @@ class FabricIndex extends Component
 
     public function loadLatestCategoryData(){
         if($this->category){
-            $latestFabricDetails = Fabric::where('fabric_category_id',$this->category)->latest()->first();
+            $latestFabricDetails = Fabric::where('fabric_category_id',$this->category)
+                                    ->orderByRaw("CAST(SUBSTRING_INDEX(title, ' ', -1) AS UNSIGNED) DESC")
+                                    ->first();
             if($latestFabricDetails){
                 $this->latestTitle = $latestFabricDetails->title;
                 $this->latestPseudoName = $latestFabricDetails->pseudo_name;
@@ -48,6 +50,11 @@ class FabricIndex extends Component
             }
         }
     }
+
+    public function FabricCategoryFilter(){
+         $this->resetPage(); 
+    }
+
     public function confirmDelete($id){
         $this->dispatch('showDeleteConfirm',['itemId' => $id]);
     }
@@ -94,10 +101,7 @@ class FabricIndex extends Component
         return Excel::download(new FabricsExport(), 'fabrics.csv');
     }
 
-    // public function sampleExport()
-    // {
-    //     return Excel::download(new SampleFabricExport(), 'sample_fabrics.csv');
-    // }
+    
     public function store()
     {
         // dd($this->all());
@@ -255,13 +259,18 @@ class FabricIndex extends Component
     public function resetFields(){
         $this->reset(['fabricId','title','image','threshold_price','category','pseudo_name']);
     }
+
     // Render Method with Search and Pagination
     public function render()
     {
-        $fabrics = Fabric::where('title', 'like', "%{$this->search}%")
-            // ->orderBy('id', 'asc')
-             ->orderByRaw("CAST(SUBSTRING_INDEX(title, ' ', -1) AS UNSIGNED) ASC")
-            ->paginate(10);
+        $query = Fabric::where('title', 'like', "%{$this->search}%");
+        if ($this->fabric_category) {
+           $query->where('fabric_category_id', $this->fabric_category);
+        }
+
+        $fabrics =  $query->orderBy('fabric_category_id', 'asc')
+                          ->orderByRaw("CAST(SUBSTRING_INDEX(title, ' ', -1) AS UNSIGNED) ASC")
+                          ->paginate(10);
 
         return view('livewire.product.fabric-index', [
             'fabrics' => $fabrics,

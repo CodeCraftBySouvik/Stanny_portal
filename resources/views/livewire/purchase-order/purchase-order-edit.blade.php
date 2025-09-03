@@ -89,7 +89,9 @@
                                         <select wire:model="rows.{{$index}}.fabric" id="fabric_{{$index}}" class="form-control form-control-sm border border-1 p-2">
                                             <option value="" selected hidden>Select Fabric</option>
                                             @foreach ($row['fabrics'] as $fabric)
-                                                <option value="{{ $fabric['id'] }}">{{ $fabric['title'] }}</option>
+                                                <option value="{{ $fabric['id'] }}">
+                                                    {{ $fabric['title'] }} ({{ $fabric['pseudo_name'] }})
+                                                </option>
                                             @endforeach
                                         </select>
                                         @error('rows.'.$index.'.fabric')
