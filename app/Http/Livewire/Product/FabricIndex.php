@@ -31,7 +31,7 @@ class FabricIndex extends Component
     public $fabric_category;
     public $latestTitle;
     public $latestPseudoName;
-
+    
     public function mount(){
         $this->fabricCategories = FabricCategory::where('status',1)->get();
     }
@@ -258,6 +258,10 @@ class FabricIndex extends Component
 
     public function resetFields(){
         $this->reset(['fabricId','title','image','threshold_price','category','pseudo_name']);
+    }
+
+    public function resetForm(){
+        $this->reset(['fabric_category']);
     }
 
     // Render Method with Search and Pagination

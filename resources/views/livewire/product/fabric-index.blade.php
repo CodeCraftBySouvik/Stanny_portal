@@ -44,12 +44,19 @@
                                             </select>    
                                             </div>
                                             <div class="col-auto">
+                                                 <button type="button" wire:click="resetForm"
+                                                 class="btn btn-outline-danger select-md"><i class="fas fa-sync-alt"></i></button>
+                                            </div>
+                                            <div class="col-auto">
                                                 <button type="button" class="btn btn-outline-primary select-md" data-bs-toggle="modal" data-bs-target="#importModal">
                                                     <i class="fas fa-file-csv me-1"></i> Import
                                                 </button>
                                             </div>
                                             <div class="col-auto">
                                                 <button wire:click="export" class="btn btn-outline-success select-md"><i class="fas fa-file-csv me-1"></i>Export</button>
+                                            </div>
+                                            <div class="col-auto">
+                                                <a href="{{ route('admin.fabrics.category') }}" class="btn btn-outline-success select-md">Fabric Category</a>
                                             </div>
                                             <!-- Import Modal -->
                                             <div wire:ignore.self class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">

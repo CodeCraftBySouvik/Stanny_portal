@@ -45,8 +45,9 @@
                                 @endif
                             </div>
                             <div class="row">
-                                
-                              
+                               <div class="col d-flex justify-content-end">
+                                    <a href="{{ route('admin.fabrics.index') }}" class="btn btn-outline-success select-md">Fabrics</a>
+                                </div>
                             </div>
                         </div>
                         <div class="card-body pb-2">
