@@ -16,7 +16,7 @@ class AdminLogin extends Component
         if($user){
             return redirect()->route('admin.dashboard'); // Middleware will now check authentication
         }
-        $this->fill(['email' => 'admin@gmail.com', 'password' => 'secret']);
+        // $this->fill(['email' => 'admin@gmail.com', 'password' => 'secret']);
     }
     // Validation rules
     protected $rules = [

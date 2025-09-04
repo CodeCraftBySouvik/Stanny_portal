@@ -57,11 +57,11 @@ use App\Models\PurchaseOrder;
 */
 
 Route::get('/', function(){
-    return redirect('admin/login');
+    return redirect('login');
 });
 
 Route::get('/sign-in', function(){
-    return redirect('admin/login');
+    return redirect('login');
 });
 
 Route::get('forgot-password', ForgotPassword::class)->middleware('guest')->name('password.forgot');
@@ -85,7 +85,7 @@ Route::get('reset-password/{id}', ResetPassword::class)->middleware('signed')->n
 //     Route::get('rtl', RTL::class)->name('rtl');
 // });
 
-Route::get('admin/login', AdminLogin::class)->middleware('guest')->name('admin.login');
+Route::get('login', AdminLogin::class)->middleware('guest')->name('admin.login');
 
 
 // Route::group(['prefix' => 'admin'], function () {

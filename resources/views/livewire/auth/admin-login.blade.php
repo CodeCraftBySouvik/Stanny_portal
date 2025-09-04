@@ -9,7 +9,7 @@
                             <!-- Logo Section -->
                             <img src="{{ asset('assets') }}/img/logo.webp" alt="Logo" style="width: 100px; height: auto;" class="me-2">
                 
-                            <h4 class="text-white font-weight-bolder text-center mt-2 mb-0">Admin Login</h4>
+                            {{-- <h4 class="text-white font-weight-bolder text-center mt-2 mb-0">Admin Login</h4> --}}
                         </div>
                        
                     </div>
