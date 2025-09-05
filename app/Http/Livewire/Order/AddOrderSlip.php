@@ -465,83 +465,7 @@ class AddOrderSlip extends Component
             // Update the Order's total_amount
             $order->update(['total_amount' => $total_amount]);
     }
-    // public function createPackingSlip()
-    // {
-    //     $order = Order::find($this->order->id);
-
-    //     if ($order) {
-
-    //         // Calculate the remaining amount
-    //         $packingSlip=PackingSlip::create([
-    //             'order_id' => $this->order->id,
-    //             'customer_id' => $this->customer_id,
-    //             'slipno' => $this->order->order_number,
-    //             // 'is_disbursed' => ($remaining_amount == 0) ? 1 : 0,
-    //             'is_disbursed' => 0,
-    //             'created_by' => $this->staff_id,
-    //             'created_at' => now(),
-    //             'disbursed_by' => $this->staff_id,
-    //             // 'updated_by' => auth()->id(),
-    //             // 'updated_at' => now(),
-    //         ]);
-
-
-    //         do {
-    //             $lastInvoice = Invoice::orderBy('id', 'DESC')->first();
-    //             $invoice_no = str_pad(optional($lastInvoice)->id + 1, 6, '0', STR_PAD_LEFT);
-    //         } while (Invoice::where('invoice_no', $invoice_no)->exists()); // Ensure unique invoice_no
-
-
-    //         $order->invoice_type = $this->document_type;
-    //         $invoice = Invoice::create([
-    //             'order_id' => $this->order->id,
-    //             'customer_id' => $this->customer_id,
-    //             'user_id' => $this->staff_id,
-    //             'packingslip_id' => $packingSlip->id,
-    //             'invoice_no' => $invoice_no,
-    //             // Previous
-    //             'net_price' => $order->total_amount,
-    //             'required_payment_amount' =>$order->total_amount,
-    //             'created_by' =>  $this->staff_id,
-    //             'created_at' => now(),
-    //             // 'updated_by' => auth()->id(),
-    //             'updated_at' => now(),
-    //         ]);
-
-    //         // Fetch Products from Order Items
-    //         $orderItems = $order->items;
-    //          // Insert Invoice Products
-    //          foreach ($orderItems as $key => $item) {
-    //             InvoiceProduct::create([
-    //                 'invoice_id' =>  $invoice->id,
-    //                 'product_id' => $item->product_id,
-    //                 'order_item_id' => $item->id,
-    //                 'product_name'=> $item->product? $item->product->name : "",
-    //                 'quantity' => $item->quantity,
-    //                 'single_product_price'=> $item->piece_price,
-    //                 'total_price' => $item->total_price + ($item->air_mail ?? 0),
-    //                 'is_store_address_outstation' => 0,
-    //                 'created_at' => now(),
-    //                 'updated_at' => now(),
-    //             ]);
-    //          }
-
-    //         Ledger::insert([
-    //             'user_type' => 'customer',
-    //             'transaction_id' => $invoice_no,
-    //             'customer_id' => $order->customer_id,
-    //             'transaction_amount' => $order->total_amount,
-    //             'bank_cash' => 'cash',
-    //             'is_credit' => 0,
-    //             'is_debit' => 1,
-    //             'entry_date' => date('Y-m-d H:i:s'),
-    //             'purpose' => 'invoice',
-    //             'purpose_description' => 'invoice raised of sales order for customer',
-    //             'created_at' => date('Y-m-d H:i:s'),
-    //             'updated_at' => date('Y-m-d H:i:s'),
-    //         ]);
-    //     }
-    // }
+  
 
     public function createPackingSlip()
     {
@@ -715,8 +639,9 @@ class AddOrderSlip extends Component
        $customer_netdue=[];
             // Fetch invoices with filters
             $invoices = Invoice::where('customer_id',$order->customer_id)
-            ->with('customer:id,name')
-            ->orderBy('created_at', 'desc')
+                                ->where('order_id','!=',$order->id)
+                                ->with('customer:id,name')
+                                ->orderBy('created_at', 'desc')
 
            ->get()->map(function ($item) use (&$customer_deposits,&$customer_netdue) {
                     if (!array_key_exists($item->customer_id, $customer_deposits))
@@ -725,7 +650,7 @@ class AddOrderSlip extends Component
                                         ->where('customer_id', $item->customer_id)
                                         ->sum('total_amount');
                         $total_deposit = PaymentCollection::where('customer_id', $item->customer_id)->sum('collection_amount');
-                        $net_due=$total_amount-$total_deposit;
+                        $net_due = $total_amount-$total_deposit;
                         $customer_netdue[$item->customer_id]=$net_due;
                         $customer_deposits[$item->customer_id]=$total_deposit;
 
@@ -758,16 +683,17 @@ class AddOrderSlip extends Component
             })
             ->filter(function ($item) {return $item->due_amnt > 0;})
             ->values()
-            ->slice(0, 2) // 🔥 Apply OFFSET & LIMIT
+            ->slice(0, 2) 
            ;
 
        $customer_deposits=[];
        $customer_netdue=[];
             // Fetch invoices with filters
             $rest_invoices = Invoice::where('customer_id',$order->customer_id)
-            ->with('customer:id,name')
-            ->orderBy('created_at', 'desc')
-
+                                    ->where('order_id','!=',$order->id)
+                                    ->with('customer:id,name')
+                                    ->orderBy('created_at', 'desc')
+            
            ->get()->map(function ($item) use (&$customer_deposits,&$customer_netdue) {
                     if (!array_key_exists($item->customer_id, $customer_deposits))
                     {
@@ -808,7 +734,7 @@ class AddOrderSlip extends Component
             })
             ->filter(function ($item) {return $item->due_amnt > 0;})
             ->values()
-            ->slice(2, 8) // 🔥 Apply OFFSET & LIMIT
+            ->slice(2, 8) 
            ;
 
 

@@ -81,8 +81,8 @@
             <td width="50%" style="border-right: 1px solid #ccc;">
                 <h3 style="margin-top: 0;">Order Information</h3>
                 <table cellpadding="4">
-                    <tr><td><strong>Order Id:</strong></td><td>{{ $order->order_number }}</td></tr>
-                    <tr><td><strong>Previous Order Id:</strong></td><td>{{ $previousOrder->order_number}}</td></tr>
+                    <tr><td><strong>Order Id:</strong></td><td>{{ $order->order_number ?? '' }}</td></tr>
+                    <tr><td><strong>Previous Order Id:</strong></td><td>{{ $previousOrder->order_number ?? ''}}</td></tr>
                     <tr><td><strong>Order Time:</strong></td><td>{{ $order->created_at->format('d M Y h:i A') }}</td></tr>
                 </table>
             </td>

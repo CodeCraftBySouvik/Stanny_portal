@@ -224,12 +224,7 @@
                                                         <x-table-td>{{ number_format($item->due_amnt, 2) }}
                                                         </x-table-td>
 
-                                                        {{-- <x-table-td>
-                                                            <button
-                                                                wire:click="downloadOrderInvoice({{ $item->order_id }})"
-                                                                class="btn select-md btn-outline-success btn_outline">Download</button>
-
-                                                        </x-table-td> --}}
+                                                       
                                                     </tr>
                                                     @endforeach
                                                     {{-- show all --}}
@@ -561,8 +556,10 @@
                                 <table>
                                     <tr>
                                         <td>
-                                            <span class="text-sm badge bg-primary sale_grn_sl">{{ $order->items->count()
-                                                + 1 }}</span>
+                                            {{-- <span class="text-sm badge bg-primary "> --}}
+                                                {{-- {{ $order->items->count()
+                                                + 1 }} --}}
+                                                {{-- </span> --}}
                                         </td>
                                         <td class="w-100">
                                             <div class="form-group mb-3">
@@ -578,14 +575,14 @@
                                 </table>
                             </div>
 
-                            <div class="col-sm-3">
+                            {{-- <div class="col-sm-3">
                                 <div class="form-group mb-3">
                                     <label>Quantity</label>
                                     <input type="text" class="form-control form-control-sm" value="1" readonly>
                                 </div>
-                            </div>
+                            </div> --}}
 
-                            <div class="col-sm-3">
+                            <div class="col-sm-6">
                                 <div class="form-group mb-3">
                                     <label>Price</label>
                                     <input type="text" class="form-control form-control-sm"

@@ -138,7 +138,7 @@ class OrderView extends Component
                 }
             }
         }
-
+        
         // Decide final order status
         if ($collection1Delivered && $collection2Delivered) {
             $newStatus = 'Delivered to Customer';

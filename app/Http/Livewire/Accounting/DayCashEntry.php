@@ -31,7 +31,7 @@ class DayCashEntry extends Component
     public function mount()
     {
         $this->staffs = User::where('user_type', 0)
-            ->whereIn('designation', [2,12])
+            ->whereIn('designation', [2,12,4])
             ->select('name', 'id','designation')
             ->orderBy('name', 'ASC')
             ->get();

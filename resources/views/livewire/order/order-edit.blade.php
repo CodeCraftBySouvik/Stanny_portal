@@ -370,8 +370,7 @@
                                     class="text-danger">*</span></label>
                             <select wire:model="items.{{ $index }}.selected_collection"
                                 wire:change="GetCategory($event.target.value, {{ $index }})"
-                                class="form-control border border-2 p-2 form-control-sm" 
-                                 @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                class="form-control border border-2 p-2 form-control-sm">
                                 <option value="" selected hidden>Select collection</option>
                                 @foreach($collections as $citems)
                                 <option value="{{ $citems->id }}" {{$item['selected_collection']==$citems->id ?
@@ -392,8 +391,7 @@
                             <label class="form-label"><strong>Category</strong></label>
                             <select wire:model="items.{{ $index }}.selected_category"
                                 class="form-select form-control-sm border border-1"
-                                wire:change="CategoryWiseProduct($event.target.value, {{ $index }})"
-                                @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                wire:change="CategoryWiseProduct($event.target.value, {{ $index }})">
                                 <option value="" selected hidden>Select Category</option>
                                 @foreach ($item['categories'] as $category)
                                 <option value="{{ $category->id }}" {{$item['selected_category']==$category->
@@ -415,8 +413,7 @@
                                 <input type="text" wire:keyup="FindProduct($event.target.value, {{ $index }})"
                                     wire:model="items.{{ $index }}.searchproduct"
                                     class="form-control form-control-sm border border-1 customer_input"
-                                    placeholder="Enter product name" value="{{ $item['searchproduct'] }}" 
-                                    @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                    placeholder="Enter product name" value="{{ $item['searchproduct'] }}">
 
                                 @error("items.".$index.".searchproduct")
                                 <p class="text-danger inputerror">{{ $message }}</p>
@@ -446,8 +443,7 @@
                                         wire:model="items.{{ $index }}.quantity"
                                         class="form-control form-control-sm border border-1 customer_input
                                             @error('items.' . $index . '.quantity') border-danger @enderror"
-                                        placeholder="Enter quantity" min="1"
-                                        @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                        placeholder="Enter quantity" min="1">
                                     @error('items.' . $index . '.quantity')
                                     <div class="text-danger error-message">{{ $message }}</div>
                                     @enderror
@@ -465,7 +461,7 @@
                                     wire:keyup="searchFabrics({{ $index }})" class="form-control form-control-sm"
                                     placeholder="Search by fabric name" id="searchFabric_{{ $index }}"
                                     value="{{ optional(collect($items[$index]['fabrics'])->firstWhere('id', $items[$index]['selected_fabric']))->title }}"
-                                    autocomplete="off" @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                    autocomplete="off" >
                                 @error("items.". $index .".searchTerm")
                                 <div class="text-danger">{{ $message }}</div>
                                 @enderror
@@ -492,12 +488,12 @@
                                             wire:model="items.{{ $index }}.price" class="form-control form-control-sm border border-1 customer_input
                                             @if(session()->has('errorPrice.' . $index)) border-danger @endif
                                             @error('items.' . $index . '.price') border-danger  @enderror"
-                                            placeholder="Enter Price" @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                            placeholder="Enter Price" >
                                     </div>
                                     <div>
                                         <!-- Delete Button -->
                                         <button type="button" class="btn btn-danger btn-sm danger_btn mb-0"
-                                            wire:click="removeItem({{ $index }})" @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                            wire:click="removeItem({{ $index }})" >
                                             <span class="material-icons">delete</span>
                                         </button>
                                     </div>
@@ -524,12 +520,12 @@
                                             wire:keyup="checkproductPrice($event.target.value, {{ $index }})"
                                             wire:model="items.{{ $index }}.price"
                                             class="form-control form-control-sm border border-1 customer_input @if(session()->has('errorPrice.' . $index)) border-danger @endif @error('items.' . $index . '.price') border-danger @enderror"
-                                            placeholder="Enter Price" @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                            placeholder="Enter Price" >
                                     </div>
                                     <div>
                                         <!-- Delete Button -->
                                         <button type="button" class="btn btn-danger btn-sm danger_btn mb-0"
-                                            wire:click="removeItem({{ $index }})" @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif><span
+                                            wire:click="removeItem({{ $index }})" ><span
                                                 class="material-icons">delete</span>
                                         </button>
                                     </div>
@@ -549,7 +545,6 @@
                                     <div class="col-md-2">
                                         <label for="">Expected Delivery Date</label>
                                         <input type="date" class="form-control form-control-sm border border-1" wire:model="items.{{$index}}.expected_delivery_date" 
-                                        @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif
                                         min="{{ \Carbon\Carbon::today()->format('Y-m-d') }}">
                                         @error("items.$index.expected_delivery_date")
                                         <div class="text-danger">{{ $message }}</div>
@@ -558,8 +553,7 @@
                                     <div class="col-md-2">
                                         <label class="form-label"><strong>Priority Level</strong></label>
                                         <select class="form-control form-control-sm border border-1"
-                                                wire:model="items.{{ $index }}.priority"
-                                                @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                                wire:model="items.{{ $index }}.priority">
                                             <option value="" hidden>Select Priority</option>
                                             <option value="Priority">Priority</option>
                                             <option value="Non Priority">Non Priority</option>
@@ -602,8 +596,7 @@
                                         <input type="checkbox" class="form-check-input"
                                             wire:model="items.{{ $index }}.copy_previous_measurements"
                                             wire:change="copyMeasurements({{ $index }})"
-                                            id="copy_measurements_{{ $index }}"
-                                            @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                            id="copy_measurements_{{ $index }}">
 
                                         <label class="form-check-label" for="copy_measurements_{{ $index }}">
                                             Use previous measurements
@@ -632,8 +625,7 @@
                                                 <input type="number" required
                                                     class="form-control form-control-sm border border-1 customer_input measurement_input"
                                                     wire:model="items.{{ $index }}.measurements.{{ $key }}.value"
-                                                     wire:keyup="validateMeasurement({{ $index }}, {{ $key }})"
-                                                     @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                                     wire:keyup="validateMeasurement({{ $index }}, {{ $key }})">
                                                 @error("items.{$index}.measurements.{$key}.value")
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
@@ -658,8 +650,7 @@
                                         <label class="form-label"><strong>Catalogue</strong></label>
                                         <select wire:model="items.{{ $index }}.selectedCatalogue"
                                             class="form-control form-control-sm border border-1 @error('items.'.$index.'.selectedCatalogue') border-danger @enderror"
-                                            wire:change="SelectedCatalogue($event.target.value, {{ $index }})"
-                                            @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                            wire:change="SelectedCatalogue($event.target.value, {{ $index }})">
                                             <option value="" selected hidden>Select Catalogue</option>
                                             @foreach($item['catalogues'] ?? [] as $cat_log)
                                             <option value="{{ $cat_log['id'] }}" {{ (isset($item['selectedCatalogue'])
@@ -681,8 +672,7 @@
                                             id="page_number"
                                             class="form-control form-control-sm border border-2 @error('items.'.$index.'.page_number') border-danger @enderror"
                                             min="1"
-                                            max="{{ isset($item['selectedCatalogue']) && isset($maxPages[$index][$item['selectedCatalogue']]) ? $maxPages[$index][$item['selectedCatalogue']] : '' }}"
-                                            @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                            max="{{ isset($item['selectedCatalogue']) && isset($maxPages[$index][$item['selectedCatalogue']]) ? $maxPages[$index][$item['selectedCatalogue']] : '' }}">
                                         @error("items.".$index.".page_number")
                                         <div class="text-danger inputerror">{{ $message }}</div>
                                         @enderror
@@ -692,8 +682,7 @@
                                         @if(isset($catalogue_page_item) && !empty($catalogue_page_item[$index]))
                                         <label class="form-label"><strong>Page Item</strong></label>
                                         <select wire:model="items.{{$index}}.page_item"
-                                            class="form-control form-control-sm border border-2 @error('items.'.$index.'.page_item') border-danger @enderror"
-                                            @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                            class="form-control form-control-sm border border-2 @error('items.'.$index.'.page_item') border-danger @enderror">
                                             <option value="" selected hidden>Select Page Item</option>
                                             @if(!empty($items[$index]['pageItems']))
                                             @foreach($items[$index]['pageItems'] ?? [] as $item)
@@ -715,7 +704,7 @@
                                             <div class="col-md-4">
                                                 <label for="">Expected Delivery Date</label>
                                                 <input type="date" class="form-control form-control-sm border border-1" wire:model="items.{{$index}}.expected_delivery_date"
-                                                @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif
+                                                
                                                 min="{{ \Carbon\Carbon::today()->format('Y-m-d') }}">
                                                 @error("items.$index.expected_delivery_date")
                                                     <div class="text-danger">{{ $message }}</div>
@@ -725,8 +714,7 @@
                                             <div class="col-md-4">
                                                 <label class="form-label"><strong>Fittings</strong></label>
                                                 <select class="form-control form-control-sm border border-1"
-                                                        wire:model="items.{{ $index }}.fitting"
-                                                        @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                                        wire:model="items.{{ $index }}.fitting">
                                                     <option value="" hidden>Select Fitting</option>
                                                     <option value="Regular Fit">Regular Fit</option>
                                                     <option value="Slim Fit">Slim Fit</option>
@@ -741,8 +729,7 @@
                                             <div class="col-md-4">
                                                 <label class="form-label"><strong>Priority Level</strong></label>
                                                 <select class="form-control form-control-sm border border-1"
-                                                        wire:model="items.{{ $index }}.priority"
-                                                        @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                                        wire:model="items.{{ $index }}.priority">
                                                     <option value="" hidden>Select Priority</option>
                                                     <option value="Priority">Priority</option>
                                                     <option value="Non Priority">Non Priority</option>
@@ -783,8 +770,7 @@
                                                     <button type="button"
                                                         class="btn btn-sm rounded-circle p-1 btn-danger position-absolute top-0 end-0"
                                                         style="width: 22px; height: 22px; font-size: 12px; display: flex; align-items: center; justify-content: center;"
-                                                        wire:click="removeImage({{ $index }}, '{{ $loop->index }}')"
-                                                        @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                                        wire:click="removeImage({{ $index }}, '{{ $loop->index }}')">
                                                         &times;
                                                     </button>
                                                 </div>
@@ -800,8 +786,7 @@
                                                 <button type="button"
                                                     class="btn btn-sm rounded-circle p-1 btn-danger position-absolute top-0 end-0"
                                                     style="width: 22px; height: 22px; font-size: 12px; display: flex; align-items: center; justify-content: center;"
-                                                    wire:click="removeUploadedImage({{ $index }}, {{ $imgIndex }})"
-                                                    @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                                    wire:click="removeUploadedImage({{ $index }}, {{ $imgIndex }})">
                                                     &times;
                                                 </button>
                                             </div>
@@ -821,8 +806,7 @@
                                                     <button type="button"
                                                         class="btn btn-sm btn-danger rounded-circle p-1 position-absolute top-0 end-0"
                                                         style="width: 24px; height: 24px; font-size: 14px; display: flex; align-items: center; justify-content: center;"
-                                                        wire:click="removeVideo({{ $index }}, '{{ $loop->index }}')"
-                                                        @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                                        wire:click="removeVideo({{ $index }}, '{{ $loop->index }}')">
                                                         &times;
                                                     </button>
                                                 </div>
@@ -842,8 +826,7 @@
                                                     <button type="button"
                                                         class="btn btn-sm rounded-circle p-1 btn-danger position-absolute top-0 end-0"
                                                         style="width: 22px; height: 22px; font-size: 12px; display: flex; align-items: center; justify-content: center;"
-                                                        wire:click="removeUploadedVoice({{ $index }}, {{ $voiceIndex }})"
-                                                        @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                                        wire:click="removeUploadedVoice({{ $index }}, {{ $voiceIndex }})">
                                                         &times;
                                                     </button>
                                                 </div>
@@ -856,7 +839,7 @@
 
                                             <button type="button" class="btn btn-cta btn-sm"
                                                 onclick="document.getElementById('catalog-upload-{{ $index }}').click()" 
-                                                @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                                >
                                                 <i class="material-icons text-white" style="font-size: 15px;">add</i>
                                                 Upload Images
                                             </button>
@@ -864,8 +847,7 @@
                                              <div class="d-flex align-items-center gap-3">
                                                 <!-- Upload Voice Button -->
                                                 <button type="button" class="btn btn-cta btn-sm"
-                                                    onclick="document.getElementById('voice-upload-{{ $index }}').click()"
-                                                    @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                                    onclick="document.getElementById('voice-upload-{{ $index }}').click()">
                                                     <i class="material-icons text-white" style="font-size: 15px;">mic</i>
                                                     Upload Voice
                                                 </button>
@@ -876,8 +858,7 @@
                                                 <!-- Start / Stop Buttons -->
                                                 <div class="ms-auto text-end d-flex gap-2">
                                                     <button type="button" class="btn btn-cta btn-sm"
-                                                        onclick="startRecording({{ $index }});" id="startBtn_{{ $index }}"
-                                                        @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                                        onclick="startRecording({{ $index }});" id="startBtn_{{ $index }}">
                                                         Start Recording
                                                         <i class="material-icons text-white" style="font-size: 15px;">record_voice_over</i>
                                                     </button>
@@ -917,8 +898,7 @@
                                 <label class="form-label"><strong>Remarks</strong></label>
                                 <textarea type="text" wire:model="items.{{ $index }}.remarks"
                                     class="form-control form-control-sm border border-1 customer_input"
-                                    placeholder="Enter Product Remarks" rows="4"
-                                    @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif></textarea>
+                                    placeholder="Enter Product Remarks" rows="4"></textarea>
                                 @error("items.".$index.".remarks")
                                 <div class="text-danger">{{ $message }}</div>
                                 @enderror

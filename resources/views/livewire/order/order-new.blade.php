@@ -30,12 +30,6 @@
                     {{ session('error') }}
                 </div>
                 @endif
-                {{-- @if ($activeTab==1 && $salesmanBill == null)
-                <div class="badge bg-primary">
-                    <a href="{{ route('salesman.index') }}"> <strong>Error:</strong> Please add a bill for this user
-                        before placing the order.</a>
-                </div>
-                @endif --}}
             </div>
         </div>
 
@@ -43,25 +37,28 @@
             <form wire:submit.prevent="save">
                 <div class="{{$activeTab==1?" d-block":"d-none"}}" id="tab1">
                     {{-- checkbox section --}}
-                    <div class="mb-3">
+                    <div class="mb-0">
                         <label><strong>Select Customer Type:</strong></label>
                         <div class="d-flex align-items-center justify-content-between">
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio"
-                                wire:change="onCustomerTypeChange($event.target.value)" wire:model="customerType"
-                                id="newCustomer" value="new" checked>
-                            <label class="form-check-label" for="newCustomer">New Customer</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio"
-                                wire:change="onCustomerTypeChange($event.target.value)" wire:model="customerType"
-                                id="existingCustomer" value="existing">
-                            <label class="form-check-label" for="existingCustomer">Existing Customer</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <button class="btn btn-outline-success btn-sm" wire:click="skipOrderBill">Skip Order
-                                Bill</button>
-                        </div>
+                            <div classs="">
+                                <div class="form-check form-check-inline mx-0 px-0">
+                                    <input class="form-check-input" type="radio"
+                                        wire:change="onCustomerTypeChange($event.target.value)" wire:model="customerType"
+                                        id="newCustomer" value="new" checked>
+                                    <label class="form-check-label" for="newCustomer">New Customer</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio"
+                                        wire:change="onCustomerTypeChange($event.target.value)" wire:model="customerType"
+                                        id="existingCustomer" value="existing">
+                                    <label class="form-check-label" for="existingCustomer">Existing Customer</label>
+                                </div>
+                            </div>
+
+                            <div class="form-check form-check-inline">
+                                <button class="btn btn-outline-success btn-sm" wire:click="skipOrderBill">Skip Order
+                                    Bill</button>
+                            </div>
                         </div>
                     </div>
                     {{-- Skip Modal start--}}
@@ -84,7 +81,9 @@
                                                     <input type="text"
                                                         class="form-control form-control-sm text-center border border-1"
                                                         disabled wire:model="order_number" value="{{ $order_number }}">
-                                                    
+                                                    @error('order_number')
+                                                        <p class="text-danger small">{{$message}}</p>
+                                                    @enderror
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label"><strong>Reason <span class="text-danger">*</span></strong></label>
@@ -297,17 +296,8 @@
                                 <div class="text-danger error-message">{{ $errorMessage['email'] }}</div>
                                 @endif
                             </div>
-                            <div class="mb-2 col-md-3">
-                                <label for="customer_image" class="form-label">Client Image <span
-                                        class="small text-danger">*</span></label>
-                                <input type="file" wire:model="customer_image" id="customer_image"
-                                    class="form-control form-control-sm border border-1 p-2 {{ $errorClass['customer_image'] ?? '' }}">
-                                @if(isset($errorMessage['customer_image']))
-                                <div class="text-danger error-message">{{ $errorMessage['customer_image'] }}</div>
-                                @endif
-                            </div>
 
-
+                           
 
                             <div class="mb-2 col-md-3">
                                 <label for="dob" class="form-label">Date Of Birth</label>
@@ -421,6 +411,16 @@
                                     <input type="checkbox" id="is_whatsapp3" wire:model="isWhatsappAlt2">
                                     <label for="is_whatsapp3" class="form-check-label ms-1">Is Whatsapp</label>
                                 </div>
+                            </div>
+
+                            <div class="mb-2 col-md-3">
+                                <label for="customer_image" class="form-label">Client Image <span
+                                        class="small text-danger">*</span></label>
+                                <input type="file" wire:model="customer_image" id="customer_image"
+                                    class="form-control form-control-sm border border-1 p-2 {{ $errorClass['customer_image'] ?? '' }}">
+                                @if(isset($errorMessage['customer_image']))
+                                <div class="text-danger error-message">{{ $errorMessage['customer_image'] }}</div>
+                                @endif
                             </div>
 
 
@@ -609,7 +609,7 @@
                                         @foreach ($items[$index]['products'] as $product)
                                         <button class="dropdown-item" type="button"
                                             wire:click='selectProduct({{ $index }}, "{{ $product->name }}", {{ $product->id }})'>
-                                            <img src="{{ $product->product_image ? asset($product->product_image) : asset('assets/img/cubes.png') }}"
+                                            <img src="{{ $product->product_image ? asset("storage/".$product->product_image) : asset('assets/img/cubes.png') }}"
                                                 alt=""> {{ $product->name }}({{ $product->product_code }})
                                         </button>
                                         @endforeach
@@ -1144,9 +1144,8 @@
             <!-- Tabs content -->
         </div>
     </div>
-
-</div>
-<script>
+    
+    <script>
     const mediaRecorders = {};
     const audioChunksMap = {};
 
@@ -1252,3 +1251,4 @@ document.addEventListener("DOMContentLoaded", function() {
         myModal.hide();
     });
 </script>
+</div>

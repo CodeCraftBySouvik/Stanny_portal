@@ -214,7 +214,7 @@
 
         .qty-style button {
             margin-bottom: 0;
-            padding: 8px 15px;
+            padding: 3px 12px;
             border-radius: 0;
             background: #344767;
             border: 1px solid #344767;
@@ -223,8 +223,9 @@
         .qty-style input {
             background: #fff !important;
             border: 1px solid #344767 !important;
-            max-width: 60px !important;
-            flex: 0 0 60px !important;
+            max-width: 46px !important;
+            flex: 0 0 46px !important;
+            height: 29px;
         }
 
         .loop span {
@@ -250,7 +251,7 @@
 
     <div class="table-container">
 
-        <div class="row justify-content-end mb-4">
+        <div class="row justify-content-start mb-4">
             @php
                 $loggedInUser = Auth::guard('admin')->user();
             @endphp
@@ -380,7 +381,7 @@
                 <div class="col-md-4">
                     <label class="date_lable">Invoice Date:</label>
 
-                    <input type="date" class="form-control border border-2 p-2" name="invoice_date" wire:model="invoice_date" required max="{{ now()->format('Y-m-d') }}">
+                    <input type="date" class="form-control border border-2 p-2 form-control-sm" name="invoice_date" wire:model="invoice_date" required max="{{ now()->format('Y-m-d') }}">
 
                     @error('invoice_date')
                         <p class="text-danger">{{$message}}</p>
@@ -391,7 +392,7 @@
                 <div class="col-md-4">
                     <label class="date_lable">Due Date:</label>
 
-                    <input type="date" class="form-control border border-2 p-2" name="due_date" wire:model="due_date" required >
+                    <input type="date" class="form-control border border-2 p-2 form-control-sm" name="due_date" wire:model="due_date" required >
 
                     @error('due_date')
                         <p class="text-danger">{{$message}}</p>
@@ -402,7 +403,7 @@
                 <div class="col-md-4">
                     <label class="date_lable">Source:</label>
 
-                    <input type="text" class="form-control border border-2 p-2" name="source" wire:model="source" required>
+                    <input type="text" class="form-control border border-2 p-2 form-control-sm" name="source" wire:model="source" required>
 
                     @error('source')
                         <p class="text-danger">{{$message}}</p>
@@ -413,7 +414,7 @@
                 <div class="col-md-4">
                     <label class="date_lable">Reference:</label>
 
-                    <input type="text" class="form-control border border-2 p-2" name="reference" wire:model="reference" required>
+                    <input type="text" class="form-control border border-2 p-2 form-control-sm" name="reference" wire:model="reference" required>
 
                     @error('reference')
                         <p class="text-danger">{{$message}}</p>
@@ -430,7 +431,7 @@
                         <div class="row">
                             <div class="col-md-3">
                                 <label class="date_lable">Product Name</label>
-                                <select class="form-control product-select"
+                                <select class="form-control product-select form-control-sm"
 
                                 wire:model="rows.{{ $index }}.product_id">
 
@@ -475,7 +476,7 @@
                             </div>
                             <div class="col-md-3">
                                 <label class="date_lable">Unit Price</label>
-                                <input type="text" class="form-control amount"
+                                <input type="text" class="form-control amount form-control-sm"
 
                                  wire:model.lazy="rows.{{ $index }}.unit_price" wire:blur="updatePrice({{ $index }})"
 
@@ -489,7 +490,7 @@
                             </div>
                             <div class="col-md-2 align-self-end">
                              <label class="date_lable">Total Price</label>
-                                <input type="text" class="form-control amount" value="0" readonly wire:model="rows.{{ $index }}.total"> 
+                                <input type="text" class="form-control amount form-control-sm" value="0" readonly wire:model="rows.{{ $index }}.total"> 
                                 <span>FCFA</span>
                             </div>
                             <div class="col-md-2 align-self-center">

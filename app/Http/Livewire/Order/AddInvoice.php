@@ -34,7 +34,7 @@ class AddInvoice extends Component
     public $bill_book = [];
     public $order_number;
     public $showPaymentReceipt = false;
-    public $payment_date,$payment_mode,$chq_utr_no,$bank_name,$actual_amount,$amount;
+    public $payment_date,$payment_mode,$chq_utr_no,$bank_name,$actual_amount,$amount =0;
     public $showPaymentFields = false;
     public $receipt_for = "Customer";
 

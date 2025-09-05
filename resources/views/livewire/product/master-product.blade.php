@@ -114,7 +114,7 @@
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Collection</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Name</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Category</th>
-                                        {{-- <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">SubCategory</th> --}}
+                                    
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Status</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Action</th>
                                     </tr>
@@ -138,11 +138,7 @@
                                         </td> 
                                         <td><h6 class="mb-0 text-sm">{{ ucwords($product->name) }}</h6></td>
                                         <td><p class="text-xs font-weight-bold mb-0">{{ ucwords($product->category->title ?? 'N/A') }}</p></td>
-                                        {{-- <td>
-                                            <p class="text-xs font-weight-bold mb-0">
-                                                {{ ucwords($product->sub_category->title ?? 'N/A') }}
-                                            </p>
-                                        </td> --}}
+                                        
                                         <td>
                                             <div class="form-check form-switch">
                                                 <input class="form-check-input ms-auto" type="checkbox" wire:click="toggleStatus({{ $product->id }})" 

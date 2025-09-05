@@ -26,13 +26,8 @@
                                 @endif
                             </div>
                             <div class="row">
-                                
-                                <div class="col-lg-6 col-5 my-auto text-end">
-                                    <div class="ms-md-auto pe-md-3 d-flex align-items-center">
-                                        
-                                            <!-- Optionally, add a search icon button -->
-                                        
-                                    </div>
+                                <div class=" d-flex align-items-right justify-content-end">
+                                    <a href="{{route('product.update', $product->id)}}" class="btn btn-sm btn-success select-md text-light font-weight-bold mb-0">+&nbsp; Add Fabric</a>
                                 </div>
                             </div>
                         </div>

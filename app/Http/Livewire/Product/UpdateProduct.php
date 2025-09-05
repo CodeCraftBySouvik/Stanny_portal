@@ -79,18 +79,7 @@ public function mount($product_id)
     $this->selectAll = count($this->selectedFabrics) === $this->fabrics->count();
 }
 
-// Modified GetCollection function
-// public function GetCollection($id)
-// {
-//     $this->categories = Category::where('collection_id', $id)
-//         ->where('status', 1)
-//         ->orderBy('title', 'ASC')
-//         ->get() ?? collect();
 
-//     // Check if the selected collection is "garment" to show additional image field
-//     $collection = Collection::find($id);
-//     $this->showAdditionalImageField = $collection && strtolower($collection->title) === 'garment';
-// }
 
     public function toggleSelectAll(){
         if($this->selectAll){
@@ -116,10 +105,7 @@ public function mount($product_id)
     }
 
     
-    // public function GetSubcat($categoryId)
-    // {
-    //     $this->subCategories = SubCategory::where('category_id', $categoryId)->get();
-    // }
+  
 
   
     public function update()
@@ -131,17 +117,6 @@ public function mount($product_id)
                 'category_id' => 'required',
                 'selectedFabrics' => 'nullable|array',
                 'name' => 'required|string|max:255',
-
-                // 'name' => [
-                //     'required',
-                //     'string',
-                //     'max:255',
-                //     Rule::unique('products')->where(function ($query) {
-                //         return $query->where('collection_id', $this->collection)
-                //                     ->whereNull('deleted_at'); // Exclude soft-deleted records
-                //     })->ignore($this->product->id) // Ignore the current record during update
-                // ],
-
                 'product_code' => 'required|string|max:50',
                 'short_description' => 'nullable|string|max:500',
                 'description' => 'nullable|string',
@@ -152,12 +127,12 @@ public function mount($product_id)
             \DB::beginTransaction(); // Start transaction
     
             $product = Product::findOrFail($this->product_id);
-    
+            
             // Handle product image
             $imagePath = $product->product_image; // Use existing image by default
-            if ($this->product_image) {
+            if ($this->product_image instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
                 $imagePath = $this->product_image->store('uploads/product', 'public');
-    
+                
                 // Delete the old image if it exists
                 if ($product->product_image && \Storage::disk('public')->exists($product->product_image)) {
                     \Storage::disk('public')->delete($product->product_image);
@@ -196,10 +171,7 @@ public function mount($product_id)
             return redirect()->route('product.view');
         } catch (\Exception $e) {
             \DB::rollBack(); // Rollback transaction on error
-    
-            // Log the error for debugging
-            \Log::error('Error updating product: ' . $e->getMessage());
-    
+            dd($e->getMessage());
             // Show an error message to the user
             session()->flash('error', 'An error occurred while updating the product. Please try again.');
             return redirect()->back()->withInput(); // Redirect back with input

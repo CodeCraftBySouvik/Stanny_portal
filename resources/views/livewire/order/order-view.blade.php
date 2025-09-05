@@ -431,6 +431,15 @@
                                 </td>
                             </tr>
                             @endif
+                             @if ($order->air_mail > 0)
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td class="text-left"><small>Air Mail:</small></td>
+                                    <td><strong>{{ number_format(round($order->air_mail), 2) }}</strong></td>
+                                </tr>
+                            @endif
                             <tr>
                                 <td></td>
                                 <td></td>
@@ -438,6 +447,7 @@
                                 <td class="text-left"><small>Total Amount:</small></td>
                                 <td><strong>{{number_format($order->total_amount, 2)}}</strong></td>
                             </tr>
+                           
                             <tr>
                                 <td></td>
                                 <td></td>

@@ -276,6 +276,7 @@ class CashBookModule extends Component
             ->when(!$user->is_super_admin, function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })
+            ->when($this->selectedStaffId, fn($q) => $q->where('user_id', $this->selectedStaffId))
             ->where(function ($query) {
         $query->where('payment_type', '!=', 'cheque')  // Include all except 'cheque'
               ->orWhere(function ($subQuery) {
@@ -289,44 +290,53 @@ class CashBookModule extends Component
         }
         $this->totalCollections = $collectionQuery->sum('collection_amount') + $collectionQuery->sum('withdrawal_charge');
 
+        // Cash Collection
         $collectionQuery = PaymentCollection::where('is_approve', 1)
             ->where('payment_type','cash')
             ->when(!$user->is_super_admin, function ($query) use ($user) {
                 $query->where('user_id', $user->id);
-            });
+            })
+            ->when($this->selectedStaffId, fn($q) => $q->where('user_id', $this->selectedStaffId));
 
         if ($this->start_date && $this->end_date) {
             $collectionQuery->whereBetween('created_at', [$startDate, $endDate]);
         }
         $this->totalcashCollections = $collectionQuery->sum('collection_amount');
+
+        // NEFT Collection
          $collectionQuery = PaymentCollection::where('is_approve', 1)
             ->where('payment_type','neft')
             ->when(!$user->is_super_admin, function ($query) use ($user) {
                 $query->where('user_id', $user->id);
-            });
+            })
+            ->when($this->selectedStaffId, fn($q) => $q->where('user_id', $this->selectedStaffId));
 
         if ($this->start_date && $this->end_date) {
             $collectionQuery->whereBetween('created_at', [$startDate, $endDate]);
         }
         $this->totalneftCollections = $collectionQuery->sum('collection_amount');
 
+        // Digital Collection
         $collectionQuery = PaymentCollection::where('is_approve', 1)
             ->where('payment_type','digital_payment')
             ->when(!$user->is_super_admin, function ($query) use ($user) {
                 $query->where('user_id', $user->id);
-            });
+            })
+            ->when($this->selectedStaffId, fn($q) => $q->where('user_id', $this->selectedStaffId));
 
         if ($this->start_date && $this->end_date) {
             $collectionQuery->whereBetween('created_at', [$startDate, $endDate]);
         }
         $this->totaldigitalCollections = $collectionQuery->sum('collection_amount') + $collectionQuery->sum('withdrawal_charge');
 
+        // Cheque Collection
          $collectionQuery = PaymentCollection::where('is_approve', 1)
             ->where('payment_type','cheque')
             ->whereNotNull('credit_date')
             ->when(!$user->is_super_admin, function ($query) use ($user) {
                 $query->where('user_id', $user->id);
-            });
+            })
+            ->when($this->selectedStaffId, fn($q) => $q->where('user_id', $this->selectedStaffId));
 
         if ($this->start_date && $this->end_date) {
             $collectionQuery->whereBetween('created_at', [$startDate, $endDate]);
@@ -347,12 +357,16 @@ class CashBookModule extends Component
         // }
         // $this->totalExpenses = $expenseQuery->sum('transaction_amount');
 
+        //Total Expense 
         $expenseQuery = Journal::where('is_debit', 1)
-            ->whereNotNull('payment_id') // ✅ Exclude wallet-given entries
+            ->whereNotNull('payment_id') 
             ->when(!$user->is_super_admin, function ($query) use ($user) {
                 $query->whereHas('payment', function ($q) use ($user) {
                     $q->whereNotNull('stuff_id')->where('stuff_id', $user->id);
                 });
+            })
+             ->when($this->selectedStaffId, function ($query) {
+                $query->whereHas('payment', fn($q) => $q->where('stuff_id', $this->selectedStaffId));
             });
 
         if ($this->start_date && $this->end_date) {
@@ -362,17 +376,31 @@ class CashBookModule extends Component
         $this->totalExpenses = $expenseQuery->sum('transaction_amount');
 
         // Wallet given 
-       $walletCredits = Journal::where('is_debit', 1)
-        ->where(function ($query) use ($user) {
-            if (!$user->is_super_admin) {
+    //    $walletCredits = Journal::where('is_debit', 1)
+    //     ->where(function ($query) use ($user) {
+    //         if (!$user->is_super_admin) {
+    //             $query->where(function ($subQuery) use ($user) {
+    //                 $subQuery->whereHas('payment', function ($q) use ($user) {
+    //                     $q->where('stuff_id', $user->id);
+    //                 })
+    //                 ->orWhereNull('payment_id'); // Include wallet top-ups (given)
+    //             });
+    //         }
+    //     });
+
+          $walletCredits = Journal::where('is_debit', 1)
+            ->when(!$user->is_super_admin, function ($query) use ($user) {
                 $query->where(function ($subQuery) use ($user) {
                     $subQuery->whereHas('payment', function ($q) use ($user) {
                         $q->where('stuff_id', $user->id);
                     })
                     ->orWhereNull('payment_id'); // Include wallet top-ups (given)
                 });
-            }
-        });
+            })
+            ->when($this->selectedStaffId, function ($q) {
+                $q->whereHas('payment', fn($p) => $p->where('stuff_id', $this->selectedStaffId));
+            });
+
 
 
         if ($this->start_date && $this->end_date) {

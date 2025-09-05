@@ -38,7 +38,7 @@ button[disabled] {
 }
 .form-switch .form-check-input:checked {
     border-color: #188f0b !important;
-    background-color: #235d00 !important;
+    background-color: #235d00 !important; 
 }
 .page__subtitle{
     font-size: 16px;
@@ -68,7 +68,7 @@ button[disabled] {
 
 .image-box img {
     border-radius: 5px;
-    width: 85px;
+    width: 85px; 
     height: 85px;
 }
 
@@ -528,7 +528,7 @@ table td h6.text-sm {
 .form-check:not(.form-switch) .form-check-input[type="checkbox"]:checked {
     background: #000000;
 }
-.form-check:not(.form-switch) .form-check-input[type="checkbox"]:checked,
+.form-check:not(.form-switch) .form-check-input[type="checkbox"]:checked, 
 .form-check:not(.form-switch) .form-check-input[type="radio"]:checked {
     border-color: #000000;
 }
@@ -604,7 +604,7 @@ table td h6.text-sm {
     width: 0;
     height: 0;
   }
-
+  
   /* Custom radio outer border */
   .fabric-item .radio-label {
     display: flex;
@@ -615,7 +615,7 @@ table td h6.text-sm {
     font-weight: 600;
     padding-left: 30px;
   }
-
+  
   /* Outer circle */
   .fabric-item .radio-border {
     width: 20px;
@@ -631,7 +631,7 @@ table td h6.text-sm {
     justify-content: center;
     transition: all 0.3s ease-in-out;
   }
-
+  
   /* Inner filled circle */
   .fabric-item .radio-border::after {
     content: "";
@@ -641,12 +641,12 @@ table td h6.text-sm {
     border-radius: 50%;
     transition: background-color 0.3s ease-in-out;
   }
-
+  
   /* Checked state */
   .fabric-item .radio-input:checked + .radio-label .radio-border {
     border-color: #64236b;
   }
-
+  
   .fabric-item .radio-input:checked + .radio-label .radio-border::after {
     background-color: #64236b;
   }
@@ -679,7 +679,7 @@ table td h6.text-sm {
     justify-content: space-between; /* Add this to separate items */
     align-items: center;
   }
-
+  
   .breadcrumb_menu li:not(:last-child):before {
     content: '/';
     margin: 0 10px;
@@ -687,12 +687,12 @@ table td h6.text-sm {
   .breadcrumb_menu li:first-child:before{
     display: none;
   }
-
+  
   .breadcrumb_menu li a {
     color: #dc3545;
     text-decoration: none;
   }
-
+  
   .breadcrumb_menu .back-button {
     margin-left: auto; /* Move the back button to the right side */
   }
@@ -744,7 +744,7 @@ table td h6.text-sm {
 .searchInput{
     padding: 11px 10px;
 }
-
+   
 .select-md {
     border-radius: 3px;
     font-size: 13px;
@@ -776,7 +776,7 @@ table td h6.text-sm {
     vertical-align: middle;
     border: none;
     border-bottom: 1px solid #f0f2f5;
-
+  
 }
 .table td {
     font-size: 14px;
@@ -799,7 +799,7 @@ table td h6.text-sm {
     color: #664d03;
     background-color: #fff3cd !important;
 }
-
+  
 .btn-outline-success:hover:not(.active) {
     background-color: #077a45;
     opacity: .75;
@@ -906,7 +906,7 @@ table td h6.text-sm {
     margin-bottom: -18px;
 }
 .fabric_dropdown_item{
-    width: 150px;
+    width: 187px;
     background: #f6f6f6;
 }
 .fabric_dropdown_item:hover{
@@ -1078,7 +1078,7 @@ table td h6.text-sm {
 .extention-group .input__prefix {
     max-width: 38px;
     margin-right: 4px;
-}
+} 
 
 .hidden{
     overflow: inherit!important;
@@ -1122,6 +1122,7 @@ label.form-check-label {
     display: flex;
     align-items: center;
     line-height: 18px;
+    justify-content: center;
 }
 .form-select {
     font-size: 0.75rem;
@@ -1167,6 +1168,8 @@ label.form-check-label {
 .fabric_dropdown_item {
     width: 100%;
 }
+
+
 
 /*--- 26-05-2025 Karunadri ---*/
 .bg-approved_order{
@@ -1243,4 +1246,117 @@ label.form-check-label {
     color:#000000 !important;
     background-color:#D0CE55 !important;
     font-weight: bold;
+}
+
+
+.gradient-style-first{
+    background: linear-gradient(99.07deg, #00ACD7 3.47%, #00C0EF 96.85%);
+    border-radius: 10px;
+}
+
+.gradient-style-second{
+    background: linear-gradient(99.73deg, #009551 1.37%, #00A65A 97.46%);
+    border-radius: 10px;
+}
+
+.gradient-style-third {
+    background: linear-gradient(99.73deg, #DA8C10 1.37%, #F39C12 97.46%);
+    border-radius: 10px;
+}
+
+.gradient-style-fourth {
+    background: linear-gradient(99.73deg, #C64333 1.37%, #DD4B39 97.46%);
+    border-radius: 10px;
+}
+
+.gradient-style-fifth {
+    background: linear-gradient(99.07deg, #21159E 3.47%, #2B1BC3 96.85%);
+    border-radius: 10px;
+}
+
+.gradient-style-sixth {
+    background: linear-gradient(99.73deg, #2983CE 1.37%, #3194F4 97.46%);
+    border-radius: 10px;
+}
+
+.dashboard-heading {
+    font-family: "Roboto";
+    font-size: 16px;
+    font-weight: 500;
+    color: #fff;
+}
+
+.dashboard-counter {
+    font-family: "Roboto";
+    font-size: 30px;
+    line-height: 1;
+    font-weight: 700;
+    color: #fff;
+}
+
+.dash-footer {
+    padding: 6px 18px;
+    color: #fff;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: uppercase;
+    border-radius: 10px;
+}
+
+.dash-footer:hover {
+    color:#fff;
+}
+
+
+.color-bg-first {
+    background: #00acd6;
+}
+
+.color-bg-second {
+    background: #009551;
+}
+
+.color-bg-third {
+    background: #DA8C10;
+}
+
+.color-bg-fourth {
+    background: #C64333;
+}
+
+.flex-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.flex-card svg {
+    width: 45px;
+    height: 45px;
+}
+
+.flex-card svg path {
+    fill:#fff;
+}
+
+.dash-big-icon {}
+
+.dash-big-icon svg {
+    width: 90px;
+    height: 90px;
+}
+
+.dash-big-icon svg path {
+    
+}
+
+.dark-text {
+    color: #6f4400 !important;
+}
+
+
+.size-small svg {
+    width:60px;
+    height:60px;
 }

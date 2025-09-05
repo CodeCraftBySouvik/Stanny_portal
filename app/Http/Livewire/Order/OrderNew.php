@@ -219,6 +219,7 @@ class OrderNew extends Component
     public function skipOrder(){
         // dd('hi');
       $this->validate([
+            'order_number' => 'required|string|not_in:000|unique:orders,order_number',
             'skip_order_reason' => 'required'
         ]);
 

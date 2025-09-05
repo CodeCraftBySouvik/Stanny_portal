@@ -15,7 +15,7 @@ class FabricsIndex extends Component
 {
     use WithPagination;
 
-    public $fabrics;
+    public $fabrics,$product;
     public  $title,$product_id, $status = 1, $fabricId,$image;
     public $search = '';
     protected $paginationTheme = 'bootstrap'; 

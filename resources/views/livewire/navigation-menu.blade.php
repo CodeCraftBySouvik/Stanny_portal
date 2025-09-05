@@ -330,14 +330,14 @@
                 @endif
 
                 {{-- Fabrics --}}
-                {{-- @if ($this->hasPermission('fabric_category'))
+                @if ($this->hasPermission('fabric_category'))
                     <li class="nav-item">
                         <a class="nav-link text-white {{ Route::currentRouteName() == 'admin.fabrics.category' ? 'active ' : '' }}"
                             href="{{route('admin.fabrics.category')}}">
                             Fabrics Category
                         </a>
                     </li>
-                @endif --}}
+                @endif
                 @if ($this->hasPermission('fabric_details'))
                     <li class="nav-item">
                         <a class="nav-link text-white {{ Route::currentRouteName() == 'admin.fabrics.index' ? 'active ' : '' }}"
