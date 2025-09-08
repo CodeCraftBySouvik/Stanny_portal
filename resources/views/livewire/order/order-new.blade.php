@@ -55,7 +55,7 @@
                                 </div>
                             </div>
 
-                            <div class="form-check form-check-inline">
+                            <div>
                                 <button class="btn btn-outline-success btn-sm" wire:click="skipOrderBill">Skip Order
                                     Bill</button>
                             </div>
@@ -1054,7 +1054,7 @@
 
                             @endif
                             <div class="row">
-                                <div class="col-12 col-md-2">
+                                <div class="col-12 col-md-6">
                                     <label class="form-label"><strong>Remarks</strong></label>
                                     <textarea type="text" wire:model="items.{{ $index }}.remarks"
                                         class="form-control form-control-sm border border-1 customer_input"
@@ -1067,8 +1067,8 @@
                             @endforeach
                             <!-- Add Item Button -->
                             <div class="row align-items-end my-4">
-                                <div class="col-md-8 col-12"></div>
-                                <div class="col-md-4 col-12">
+                                <div class="col-md-7 col-12"></div>
+                                <div class="col-md-5 col-12">
                                     <table>
                                         <tr>
                                             <td colspan="2">

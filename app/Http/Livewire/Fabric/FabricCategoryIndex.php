@@ -5,13 +5,15 @@ namespace App\Http\Livewire\Fabric;
 use Livewire\Component;
 use App\Models\FabricCategory;
 use Livewire\WithPagination;
+use Illuminate\Validation\Rule;
 
 
 class FabricCategoryIndex extends Component
 {
     use WithPagination;
+
     public $fabricCategoryId,$title,$search;
-    
+     protected $paginationTheme = 'bootstrap'; 
     
       public function updatingSearch()
     {
@@ -20,7 +22,7 @@ class FabricCategoryIndex extends Component
 
     public function store(){
         $this->validate([
-            'title' => 'required'
+            'title' => 'required|unique:fabric_categories,title'
         ]);
 
         FabricCategory::create([
@@ -43,8 +45,11 @@ class FabricCategoryIndex extends Component
     }
 
     public function update(){
-        $this->validate([
-            'title' => 'required'
+          $this->validate([
+          'title' => [
+            'required',
+                Rule::unique('fabric_categories', 'title')->ignore($this->fabricCategoryId),
+            ],
         ]);
         $fabricCategory = FabricCategory::findOrFail($this->fabricCategoryId);
         $fabricCategory->update([
@@ -52,7 +57,7 @@ class FabricCategoryIndex extends Component
         ]);
 
          session()->flash('message', 'Category updated successfully!');
-            $this->resetFields();
+        $this->resetFields();
     }
 
     public function confirmDelete($id){
@@ -80,7 +85,7 @@ class FabricCategoryIndex extends Component
                 $query->where('title', 'like', '%' . $this->search . '%');
             })
             ->orderBy('title', 'desc')
-            ->paginate(5);
+            ->paginate(10);
         return view('livewire.fabric.fabric-category-index',compact('categories'));
     }
 }

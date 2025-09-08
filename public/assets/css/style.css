@@ -904,6 +904,7 @@ table td h6.text-sm {
 .danger_btn{
     height: 29px;
     margin-bottom: -18px;
+    line-height: 1;
 }
 .fabric_dropdown_item{
     width: 187px;

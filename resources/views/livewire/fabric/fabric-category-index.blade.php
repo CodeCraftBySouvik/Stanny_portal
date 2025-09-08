@@ -87,8 +87,10 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <div class="pagination-nav">
-                                {{-- {{ $categories->links() }} --}}
+                            <div class="mt-3">
+                                 <nav aria-label="Page navigation">
+                                    {{ $categories->links() }}
+                                 </nav>
                             </div>
                         </div>
                     </div>

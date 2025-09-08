@@ -122,20 +122,20 @@
                         <!-- Date -->
                         <div class="mb-3 col-md-4">
                             <label class="form-label"><strong>Date <span class="text-danger">*</span></strong></label>
-                            <input type="date" wire:model="payment_date" class="form-control bg-white" placeholder="Select Date" disabled>
+                            <input type="date" wire:model="payment_date" class="form-control bg-white form-control-sm" placeholder="Select Date" disabled>
                             @error('payment_date') <div class="text-danger">{{ $message }}</div> @enderror
                         </div>
 
                         <!-- Voucher No -->
                         <div class="mb-3 col-md-4">
                             <label class="form-label"><strong>Voucher No</strong></label>
-                            <input type="text" wire:model="voucher_no" class="form-control bg-white" readonly>
+                            <input type="text" wire:model="voucher_no" class="form-control bg-white form-control-sm" readonly>
                         </div>
 
                         <!-- Amount -->
                         <div class="mb-3 col-md-4">
                             <label class="form-label"><strong>Amount <span class="text-danger">*</span></strong></label>
-                            <input type="text" wire:model="amount" class="form-control bg-white" placeholder="Enter Amount">
+                            <input type="text" wire:model="amount" class="form-control bg-white form-control-sm" placeholder="Enter Amount">
                             @error('amount') <div class="text-danger">{{ $message }}</div> @enderror
                         </div>
 
