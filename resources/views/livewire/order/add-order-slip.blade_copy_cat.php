@@ -1,3 +1,10 @@
+
+
+<style>
+p {
+    font-size: 13px;
+}
+</style>
 <div class="container">
     <section class="admin__title">
         <h5>Confirm Order</h5>
@@ -484,14 +491,11 @@
                             {{-- Team Dropdown end --}}
                             {{-- Start the measurement section --}}
                             @if ($order_item->collection == 1 && !empty($order_item->measurements))
-                            <div class="row mt-4 mb-4">
+                            <div class="row mt-0 mb-4">
                                 <div class="col-md-12">
-                                    <div class="section-title badge"
-                                        style="background: black; color: white; padding: 5px 10px; border-radius: 5px; display: inline-block; margin-bottom: 10px;">
-                                        Measurements
-                                    </div>
+                                    <h6 class="badge bg-danger custom_success_badge">Measurements</h6>
                                 </div>
-                                <div class="col-sm-9">
+                                <div class="col-lg-7">
                                     
 
                                     @php
@@ -508,13 +512,14 @@
                                     $chunks = array_chunk($measurements->toArray(), 5, true);
                                     @endphp
 
-                                    <table width="100%" cellspacing="0" cellpadding="6">
+                                    <div class="row align-items-start">
                                         @foreach ($chunks as $row)
-                                        <tr>
+                                        
                                             @foreach ($row as $label => $value)
-                                            <td style="padding: 8px; vertical-align: top;">
-                                                <div style="font-size: 11px; font-weight: bold; margin-bottom: 3px;">
-                                                    {{ $label }}</div>
+                                            <div class="col-md-3 mb-2">
+                                                <label>
+                                                    {{ $label }}
+                                                </label>
                                                 <div style="
                                                         border: 1px solid #ccc;
                                                         padding: 6px;
@@ -525,16 +530,16 @@
                                                         text-align: center;">
                                                     {{ $value }}
                                                 </div>
-                                            </td>
+                                            </div>
                                             @endforeach
-                                            @for ($i = count($row); $i < 5; $i++) <td>
-                                                </td>
+                                            @for ($i = count($row); $i < 5; $i++) <div>
+                                                </div>
                                                 @endfor
-                                        </tr>
+                                        
                                         @endforeach
-                                    </table>
+                                    </div>
                                 </div>
-                                <div class="col-sm-3">
+                                <div class="col-lg-5">
                                     <p><strong>Fabric:</strong> {{ $order_item['fabric']->title ?? 'N/A' }}</p>
                                     <p><strong>Catalogue:</strong>
                                         {{ optional(optional($order_item['catalogue'])->catalogueTitle)->title ?? 'N/A'
