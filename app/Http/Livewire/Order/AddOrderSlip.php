@@ -628,10 +628,13 @@ class AddOrderSlip extends Component
                     : [],
                 'quantity' => $item->quantity,
                 'remarks' => $item->remarks,
-                'catlogue_image' => $item->catlogue_image,
-                'voice_remark' => $item->voice_remark,
+                'catlogue_images' => $item->catlogue_image,
+                'voice_remarks' => $item->voice_remark,
 
                 'product_image' => $product ? $product->product_image : null,
+                'expected_delivery_date' => $item->expected_delivery_date,
+                'fittings' => $item->fittings,
+                'priority' => $item->priority_level,
             ];
         });
 

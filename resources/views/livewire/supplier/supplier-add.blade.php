@@ -34,12 +34,12 @@
                         <div class="mb-3 col-md-6">
                             <label for="name" class="form-label">Supplier Name <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <select wire:model="prefix" class="form-control form-control-sm border border-1 flex-30">
+                                {{-- <select wire:model="prefix" class="form-control form-control-sm border border-1 flex-30">
                                     <option value="" selected hidden>Prefix</option>
                                     @foreach (App\Helpers\Helper::getNamePrefixes() as $prefix)
                                         <option value="{{$prefix}}">{{ $prefix }}</option>
                                     @endforeach
-                                </select>
+                                </select> --}}
                                 <input type="text" wire:model="name" id="name" class="form-control form-control-sm border border-1 p-2" placeholder="Enter supplier name">
                             </div>
                             @error('name')

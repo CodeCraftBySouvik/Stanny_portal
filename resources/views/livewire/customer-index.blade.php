@@ -161,10 +161,10 @@
                                 <tr>
                                     <td>
                                         @if ($user->profile_image)
-                                        <img src="{{asset($user->profile_image)}}" alt="profile-image" width="85px">
+                                        <img src="{{asset($user->profile_image)}}" alt="profile-image" width="62px">
                                         @else
                                         <img src="{{asset("assets/img/profile_image.png")}}" alt="profile-image"
-                                            width="85px">
+                                            width="62px">
                                         @endif
                                     </td>
                                     <td>

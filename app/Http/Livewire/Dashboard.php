@@ -16,6 +16,11 @@ class Dashboard extends Component
     public $total_suppliers = 0;
     public $total_customers = 0;
     public $total_orders = 0;
+    // For Production Team
+    public $total_pending = 0;
+    public $total_ongoing = 0;
+    public $total_delivered = 0;
+
     public $total_invoice = 0;
     public $monthly_collection = 0;
     public $monthly_expense = 0;
@@ -61,7 +66,51 @@ class Dashboard extends Component
             ->sum('amount');
 
         $this->total_customers = User::where('user_type',1)->whereIn('created_by', $userIds)->count();
-        $this->total_orders = Order::whereIn('created_by', $userIds)->count();
+        if($this->user->designation == 13){
+             $this->total_orders = Order::whereHas('items', function($query){
+                                      $query->where([
+                                        'status' => 'Process',
+                                        'tl_status'=> 'Approved',
+                                        'admin_status'=> 'Approved',
+                                        'assigned_team'=> 'production'
+                                      ]);
+                                  })->count();
+                                 
+           $this->total_pending = Order::where('status','Approved')
+                                    ->whereHas('items', function($query){
+                                      $query->where([
+                                        'status' => 'Process',
+                                        'tl_status'=> 'Approved',
+                                        'admin_status'=> 'Approved',
+                                        'assigned_team'=> 'production'
+                                      ]);
+                                  })->count();
+           $this->total_ongoing = Order::where('status','Received at Production') 
+                                    ->whereHas('items', function($query){
+                                      $query->where([
+                                        'status' => 'Process',
+                                        'tl_status'=> 'Approved',
+                                        'admin_status'=> 'Approved',
+                                        'assigned_team'=> 'production'
+                                      ]);
+                                  })->count();
+           $this->total_delivered = Order::where('status','Fully Delivered By Production') 
+                                    ->whereHas('items', function($query){
+                                      $query->where([
+                                        'status' => 'Process',
+                                        'tl_status'=> 'Approved',
+                                        'admin_status'=> 'Approved',
+                                        'assigned_team'=> 'production'
+                                      ]);
+                                  })->count();                   
+        }else{
+            $this->total_orders = Order::whereIn('created_by', $userIds)->count();
+             $this->total_pending = 0;
+             $this->total_ongoing = 0;
+             $this->total_delivered = 0;
+        }
+        // For Production
+
         $this->total_invoice = Invoice::whereIn('created_by', $userIds)->count();
     }
     public function render()

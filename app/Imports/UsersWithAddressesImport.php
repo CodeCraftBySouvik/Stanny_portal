@@ -23,94 +23,172 @@ class UsersWithAddressesImport implements ToModel, WithHeadingRow
 {
     
     
-    public function model(array $row)
-    {
+    // public function model(array $row)
+    // {
        
-        try {
-        DB::beginTransaction(); // Start transaction
+    //     try {
+    //     // DB::beginTransaction(); // Start transaction
             
-            $country = Country::where('country_code', $row['country_code_phone'])->first();
-            $mobileLength = $country->mobile_length ?? 10;
+    //         $country = Country::where('country_code', $row['country_code_phone'])->first();
+    //         $mobileLength = $country->mobile_length ?? 10;
     
-            $countryCodeAlt1 = Country::where('country_code', $row['country_code_alternet_phone_one'])->first();
-            $mobileLength1 = $countryCodeAlt1->mobile_length ?? 10;
+    //         $countryCodeAlt1 = Country::where('country_code', $row['country_code_alternet_phone_one'])->first();
+    //         $mobileLength1 = $countryCodeAlt1->mobile_length ?? 10;
     
-            $countryCodeAlt2 = Country::where('country_code', $row['country_code_alternet_phone_two'])->first();
-            $mobileLength2 = $countryCodeAlt2->mobile_length ?? 10;
+    //         $countryCodeAlt2 = Country::where('country_code', $row['country_code_alternet_phone_two'])->first();
+    //         $mobileLength2 = $countryCodeAlt2->mobile_length ?? 10;
 
          
-            // Perform validation
-            $validator = Validator::make($row, [
-                'phone' => "nullable|numeric|digits:$mobileLength",
-                'alternet_phone_one' => "nullable|numeric|digits:$mobileLength1",
-                'alternet_phone_two' => "nullable|numeric|digits:$mobileLength2",
-                // 'whatsapp_number' => "nullable|numeric|digits:$mobileLengthWhats",
-                'email' => [
-                    'nullable',
-                    'email',
-                    // Rule::unique('users', 'email')->whereNull('deleted_at'),
-                ],
-            ]);
+    //         // Perform validation
+    //         $validator = Validator::make($row, [
+    //             'phone' => "nullable|numeric|digits:$mobileLength",
+    //             'alternet_phone_one' => "nullable|numeric|digits:$mobileLength1",
+    //             'alternet_phone_two' => "nullable|numeric|digits:$mobileLength2",
+    //             'email' => [
+    //                 'nullable',
+    //                 'email',
+    //             ],
+    //         ]);
     
-            if ($validator->fails()) {
-                session()->push('import_errors', [
-                    'row' => $row,
-                    'errors' => $validator->errors()->all()
-                ]);
-                DB::rollBack(); // Rollback transaction if validation fails
-                return null;
-            }
-            $auth = Auth::guard('admin')->user();
-            // Convert DOB format
-            // $dob = isset($row['dob']) ? Carbon::createFromFormat('m/d/Y', $row['dob'])->format('Y-m-d') : null;
-           $dob = isset($row['dob']) ? Carbon::parse($row['dob'])->format('Y-m-d') : null;
+    //         if ($validator->fails()) {
+    //             session()->push('import_errors', [
+    //                 'row' => $row,
+    //                 'errors' => $validator->errors()->all()
+    //             ]);
+    //             DB::rollBack(); // Rollback transaction if validation fails
+    //             return null;
+    //         }
+    //         $auth = Auth::guard('admin')->user();
+    //        $dob = isset($row['dob']) ? Carbon::parse($row['dob'])->format('Y-m-d') : null;
 
-            // Create or update user
-            $user = User::updateOrCreate(
-                ['email' => $row['email']],
-                [
-                    'prefix' => $row['prefix'] ?? null,
-                    'name' => $row['customer_name'] ?? null,
-                    'dob' => $dob ?? null,
-                    'user_type' => strtolower(trim($row['user_type'])) == 'staff' ? 0 : 1,
-                    'company_name' => $row['company_name'] ?? null,
-                    'employee_rank' => $row['rank'] ?? null,
-                    'country_code_phone' => '+'.$row['country_code_phone'] ?? null,
-                    'phone' => $row['phone'] ?? null,
-                    'country_code_alt_1' => '+'.$row['country_code_alternet_phone_one'] ?? null,
-                    'alternative_phone_number_1' => $row['alternet_phone_one'] ?? null,
-                    'country_code_alt_2' => '+'.$row['country_code_alternet_phone_two'] ?? null,
-                    'alternative_phone_number_2' => $row['alternet_phone_two'] ?? null,
-                    'created_by' => $auth->id,
+    //         // Create or update user
+    //         $user = User::updateOrCreate(
+    //             ['email' => $row['email']],
+    //             [
+    //                 'prefix' => $row['prefix'] ?? null,
+    //                 'name' => $row['customer_name'] ?? null,
+    //                 'dob' => $dob ?? null,
+    //                 'user_type' => strtolower(trim($row['user_type'])) == 'staff' ? 0 : 1,
+    //                 'company_name' => $row['company_name'] ?? null,
+    //                 'employee_rank' => $row['rank'] ?? null,
+    //                 'country_code_phone' => '+'.$row['country_code_phone'] ?? null,
+    //                 'phone' => $row['phone'] ?? null,
+    //                 'country_code_alt_1' => '+'.$row['country_code_alternet_phone_one'] ?? null,
+    //                 'alternative_phone_number_1' => $row['alternet_phone_one'] ?? null,
+    //                 'country_code_alt_2' => '+'.$row['country_code_alternet_phone_two'] ?? null,
+    //                 'alternative_phone_number_2' => $row['alternet_phone_two'] ?? null,
+    //                 'created_by' => $auth->id,
                     
                     
-                ]
-            );
+    //             ]
+    //         );
            
     
-            // Save billing address
-            if (!empty($row['address'])) {
-                UserAddress::updateOrCreate(
-                    ['user_id' => $user->id, 'address_type' => 1], // 1 = Billing
-                    [
-                        'address' => $row['address'],
-                        'landmark' => $row['landmark'] ?? null,
-                        'city' => $row['city'] ?? null,
-                        'state' => $row['state'] ?? null,
-                        'country' => $row['country'] ?? null,
-                        'zip_code' => $row['zip_code'] ?? null,
-                    ]
-                );
-            }
+    //         // Save billing address
+    //         if (!empty($row['address'])) {
+    //             UserAddress::updateOrCreate(
+    //                 ['user_id' => $user->id, 'address_type' => 1], // 1 = Billing
+    //                 [
+    //                     'address' => $row['address'],
+    //                     'landmark' => $row['landmark'] ?? null,
+    //                     'city' => $row['city'] ?? null,
+    //                     'state' => $row['state'] ?? null,
+    //                     'country' => $row['country'] ?? null,
+    //                     'zip_code' => $row['zip_code'] ?? null,
+    //                 ]
+    //             );
+    //         }
     
-            DB::commit(); // Commit transaction if everything is successful
-            return $user;
-        } catch (\Exception $e) {
-            DB::rollBack(); // Rollback transaction if any exception occurs
+    //         DB::commit(); // Commit transaction if everything is successful
+    //         return $user;
+    //     } catch (\Exception $e) {
+    //         DB::rollBack(); // Rollback transaction if any exception occurs
           
-            session()->flash('error', '🚨 Something went wrong.'.$e->getMessage());
+    //         session()->flash('error', '🚨 Something went wrong.'.$e->getMessage());
+    //     }
+    // }
+
+   public function model(array $row)
+{
+    try {
+        $auth = Auth::guard('admin')->user();
+        $dob = isset($row['dob']) ? Carbon::parse($row['dob'])->format('Y-m-d') : null;
+
+        if (empty($row['phone'])) {
+            session()->push('import_errors', [
+                'row' => $row,
+                'errors' => ['Phone is required for unique identification.'],
+            ]);
+            return null;
         }
+
+        $country = Country::where('country_code', $row['country_code_phone'])->first();
+        $mobileLength = $country->mobile_length ?? 10;
+
+        $countryCodeAlt1 = Country::where('country_code', $row['country_code_alternet_phone_one'])->first();
+        $mobileLength1 = $countryCodeAlt1->mobile_length ?? 10;
+
+        $countryCodeAlt2 = Country::where('country_code', $row['country_code_alternet_phone_two'])->first();
+        $mobileLength2 = $countryCodeAlt2->mobile_length ?? 10;
+
+        $validator = Validator::make($row, [
+            'phone' => "nullable|numeric|digits:$mobileLength",
+            'alternet_phone_one' => "nullable|numeric|digits:$mobileLength1",
+            'alternet_phone_two' => "nullable|numeric|digits:$mobileLength2",
+            'email' => ['nullable', 'email'],
+        ]);
+
+        if ($validator->fails()) {
+            \Log::warning('Row validation failed', ['row' => $row, 'errors' => $validator->errors()->all()]);
+            session()->push('import_errors', ['row' => $row, 'errors' => $validator->errors()->all()]);
+            return null;
+        }
+
+        $user = User::updateOrCreate(
+            ['phone' => $row['phone']],
+            [
+                'prefix' => $row['prefix'] ?? null,
+                'name' => $row['customer_name'] ?? null,
+                'dob' => $dob ?? null,
+                'user_type' => strtolower(trim($row['user_type'])) == 'staff' ? 0 : 1,
+                'company_name' => $row['company_name'] ?? null,
+                'employee_rank' => $row['rank'] ?? null,
+                'country_code_phone' => $row['country_code_phone'] ? '+' . $row['country_code_phone'] : null,
+                'phone' => $row['phone'],
+                'country_code_alt_1' => $row['country_code_alternet_phone_one'] ? '+' . $row['country_code_alternet_phone_one'] : null,
+                'alternative_phone_number_1' => $row['alternet_phone_one'] ?? null,
+                'country_code_alt_2' => $row['country_code_alternet_phone_two'] ? '+' . $row['country_code_alternet_phone_two'] : null,
+                'alternative_phone_number_2' => $row['alternet_phone_two'] ?? null,
+                'created_by' => $auth->id,
+            ]
+        );
+
+        if (!empty($row['address'])) {
+            UserAddress::updateOrCreate(
+                ['user_id' => $user->id, 'address_type' => 1],
+                [
+                    'address' => $row['address'],
+                    'landmark' => $row['landmark'] ?? null,
+                    'city' => $row['city'] ?? null,
+                    'state' => $row['state'] ?? null,
+                    'country' => $row['country'] ?? null,
+                    'zip_code' => $row['zip_code'] ?? null,
+                ]
+            );
+        }
+
+        \Log::info('Row imported successfully', ['row' => $row]);
+        return $user;
+
+    } catch (\Exception $e) {
+        \Log::error('Exception during import', ['row' => $row, 'exception' => $e->getMessage()]);
+        session()->push('import_errors', ['row' => $row, 'errors' => [$e->getMessage()]]);
+        return null;
     }
+}
+
+
+
     
 
      

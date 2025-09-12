@@ -304,7 +304,7 @@
                                         </div>
 
                                         <div class="col-md-6">
-                                            <p>FABRIC : <strong>{{$item['fabrics']->title}}</strong></p>
+                                            <p>FABRIC : <strong>{{$item['fabrics']->title ?? 'N/A'}}</strong></p>
                                             <p>CATALOGUE : <strong>{{
                                                     optional(optional($item['catalogue'])->catalogueTitle)->title
                                                     }}</strong> (PAGE:

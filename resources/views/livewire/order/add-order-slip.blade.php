@@ -224,7 +224,7 @@
                                                         <x-table-td>{{ number_format($item->due_amnt, 2) }}
                                                         </x-table-td>
 
-                                                       
+
                                                     </tr>
                                                     @endforeach
                                                     {{-- show all --}}
@@ -386,7 +386,8 @@
                             @php
                             $user = auth()->guard('admin')->user();
                             @endphp
-                            <div class="{{ ($user->designation == 1 && $order_item->status == 'Process') ? 'col-sm-2' : 'col-sm-3' }}">
+                            <div
+                                class="{{ ($user->designation == 1 && $order_item->status == 'Process') ? 'col-sm-2' : 'col-sm-3' }}">
                                 <div class="form-group mb-3">
                                     @if ($key == 0)
                                     <label>Quantity</label>
@@ -395,7 +396,8 @@
                                         value="{{ $order_item->quantity }}" disabled {{ $readonly }}>
                                 </div>
                             </div>
-                            <div class="{{ ($user->designation == 1 && $order_item->status == 'Process') ? 'col-sm-2' : 'col-sm-3' }}">
+                            <div
+                                class="{{ ($user->designation == 1 && $order_item->status == 'Process') ? 'col-sm-2' : 'col-sm-3' }}">
                                 <div class="form-group mb-3">
                                     @if ($key == 0)
                                     <label for="">Price</label>
@@ -470,14 +472,15 @@
                                     @if ($key == 0)
                                     <label>Delivery</label>
                                     @endif
-                                    <select wire:model="order_item.{{ $key }}.team" class="form-control form-control-sm" @if ($this->order_item[$key]['team'])
+                                    <select wire:model="order_item.{{ $key }}.team" class="form-control form-control-sm"
+                                        @if ($this->order_item[$key]['team'])
                                         disabled
-                                    @endif> 
+                                        @endif>
                                         <option value="" selected hidden>Select Team</option>
                                         <option value="sales">Sales Team</option>
                                         <option value="production">Production Team</option>
                                     </select>
-                                   
+
                                 </div>
                             </div>
                             @endif
@@ -486,13 +489,14 @@
                             @if ($order_item->collection == 1 && !empty($order_item->measurements))
                             <div class="row mt-4 mb-4">
                                 <div class="col-md-12">
-                                    <div class="section-title badge"
+                                    {{-- <div class="section-title badge"
                                         style="background: black; color: white; padding: 5px 10px; border-radius: 5px; display: inline-block; margin-bottom: 10px;">
                                         Measurements
-                                    </div>
+                                    </div> --}}
+                                    <h6 class="badge bg-danger custom_success_badge">Measurements</h6>
                                 </div>
-                                <div class="col-sm-9">
-                                    
+                                <div class="col-sm-6">
+
 
                                     @php
                                     $measurements = collect($order_item['measurements'])->mapWithKeys(
@@ -508,14 +512,21 @@
                                     $chunks = array_chunk($measurements->toArray(), 5, true);
                                     @endphp
 
-                                    <table width="100%" cellspacing="0" cellpadding="6">
-                                        @foreach ($chunks as $row)
-                                        <tr>
-                                            @foreach ($row as $label => $value)
-                                            <td style="padding: 8px; vertical-align: top;">
-                                                <div style="font-size: 11px; font-weight: bold; margin-bottom: 3px;">
-                                                    {{ $label }}</div>
-                                                <div style="
+                                    {{-- <table width="100%" cellspacing="0" cellpadding="6"> --}}
+                                        <div class="row">
+                                            @foreach ($chunks as $row)
+                                            {{-- <tr> --}}
+                                                @foreach ($row as $label => $value)
+                                                {{-- <td style="padding: 8px; vertical-align: top;"> --}}
+                                                    <div class="col-md-3">
+                                                        {{-- <div
+                                                            style="font-size: 11px; font-weight: bold; margin-bottom: 3px;">
+                                                        </div> --}}
+                                                        <label for="">{{ $label }}</label>
+                                                        <input type="text"
+                                                            class="form-control form-control-sm border border-1 customer_input text-center measurement_input"
+                                                            readonly value=" {{ $value }}">
+                                                        {{-- <div style="
                                                         border: 1px solid #ccc;
                                                         padding: 6px;
                                                         background: #fff;
@@ -523,24 +534,62 @@
                                                         border-radius: 4px;
                                                         min-height: 25px;
                                                         text-align: center;">
-                                                    {{ $value }}
-                                                </div>
-                                            </td>
-                                            @endforeach
-                                            @for ($i = count($row); $i < 5; $i++) <td>
+                                                            {{ $value }}
+                                                        </div> --}}
+
+                                                    </div>
+                                                    @endforeach
+                                                    @for ($i = count($row); $i < 5; $i++) <td>
                                                 </td>
                                                 @endfor
-                                        </tr>
-                                        @endforeach
-                                    </table>
+                                                {{--
+                                            </tr> --}}
+                                            @endforeach
+                                        </div>
+                                        {{--
+                                    </table> --}}
                                 </div>
-                                <div class="col-sm-3">
+                                {{-- @dd($order_item) --}}
+                                <div class="col-sm-6">
                                     <p><strong>Fabric:</strong> {{ $order_item['fabric']->title ?? 'N/A' }}</p>
                                     <p><strong>Catalogue:</strong>
                                         {{ optional(optional($order_item['catalogue'])->catalogueTitle)->title ?? 'N/A'
                                         }}
                                         (Page: {{ $order_item['cat_page_number'] ?? 'N/A' }})
                                     </p>
+                                    <p>Expected Delivery Date : <strong>{{$order_item['expected_delivery_date'] ??
+                                            'N/A'}}</strong></p>
+                                    <p>Fittings : <strong>{{$order_item['fittings'] ?? 'N/A'}}</strong></p>
+                                    <p>Priority Level : <strong>{{$order_item->priority_level ?? 'N/A'}}</strong></p>
+
+                                    {{-- Catalogue images --}}
+                                    @if(!empty($order_item['catlogue_image']))
+                                    <div class="catelog-wrap mt-3">
+                                        <p> <i class="fas fa-image"></i> CATALOGUE IMAGES :</p>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            @foreach ($order_item['catlogue_image'] as $img)
+                                            <a target="_blank" href="{{ asset('storage/'.$img->image_path) }}">
+                                                <img src="{{ asset('storage/'.$img->image_path) }}"
+                                                    class="img-fluid rounded shadow border border-secondary"
+                                                    style="width:50px;height:50px;" alt="Catalogue image">
+                                            </a>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                    @endif
+                                    {{-- @dd($item['voice_remarks']) --}}
+                                    @if(!empty($order_item['voice_remark']))
+                                     <p><i class="fas fa-microphone"></i> Voice Remarks</p>
+                                         <div class="d-flex flex-column gap-2">
+                                        @foreach ($order_item['voice_remark'] as $voice)
+                                        {{-- @dd($voice) --}}
+                                        <audio controls>
+                                            <source src="{{ asset('storage/'.$voice->voices_path) }}" type="audio/mpeg">
+                                            Your browser does not support the audio element.
+                                        </audio>
+                                        @endforeach
+                                    </div>
+                                    @endif
                                 </div>
                             </div>
                             @endif

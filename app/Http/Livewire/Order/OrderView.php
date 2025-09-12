@@ -48,7 +48,7 @@ class OrderView extends Component
         ])->findOrFail($this->orderId);
         //echo "<pre>";print_r($order->toArray());exit;
          $orderItems = $order->items->map(function ($item) use($order) {
-
+            // dd($item);
             $product = Product::find($item->product_id);
             $delivery = $item->deliveries->first();
             return [
@@ -93,6 +93,9 @@ class OrderView extends Component
                 'voice_remarks' => $item->voice_remark,
 
                 'product_image' => $product ? $product->product_image : null,
+                'expected_delivery_date' => $item->expected_delivery_date,
+                'fittings' => $item->fittings,
+                'priority' => $item->priority_level,
             ];
         });
 
@@ -102,8 +105,8 @@ class OrderView extends Component
             'latestOrders'=>$this->latestOrders
         ]);
     }
-   
-    public function deliveredToCustomerPartial()
+
+      public function deliveredToCustomerPartial()
     {
         $this->validate();
 
@@ -118,34 +121,24 @@ class OrderView extends Component
             'customer_delivered_by' => auth()->guard('admin')->user()->id,
         ]);
 
-        // Flags for collection-wise delivery
-        $collection1Delivered = false;
-        $collection2Delivered = false;
-
-        // Get all order items
+        // Get all order items for this order
         $orderItems = OrderItem::where('order_id', $this->orderId)->get();
+        $totalItems = $orderItems->count();
 
-        foreach ($orderItems as $item) {
-            $delivered = Delivery::where('order_item_id', $item->id)
-                ->where('status', 'Delivered')
-                ->exists();
+        // Count of items that have at least one 'Delivered' delivery record
+        $deliveredCount = OrderItem::where('order_id', $this->orderId)
+            ->whereHas('deliveries', function ($query) {
+                $query->where('status', 'Delivered');
+            })
+            ->count();
 
-            if ($delivered) {
-                if ($item->collection == 1) {
-                    $collection1Delivered = true;
-                } elseif ($item->collection == 2) {
-                    $collection2Delivered = true;
-                }
-            }
-        }
-        
         // Decide final order status
-        if ($collection1Delivered && $collection2Delivered) {
+        if ($deliveredCount == $totalItems && $totalItems > 0) {
             $newStatus = 'Delivered to Customer';
-        } elseif ($collection1Delivered || $collection2Delivered) {
+        } elseif ($deliveredCount > 0) {
             $newStatus = 'Partial Delivered to Customer';
         } else {
-            $newStatus = 'Pending'; // optional fallback
+            $newStatus = 'Pending';  // fallback
         }
 
         Order::where('id', $this->orderId)->update(['status' => $newStatus]);
@@ -153,6 +146,58 @@ class OrderView extends Component
         session()->flash('success', 'Order delivery updated successfully!');
         $this->dispatch('close-delivery-modal');
     }
+
+   
+    // public function deliveredToCustomerPartial()
+    // {
+    //     $this->validate();
+
+    //     if (!$this->Id) {
+    //         throw new \Exception("Order ID is required but received null.");
+    //     }
+
+    //     // Update the current delivery
+    //     Delivery::where('id', $this->Id)->update([
+    //         'status' => $this->status,
+    //         'remarks' => $this->remarks,
+    //         'customer_delivered_by' => auth()->guard('admin')->user()->id,
+    //     ]);
+
+    //     // Flags for collection-wise delivery
+    //     $collection1Delivered = false;
+    //     $collection2Delivered = false;
+
+    //     // Get all order items
+    //     $orderItems = OrderItem::where('order_id', $this->orderId)->get();
+
+    //     foreach ($orderItems as $item) {
+    //         $delivered = Delivery::where('order_item_id', $item->id)
+    //             ->where('status', 'Delivered')
+    //             ->exists();
+
+    //         if ($delivered) {
+    //             if ($item->collection == 1) {
+    //                 $collection1Delivered = true;
+    //             } elseif ($item->collection == 2) {
+    //                 $collection2Delivered = true;
+    //             }
+    //         }
+    //     }
+        
+    //     // Decide final order status
+    //     if ($collection1Delivered && $collection2Delivered) {
+    //         $newStatus = 'Delivered to Customer';
+    //     } elseif ($collection1Delivered || $collection2Delivered) {
+    //         $newStatus = 'Partial Delivered to Customer';
+    //     } else {
+    //         $newStatus = 'Pending'; // optional fallback
+    //     }
+
+    //     Order::where('id', $this->orderId)->update(['status' => $newStatus]);
+
+    //     session()->flash('success', 'Order delivery updated successfully!');
+    //     $this->dispatch('close-delivery-modal');
+    // }
 
     // public function deliveredToCustomerPartial()
     // {

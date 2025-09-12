@@ -14,7 +14,7 @@ class SupplierAdd extends Component
 {
     use WithFileUploads;
 
-    public $prefix, $name, $email, $mobile, $whatsapp_no ,$alternative_phone_number_1, $alternative_phone_number_2;
+    public $name, $email, $mobile, $whatsapp_no ,$alternative_phone_number_1, $alternative_phone_number_2;
     public $billing_address, $billing_landmark, $billing_state, $billing_city, $billing_pin, $billing_country;
     public $gst_number, $gst_file, $credit_limit, $credit_days;
     // public $searchTerm;
@@ -59,7 +59,7 @@ class SupplierAdd extends Component
    public function rules(){
      return [
             // 'searchTerm' => 'required',
-            'prefix' => 'required',
+            // 'prefix' => 'required',
             'name' => 'required|string|max:255',
             'email' => [
                 'nullable',
@@ -99,7 +99,7 @@ class SupplierAdd extends Component
     {
         return [
             // 'searchTerm.required' => 'Please select a country.',
-            'name.required' => 'Supplier name is required.',
+            // 'name.required' => 'Supplier name is required.',
             'email.email' => 'Enter a valid email address.',
             'mobile.required' => 'Mobile number is required.',
             'mobile.regex' => 'Mobile number must be exactly ' . $this->mobileLengthPhone . ' digits.',
@@ -130,7 +130,7 @@ class SupplierAdd extends Component
             }
         
         $supplier =  Supplier::create([
-                'prefix' => $this->prefix,
+                // 'prefix' => $this->prefix,
                 'name' => $this->name,
                 'email' => $this->email,
                 // 'country_code'=> $this->country_code,

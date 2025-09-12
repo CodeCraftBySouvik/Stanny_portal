@@ -381,13 +381,15 @@
                                                 @endif
                                             </div>
                                             <div class="col-lg-6">
-                                                <p>FABRIC : <strong>{{$item['fabrics']->title}}</strong></p>
+                                                <p>FABRIC : <strong>{{$item['fabrics']->title ?? 'N/A'}}</strong></p>
                                                 <p>CATLOGUE : <strong>{{
                                                         optional(optional($item['catalogue'])->catalogueTitle)->title }}</strong>
                                                     (PAGE:
-                                                    <strong>{{$item['cat_page_number']}}</strong>)
+                                                    <strong>{{$item['cat_page_number'] ?? 'N/A'}}</strong>)
                                                 </p>
-                                               
+                                               <p>Expected Delivery Date : <strong>{{$item['expected_delivery_date'] ?? 'N/A'}}</strong></p>
+                                               <p>Fittings  : <strong>{{$item['fittings'] ?? 'N/A'}}</strong></p>
+                                               <p>Priority Level : <strong>{{$item['priority'] ?? 'N/A'}}</strong></p>
                                                 {{-- Catalogue images --}}
                                                 @if(!empty($item['catlogue_images']))
                                                 <div class="catelog-wrap">

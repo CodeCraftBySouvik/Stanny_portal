@@ -33,7 +33,7 @@ class Profile extends Component
         ]);
 
         $this->user->update([
-            'password' => $this->new_password,
+            'password' => Hash::make($this->new_password),
         ]);
 
         session()->flash('success', 'Password changed successfully!');

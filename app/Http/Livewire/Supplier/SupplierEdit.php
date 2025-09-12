@@ -12,7 +12,7 @@ class SupplierEdit extends Component
 {
     use WithFileUploads;
 
-    public $prefix, $supplier, $name, $email, $mobile, $is_wa_same, $whatsapp_no;
+    public $supplier, $name, $email, $mobile, $is_wa_same, $whatsapp_no;
     public $billing_address, $billing_landmark, $billing_state, $billing_city, $billing_pin, $billing_country;
     public $gst_number, $gst_file, $credit_limit, $credit_days;
     public $mobileLength;
@@ -31,7 +31,7 @@ class SupplierEdit extends Component
     public function mount($id)
     {
         $this->supplier = Supplier::find($id);
-        $this->prefix = $this->supplier->prefix;
+        // $this->prefix = $this->supplier->prefix;
         $this->name = $this->supplier->name;
         $this->email = $this->supplier->email;
         $this->mobile = $this->supplier->mobile;
@@ -106,7 +106,7 @@ class SupplierEdit extends Component
         // dd($this->all());
         $this->validate([
             // 'searchTerm' => 'required',
-            'prefix' => 'required',
+            // 'prefix' => 'required',
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|unique:suppliers,email,' . $this->supplier->id,
             'mobile' => [
@@ -163,7 +163,7 @@ class SupplierEdit extends Component
         }
 
         $this->supplier->update([
-            'prefix' => $this->prefix,
+            // 'prefix' => $this->prefix,
             'name' => $this->name,
             'email' => $this->email,
             'country_code_mobile' => $this->selectedCountryPhone,

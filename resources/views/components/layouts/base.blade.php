@@ -8,7 +8,7 @@
     <link rel="apple-touch-icon" sizes="76x76" href="{{ asset('assets') }}/img/apple-icon.png">
     <link rel="icon" type="image/png" href="{{ asset('assets') }}/img/stanny.png">
     <title>
-        STANNY'S | ADMIN PANEL
+        STANNY'S PORTAL
     </title>
 
     <!-- Metas -->
