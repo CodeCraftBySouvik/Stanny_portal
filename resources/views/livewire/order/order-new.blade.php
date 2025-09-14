@@ -599,7 +599,8 @@
                                     <input type="text" wire:keyup="FindProduct($event.target.value, {{ $index }})"
                                         wire:model="items.{{ $index }}.searchproduct"
                                         class="form-control form-control-sm border border-1 customer_input @error('items.'.$index.'.searchproduct') border-danger @enderror"
-                                        placeholder="Enter product name">
+                                        placeholder="Enter product name"
+                                        wire:change="validateSingle('items.{{ $index }}.searchproduct')">
                                     @if (session()->has('errorProduct.' . $index))
                                     <p class="text-danger">{{ session('errorProduct.' . $index) }}</p>
                                     @endif
@@ -628,7 +629,8 @@
                                     </label>
                                     <input type="number" wire:model="items.{{ $index }}.quantity" class="form-control form-control-sm border border-1 customer_input
                                         @error('items.' . $index . '.quantity') border-danger @enderror"
-                                        placeholder="Enter quantity" min="1" wire:keyup="updateTotalAmount">
+                                        placeholder="Enter quantity" min="1" wire:keyup="updateTotalAmount"
+                                       wire:change="validateSingle('items.{{ $index }}.quantity')">
                                     @error('items.' . $index . '.quantity')
                                     <div class="text-danger error-message">{{ $message }}</div>
                                     @enderror
@@ -736,7 +738,8 @@
                                         <label for="">Expected Delivery Date</label>
                                         <input type="date" class="form-control form-control-sm border border-1"
                                             wire:model="items.{{$index}}.expected_delivery_date"
-                                            min="{{ \Carbon\Carbon::today()->format('Y-m-d') }}">
+                                            min="{{ \Carbon\Carbon::today()->format('Y-m-d') }}"
+                                            wire:change="validateSingle('items.{{ $index }}.expected_delivery_date')">
                                         @error("items.$index.expected_delivery_date")
                                         <div class="text-danger">{{ $message }}</div>
                                         @enderror
@@ -744,7 +747,8 @@
                                     <div class="col-md-2">
                                         <label class="form-label"><strong>Priority Level</strong></label>
                                         <select class="form-control form-control-sm border border-1"
-                                            wire:model="items.{{ $index }}.priority">
+                                            wire:model="items.{{ $index }}.priority"
+                                            wire:change="validateSingle('items.{{ $index }}.priority')">
                                             <option value="" hidden>Select Priority</option>
                                             <option value="Priority">Priority</option>
                                             <option value="Non Priority">Non Priority</option>
@@ -756,7 +760,8 @@
                                     <div class="col-md-2">
                                         <label class="form-label"><strong>Item Status</strong></label>
                                         <select class="form-control form-control-sm border border-1"
-                                            wire:model="items.{{ $index }}.item_status">
+                                            wire:model="items.{{ $index }}.item_status"
+                                            wire:change="validateSingle('items.{{ $index }}.item_status')">
                                             <option value="" hidden>Select Item Status</option>
                                             <option value="Process">Process</option>
                                             <option value="Hold">Hold</option>
@@ -802,7 +807,7 @@
                                                 <input type="hidden"
                                                     wire:model="items.{{ $index }}.get_measurements.{{ $measurement['id'] }}.title"
                                                     value="{{ $measurement['title'] }}">
-                                                <input type="number" required
+                                                <input type="number" required step="any"
                                                     class="form-control form-control-sm border border-1 customer_input measurement_input"
                                                     wire:model="items.{{ $index }}.get_measurements.{{ $measurement['id'] }}.value"
                                                     wire:keyup="validateMeasurement({{ $index }}, {{ $measurement['id'] }})">
@@ -886,7 +891,8 @@
                                             <label for="">Expected Delivery Date</label>
                                             <input type="date" class="form-control form-control-sm border border-1"
                                                 wire:model="items.{{$index}}.expected_delivery_date"
-                                                min="{{ \Carbon\Carbon::today()->format('Y-m-d') }}">
+                                                min="{{ \Carbon\Carbon::today()->format('Y-m-d') }}"
+                                                 wire:change="validateSingle('items.{{ $index }}.expected_delivery_date')">
                                             @error("items.$index.expected_delivery_date")
                                             <div class="text-danger">{{ $message }}</div>
                                             @enderror
@@ -895,7 +901,8 @@
                                         <div class="col-md-4">
                                             <label class="form-label"><strong>Fittings</strong></label>
                                             <select class="form-control form-control-sm border border-1"
-                                                wire:model="items.{{ $index }}.fitting">
+                                                wire:model="items.{{ $index }}.fitting"
+                                                wire:change="validateSingle('items.{{ $index }}.fitting')">
                                                 <option value="" hidden>Select Fitting</option>
                                                 <option value="Regular Fit">Regular Fit</option>
                                                 <option value="Slim Fit">Slim Fit</option>
@@ -910,7 +917,8 @@
                                         <div class="col-md-4">
                                             <label class="form-label"><strong>Priority Level</strong></label>
                                             <select class="form-control form-control-sm border border-1"
-                                                wire:model="items.{{ $index }}.priority">
+                                                wire:model="items.{{ $index }}.priority"
+                                                wire:change="validateSingle('items.{{ $index }}.priority')">
                                                 <option value="" hidden>Select Priority</option>
                                                 <option value="Priority">Priority</option>
                                                 <option value="Non Priority">Non Priority</option>
@@ -925,7 +933,8 @@
                                         <div class="col-md-4">
                                             <label class="form-label"><strong>Item Status</strong></label>
                                             <select class="form-control form-control-sm border border-1"
-                                                wire:model="items.{{ $index }}.item_status">
+                                                wire:model="items.{{ $index }}.item_status"
+                                                wire:change="validateSingle('items.{{ $index }}.priority')">
                                                 <option value="" hidden>Select Item Status</option>
                                                 <option value="Process">Process</option>
                                                 <option value="Hold">Hold</option>

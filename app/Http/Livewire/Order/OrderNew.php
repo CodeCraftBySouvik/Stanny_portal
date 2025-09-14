@@ -99,7 +99,7 @@ class OrderNew extends Component
     public $voiceUploads = [];
     public $air_mail;
     public $customerType = 'new';
-
+    
     public function onCustomerTypeChange($value){
         $this->customerType = $value;
         if($value == 'new'){
@@ -363,6 +363,11 @@ class OrderNew extends Component
         $this->validateOnly($propertyName, $this->rules());
     }
 
+    public function validateSingle($propertyName)
+    {
+        $this->validateOnly($propertyName, $this->rules());
+    }
+
 
     public function messages(){
         return [
@@ -493,7 +498,7 @@ class OrderNew extends Component
 
             // Fetch categories and products based on the selected collection
             $this->items[$index]['categories'] = Category::orderBy('title', 'ASC')->where('collection_id', $value)->where('status',1)->get();
-            $this->items[$index]['products'] = Product::orderBy('name', 'ASC')->where('collection_id', $value)->where('status',1)->get();
+            // $this->items[$index]['products'] = Product::orderBy('name', 'ASC')->where('collection_id', $value)->where('status',1)->get();
 
             if ($value == 1) {
                 $catalogues = Catalogue::with('catalogueTitle')->where('status',1)->get();
@@ -1376,6 +1381,20 @@ class OrderNew extends Component
                 $this->errorClass['name'] = null;
                 $this->errorMessage['name'] = null;
             }
+
+            if ($this->email) {
+                if (!filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
+                    $this->errorMessage['email'] = 'Please enter a valid email address.';
+                    $this->errorClass['email'] = 'is-invalid';
+                } elseif (!preg_match('/@gmail\.com$/', $this->email)) {
+                    $this->errorMessage['email'] = 'Email must be a valid @gmail.com address.';
+                    $this->errorClass['email'] = 'is-invalid';
+                } else {
+                    $this->errorClass['email'] = null;
+                    $this->errorMessage['email'] = null;
+                }
+            }
+
 
             // validate customer image
             if (empty($this->customer_image)) {
