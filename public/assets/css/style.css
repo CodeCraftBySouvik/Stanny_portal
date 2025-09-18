@@ -1355,9 +1355,35 @@ label.form-check-label {
 .dark-text {
     color: #6f4400 !important;
 }
-
-
 .size-small svg {
     width:60px;
     height:60px;
+}
+.input-group > .intl-tel-input.allow-dropdown {
+    flex: 1 1 auto;
+    width: 250px;
+}
+.input-group > .intl-tel-input.allow-dropdown > .flag-container {
+    z-index: 4;
+}
+.iti-flag {
+    background-image: url("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/12.1.6/img/flags.png");
+}
+@media only screen and (-webkit-min-device-pixel-ratio: 2),
+    only screen and (min--moz-device-pixel-ratio: 2),
+    only screen and (-o-min-device-pixel-ratio: 2 / 1),
+    only screen and (min-device-pixel-ratio: 2),
+    only screen and (min-resolution: 192dpi),
+    only screen and (min-resolution: 2dppx) {
+    .iti-flag {
+    background-image: url("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/12.1.6/img/flags@2x.png");
+    }
+}
+.tel-code-input{
+    width: 286px;
+    font-size: 0.75rem;
+    height: 28px;
+}
+.intl-tel-input.separate-dial-code .selected-dial-code{
+    font-size: 0.75rem;
 }

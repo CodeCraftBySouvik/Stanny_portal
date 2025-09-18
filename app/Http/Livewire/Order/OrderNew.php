@@ -91,13 +91,13 @@ class OrderNew extends Component
     public $countries;
     public $pageItems = [];
 
-    public $selectedCountryPhone,$selectedCountryWhatsapp,$selectedCountryAlt1,$selectedCountryAlt2;
+    public $phone_code,$selectedCountryWhatsapp,$alt_phone_code_1,$alt_phone_code_2;
     public $isWhatsappPhone, $isWhatsappAlt1, $isWhatsappAlt2;
     public $mobileLengthPhone,$mobileLengthWhatsapp,$mobileLengthAlt1,$mobileLengthAlt2;
     public $items = [];
     public $imageUploads = [];
     public $voiceUploads = [];
-    public $air_mail;
+    public $air_mail,$logedin_user;
     public $customerType = 'new';
     
     public function onCustomerTypeChange($value){
@@ -111,6 +111,7 @@ class OrderNew extends Component
     }
     public function mount()
     {
+        $this->logedin_user = auth()->guard('admin')->user();
         $user_id = request()->query('user_id');
 
         if ($user_id) {
@@ -134,19 +135,19 @@ class OrderNew extends Component
                 $this->phone = $customer->phone;
                 // $this->whatsapp_no = $customer->whatsapp_no;
 
-                $this->selectedCountryPhone = $customer->country_code_phone;
+                $this->phone_code = $customer->country_code_phone;
                 // $this->selectedCountryWhatsapp = $customer->country_code_whatsapp;
-                $this->selectedCountryAlt1 = $customer->country_code_alt_1;
-                $this->selectedCountryAlt2 = $customer->country_code_alt_2;
+                $this->alt_phone_code_1 = $customer->country_code_alt_1;
+                $this->alt_phone_code_2 = $customer->country_code_alt_2;
 
                 $this->phone = $customer->phone;
                 $this->alternative_phone_number_1 = $customer->alternative_phone_number_1;
                 $this->alternative_phone_number_2 = $customer->alternative_phone_number_2;
 
-                $this->mobileLengthPhone = Country::where('country_code',$this->selectedCountryPhone)->value('mobile_length') ?? '';
+                $this->mobileLengthPhone = Country::where('country_code',$this->phone_code)->value('mobile_length') ?? '';
                 $this->mobileLengthWhatsapp = Country::where('country_code',$this->selectedCountryWhatsapp)->value('mobile_length') ?? '';
-                $this->mobileLengthAlt1 = Country::where('country_code',$this->selectedCountryAlt1)->value('mobile_length') ?? '';
-                $this->mobileLengthAlt2 = Country::where('country_code',$this->selectedCountryAlt2)->value('mobile_length') ?? '';
+                $this->mobileLengthAlt1 = Country::where('country_code',$this->alt_phone_code_1)->value('mobile_length') ?? '';
+                $this->mobileLengthAlt2 = Country::where('country_code',$this->alt_phone_code_2)->value('mobile_length') ?? '';
 
                 $this->isWhatsappPhone = UserWhatsapp::where('user_id',$customer->id)->where('whatsapp_number',$this->phone)->exists();
                 $this->isWhatsappAlt1 = UserWhatsapp::where('user_id',$customer->id)->where('whatsapp_number',$this->alternative_phone_number_1)->exists();
@@ -437,7 +438,7 @@ class OrderNew extends Component
         } else {
             // Reset results when the search term is empty
             $this->reset([
-                'searchResults','orders','prefix','selectedCountryPhone','selectedCountryWhatsapp','selectedCountryAlt1','selectedCountryAlt2','isWhatsappPhone', 'isWhatsappAlt1', 'isWhatsappAlt2'
+                'searchResults','orders','prefix','phone_code','selectedCountryWhatsapp','alt_phone_code_1','alt_phone_code_2','isWhatsappPhone', 'isWhatsappAlt1', 'isWhatsappAlt2'
             ]);
         }
     }
@@ -912,14 +913,14 @@ class OrderNew extends Component
                     'email' => $this->email,
                     'dob' => $this->dob,
                     'country_id' => $this->country_id,
-                    'country_code_phone' => $this->selectedCountryPhone,
+                    'country_code_phone' => $this->phone_code,
                     'phone' => $this->phone,
                     // 'country_code_whatsapp' => $this->selectedCountryWhatsapp,
                     // 'whatsapp_no' => $this->whatsapp_no,
                     // 'country_code' => $this->country_code,
-                    'country_code_alt_1'  => $this->selectedCountryAlt1,
+                    'country_code_alt_1'  => $this->alt_phone_code_1,
                     'alternative_phone_number_1' => $this->alternative_phone_number_1,
-                    'country_code_alt_2'  => $this->selectedCountryAlt2,
+                    'country_code_alt_2'  => $this->alt_phone_code_2,
                     'alternative_phone_number_2' => $this->alternative_phone_number_2,
                     'user_type' => 1, // Customer
                     'created_by' => auth()->guard('admin')->user()->id, // Customer
@@ -952,13 +953,13 @@ class OrderNew extends Component
                     'email' => $this->email,
                     'dob' => $this->dob,
                     'country_id' => $this->country_id,
-                    'country_code_phone' => $this->selectedCountryPhone,
+                    'country_code_phone' => $this->phone_code,
                     'phone' => $this->phone,
                     // 'country_code_whatsapp' => $this->selectedCountryWhatsapp,
                     // 'whatsapp_no' => $this->whatsapp_no,
-                    'country_code_alt_1'  => $this->selectedCountryAlt1,
+                    'country_code_alt_1'  => $this->alt_phone_code_1,
                     'alternative_phone_number_1' => $this->alternative_phone_number_1,
-                    'country_code_alt_2'  => $this->selectedCountryAlt2,
+                    'country_code_alt_2'  => $this->alt_phone_code_2,
                     'alternative_phone_number_2' => $this->alternative_phone_number_2,
                     'user_type' => 1, // Customer
                 ]);
@@ -1197,7 +1198,7 @@ class OrderNew extends Component
                     if (!$existingRecord) {
                         UserWhatsapp::updateOrCreate(
                             ['user_id' => $user->id,'whatsapp_number' => $this->phone],
-                            [ 'country_code' => $this->selectedCountryPhone, 'created_at' => now(),'updated_at' => now()]
+                            [ 'country_code' => $this->phone_code, 'created_at' => now(),'updated_at' => now()]
                         );
                     }
                 }
@@ -1213,7 +1214,7 @@ class OrderNew extends Component
                              'whatsapp_number' => $this->alternative_phone_number_1,
                             ],
                             [
-                            'country_code' => $this->selectedCountryAlt1,
+                            'country_code' => $this->alt_phone_code_1,
                             'created_at' => now(),
                             'updated_at' => now(),
                         ]);
@@ -1230,7 +1231,7 @@ class OrderNew extends Component
                         UserWhatsapp::updateOrCreate([
                             'user_id' => $user->id,
                             'whatsapp_number' => $this->alternative_phone_number_2],
-                            ['country_code' => $this->selectedCountryAlt2,
+                            ['country_code' => $this->alt_phone_code_2,
                             'created_at' => now(),
                             'updated_at' => now(),
                         ]);
@@ -1275,11 +1276,27 @@ class OrderNew extends Component
     }
     public function updateMobileLengths()
     {
-        $this->mobileLengthPhone = Country::where('country_code', $this->selectedCountryPhone)->value('mobile_length') ?? '';
-        $this->mobileLengthAlt1 = Country::where('country_code', $this->selectedCountryAlt1)->value('mobile_length') ?? '';
-        $this->mobileLengthAlt2 = Country::where('country_code', $this->selectedCountryAlt2)->value('mobile_length') ?? '';
+        $this->mobileLengthPhone = Country::where('country_code', $this->phone_code)->value('mobile_length') ?? '';
+        $this->mobileLengthAlt1 = Country::where('country_code', $this->alt_phone_code_1)->value('mobile_length') ?? '';
+        $this->mobileLengthAlt2 = Country::where('country_code', $this->alt_phone_code_2)->value('mobile_length') ?? '';
     }
+    public function CountryCodeSet($selector, $Code, $number = null)
+    {
+        $mobile_length = Country::where('country_code', $Code)->value('mobile_length') ?? '';
 
+        // Dispatch for maxlength
+        $this->dispatch('update_input_max_length', [
+            'id' => $selector,
+            'mobile_length' => $mobile_length
+        ]);
+
+        // Dispatch for setting code + number
+        $this->dispatch('update_input_code_number', [
+            'id' => $selector,
+            'dialCode' => $Code,
+            'number' => $number
+        ]);
+    }
 
     public function selectCustomer($customerId)
     {
@@ -1298,12 +1315,22 @@ class OrderNew extends Component
             $this->dob = $customer->dob;
             $this->phone = $customer->phone;
             // $this->whatsapp_no = $customer->whatsapp_no;
-            $this->selectedCountryPhone = $customer->country_code_phone;
-            $this->selectedCountryAlt1 = $customer->country_code_alt_1;
+            $this->phone_code = $customer->country_code_phone;
+            $this->alt_phone_code_1 = $customer->country_code_alt_1;
             $this->alternative_phone_number_1 = $customer->alternative_phone_number_1;
-            $this->selectedCountryAlt2 = $customer->country_code_alt_2;
+            $this->alt_phone_code_2 = $customer->country_code_alt_2;
             $this->alternative_phone_number_2 = $customer->alternative_phone_number_2;
 
+            if($this->phone_code){
+                $this->CountryCodeSet('#mobile', $this->phone_code, $this->phone);
+            }
+            if($this->alt_phone_code_1){
+                $this->CountryCodeSet('#alt_phone_1', $this->alt_phone_code_1,$this->alternative_phone_number_1);
+            }
+            if($this->alt_phone_code_2){
+                $this->CountryCodeSet('#alt_phone_2', $this->alt_phone_code_2,$this->alternative_phone_number_2);
+            }
+            
             $this->updateMobileLengths();
             // Fetch billing address (address_type = 1)
             $billingAddress = $customer->address()->where('address_type', 1)->first();

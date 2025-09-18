@@ -46,7 +46,6 @@ class CountryIndex extends Component
     }
 
     public function updateCountry(){
-        // dd($this->all());
         $this->validate([
             'title' => 'required',
             'country_code' => 'required',
