@@ -99,6 +99,7 @@ class OrderNew extends Component
     public $voiceUploads = [];
     public $air_mail,$logedin_user;
     public $customerType = 'new';
+    public $extra_measurement = [];
     
     public function onCustomerTypeChange($value){
         $this->customerType = $value;
@@ -334,8 +335,9 @@ class OrderNew extends Component
     }
 
     // Define rules for validation
-    public function rules(){
-       $rules = [
+    public function rules()
+    {
+        $rules = [
             'items' => 'required|min:1',
             'items.*.collection' => 'required|string',
             'items.*.category' => 'required|string',
@@ -356,8 +358,34 @@ class OrderNew extends Component
             'voiceUploads.*.*' => 'nullable|mimes:mp3,wav,ogg,m4a,wma,webm,mpga', 
         ];
 
+        // ✅ Add dynamic rules based on extra measurement per index
+        foreach ($this->items as $index => $item) {
+            $extra = $this->extra_measurement[$index] ?? null;
+            if ($extra === 'mens') {
+                $rules["items.$index.vents"] = 'required';
+            }
+
+            if ($extra === 'ladies') {
+                $rules["items.$index.vents_required"] = 'required';
+                $rules["items.$index.vents_count"] = 'required_if:items.'.$index.'.vents_required,Yes|nullable|integer|min:1';
+            }
+
+            if ($extra === 'trouser') {
+                $rules["items.$index.fold_cuff_required"] = 'required';
+                $rules["items.$index.fold_cuff_size"] = 'required_if:items.'.$index.'.fold_cuff_required,Yes|nullable|numeric|min:1';
+                $rules["items.$index.pleats_required"] = 'required';
+                $rules["items.$index.pleats_count"] = 'required_if:items.'.$index.'.pleats_required,Yes|nullable|integer|min:1';
+                $rules["items.$index.back_pocket_required"] = 'required';
+                $rules["items.$index.back_pocket_count"] = 'required_if:items.'.$index.'.back_pocket_required,Yes|nullable|integer|min:1';
+                $rules["items.$index.adjustable_belt"] = 'required';
+                $rules["items.$index.suspender_button"] = 'required';
+                $rules["items.$index.trouser_position"] = 'required';
+            }
+        }
+
         return $rules;
     }
+
 
     public function updated($propertyName)
     {
@@ -390,6 +418,23 @@ class OrderNew extends Component
              'order_number.unique' => 'Order number already exists, please try again.',
              'items.*.get_measurements.*.value.required' => 'Each measurement value is required.',
 
+             // Mens Suit / Jacket
+            'items.*.vents.required_if' => 'Please select vents option for mens suit/jacket.',
+
+            // Ladies Suit / Jacket
+            'items.*.ladies_vents.required_if' => 'Please select if vents are required for ladies suit/jacket.',
+            'items.*.ladies_vents_count.required_if' => 'Please specify how many vents for ladies suit/jacket.',
+
+            // Trousers
+            'items.*.fold_cuff_required.required_if' => 'Please select if fold cuff is required.',
+            'items.*.fold_cuff_size.required_if' => 'Please enter cuff length in cm.',
+            'items.*.pleats_required.required_if' => 'Please select if pleats are required.',
+            'items.*.pleats_count.required_if' => 'Please enter number of pleats.',
+            'items.*.back_pocket_required.required_if' => 'Please select if back pocket is required.',
+            'items.*.back_pocket_count.required_if' => 'Please enter number of back pockets.',
+            'items.*.adjustable_belt.required_if' => 'Please select if adjustable belt is required.',
+            'items.*.suspender_button.required_if' => 'Please select if suspender button is required.',
+            'items.*.trouser_position.required_if' => 'Please select trouser position.',
         ];
     }
 
@@ -482,6 +527,7 @@ class OrderNew extends Component
     public function removeItem($index)
     {
         unset($this->items[$index]);
+        unset($this->extra_measurement[$index]);
         $this->items = array_values($this->items);
         $this->updateBillingAmount();  // Update billing amount after checking price
     }
@@ -784,6 +830,8 @@ class OrderNew extends Component
         $this->items[$index]['product_id'] = $id;
         $this->items[$index]['products'] = [];
 
+        $this->extra_measurement[$index] = Helper::ExtraRequiredMeasurement(trim($name));
+
         // Get the measurements available for the selected product
         $this->items[$index]['measurements'] = Measurement::where('product_id', $id)
                                                         ->where('status', 1)
@@ -879,11 +927,9 @@ class OrderNew extends Component
     public function save(OrderRepository $orderRepo)
     {
         // dd($this->all());
-        DB::beginTransaction(); // Begin transaction
-
         $this->validate();
+        DB::beginTransaction(); // Begin transaction
         try{
-
             // Calculate the total amount
             $total_product_amount = array_sum(array_column($this->items, 'price'));
             // Correct total based on price * quantity for each item
@@ -893,7 +939,6 @@ class OrderNew extends Component
 
             $airMail = floatval($this->air_mail);
             $total_amount += $airMail;
-            // dd($total_amount);
             // if ($this->paid_amount > $total_amount) {
             //     session()->flash('error', '🚨 The paid amount cannot exceed the total billing amount.');
             //     return;
@@ -1110,6 +1155,27 @@ class OrderNew extends Component
                     $orderItem->admin_status = 'Pending';
                 }
 
+                // Extra Fields
+                if ($item['collection'] == 1) {
+                    $extra = $this->extra_measurement[$k] ?? null;
+
+                    if ($extra == 'mens') {
+                        $orderItem->vents = $item['vents'] ?? null;
+                    } elseif ($extra == 'ladies') {
+                        $orderItem->vents_required = $item['vents_required'] ?? null;
+                        $orderItem->vents_count = $item['vents_count'] ?? null;
+                    } elseif ($extra == 'trouser') {
+                        $orderItem->fold_cuff_required   = $item['fold_cuff_required'] ?? null;
+                        $orderItem->fold_cuff_size       = $item['fold_cuff_size'] ?? null;
+                        $orderItem->pleats_required      = $item['pleats_required'] ?? null;
+                        $orderItem->pleats_count         = $item['pleats_count'] ?? null;
+                        $orderItem->back_pocket_required = $item['back_pocket_required'] ?? null;
+                        $orderItem->back_pocket_count    = $item['back_pocket_count'] ?? null;
+                        $orderItem->adjustable_belt      = $item['adjustable_belt'] ?? null;
+                        $orderItem->suspender_button     = $item['suspender_button'] ?? null;
+                        $orderItem->trouser_position     = $item['trouser_position'] ?? null;
+                    }
+                }
                 $orderItem->save();
 
                  // upload multiple catalogue images
@@ -1185,16 +1251,11 @@ class OrderNew extends Component
                 }
             }
 
-
-
-
-
             // Store WhatsApp details if the flags are set
                 if ($this->isWhatsappPhone) {
                     $existingRecord = UserWhatsapp::where('whatsapp_number', $this->phone)
                                                     ->where('user_id', '!=', $user->id)
                                                     ->exists();
-
                     if (!$existingRecord) {
                         UserWhatsapp::updateOrCreate(
                             ['user_id' => $user->id,'whatsapp_number' => $this->phone],
@@ -1251,7 +1312,6 @@ class OrderNew extends Component
             session()->flash('success', 'Order has been generated successfully.');
             return redirect()->route('admin.order.index');
         } catch (\Exception $e) {
-            // dd($e);
             DB::rollBack();
             dd($e->getMessage());
             //\Log::error('Error saving order: ' . $e->getMessage());
@@ -1296,6 +1356,7 @@ class OrderNew extends Component
             'dialCode' => $Code,
             'number' => $number
         ]);
+        $this->mobileLengthPhone = $mobile_length;
     }
 
     public function selectCustomer($customerId)
@@ -1303,7 +1364,6 @@ class OrderNew extends Component
         $this->resetForm(); // Reset form to default values
 
         $customer = User::find($customerId);
-        // dd($customer);
         if ($customer) {
             // Populate customer details
             $this->customer_id = $customer->id;

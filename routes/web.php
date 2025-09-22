@@ -239,7 +239,7 @@ Route::prefix('todo-list')->name('todo-list.')->group(function() {
         Route::get('/invoice/{id}', OrderInvoice::class)->name('admin.order.invoice');
         Route::get('/new', OrderNew::class)->name('admin.order.new')->middleware('check.permission');
         Route::get('/edit/{id}', OrderEdit::class)->name('admin.order.edit')->middleware('check.permission');
-        Route::get('/view/{id}', action: OrderView::class)->name('admin.order.view')->middleware('check.permission');
+        Route::get('/view/{id}', OrderView::class)->name('admin.order.view')->middleware('check.permission');
         Route::get('/ledger/{id}', LedgerView::class)->name('admin.order.ledger.view');
         Route::get('/invoice', InvoiceList::class)->name('admin.order.invoice.index')->middleware('check.permission');
         Route::get('/add-invoice', AddInvoice::class)->name('admin.order.invoice.add');

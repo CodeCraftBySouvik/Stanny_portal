@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\SalesmanBilling;
 use App\Models\Order;
 use App\Models\User;
+use App\Models\Product;
 use App\Models\StockFabric;
 use App\Models\StockProduct;
 use App\Models\OrderStockEntry;
@@ -210,6 +211,21 @@ class Helper
         }
 
         return null;
+    }
+    public static function ExtraRequiredMeasurement($product_name)
+    {
+        $map = [
+            "3 PCS SUIT"     => "mens",
+            "MEN'S SUIT"     => "mens",
+            "LADIES SUIT"    => "ladies",
+            "LADIES JACKET/BLAZER"    => "ladies",
+            "MEN'S TROUSER"  => "trouser",
+            "LADIES TROUSER" => "trouser",
+        ];
+
+        $name = strtoupper(trim($product_name));
+
+        return $map[$name] ?? null;
     }
 
 

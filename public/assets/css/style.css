@@ -1387,3 +1387,33 @@ label.form-check-label {
 .intl-tel-input.separate-dial-code .selected-dial-code{
     font-size: 0.75rem;
 }
+.tooltip-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip-wrapper .tooltip-text {
+  visibility: hidden;
+  background: #333;
+  color: #fff;
+  text-align: center;
+  font-size: 9px;
+  padding: 3px 6px;
+  border-radius: 4px;
+
+  /* Position */
+  position: absolute;
+  z-index: 1;
+  bottom: 65%; /* above the field */
+  left: 0%;
+  /* transform: translateX(-50%); */
+
+  /* Small arrow */
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.tooltip-wrapper:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
