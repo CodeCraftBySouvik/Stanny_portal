@@ -1374,7 +1374,6 @@ class OrderNew extends Component
             $this->email = $customer->email;
             $this->dob = $customer->dob;
             $this->phone = $customer->phone;
-            // $this->whatsapp_no = $customer->whatsapp_no;
             $this->phone_code = $customer->country_code_phone;
             $this->alt_phone_code_1 = $customer->country_code_alt_1;
             $this->alternative_phone_number_1 = $customer->alternative_phone_number_1;
