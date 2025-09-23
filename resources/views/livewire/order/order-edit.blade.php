@@ -158,70 +158,36 @@
                                 <div class="text-danger">{{ $errorMessage['dob'] }}</div>
                                 @endif --}}
                             </div>
-
                             <!-- Phone Number -->
                             <div class="mb-2 col-md-3">
-                                <label for="phone" class="form-label">Phone Number <span
-                                        class="text-danger">*</span></label>
-                                <div class="extention-group">
-                                    <!-- Country Select Dropdown for Phone -->
-                                    <select wire:model="selectedCountryPhone"
-                                        wire:change="GetCountryDetails($event.target.selectedOptions[0].getAttribute('data-length'), 'phone')"
-                                        class="form-control form-control-sm">
-                                        <option value="" selected hidden>Select Country</option>
-                                        @foreach($countries as $country)
-                                        <option value="{{ $country->country_code }}"
-                                            data-length="{{ $country->mobile_length }}">
-                                            {{ $country->title }} ({{ $country->country_code }})
-                                        </option>
-                                        @endforeach
-                                    </select>
+                                <label for="mobile" class="form-label">Phone Number</label>
+                                <div class="input-group input-group-sm" id="parent_mobile" wire:ignore>
+                                    <input id="mobile" type="tel" class="form-control tel-code-input" style="width:286px;">
+                                    <!-- hidden Livewire bindings -->
+                                    <input type="hidden" wire:model="phone_code" id="phone_code">
+                                    <input type="hidden" wire:model="phone" id="phone">
 
-                                    <!-- Phone Input Field -->
-                                    <input type="text" wire:model="phone" id="phone"
-                                        class="form-control form-control-sm border border-1 p-2 {{ $errorClass['phone'] ?? '' }}"
-                                        placeholder="Enter Phone Number" maxlength="{{ $mobileLengthPhone }}">
-
-                                    <!-- Error Message -->
                                 </div>
+
                                 @if(isset($errorMessage['phone']))
-                                <div class="text-danger">{{ $errorMessage['phone'] }}</div>
-                                @endif
+                                    <div class="text-danger error-message">{{ $errorMessage['phone'] }}</div>
+                                @enderror
                                 <div class="form-check-label-group">
                                     <input type="checkbox" id="is_whatsapp1" wire:model="isWhatsappPhone">
                                     <label for="is_whatsapp1" class="form-check-label ms-1">Is Whatsapp</label>
                                 </div>
                             </div>
 
-                           
-
                             <!-- Alternative Phone Number 1 -->
                             <div class="mb-2 col-md-3">
-                                <label for="alternative_phone_number_1" class="form-label">Alternative Phone Number
-                                    1</label>
-                                <div class="extention-group">
-                                    <!-- Country Select Dropdown for Alternative Phone 1 -->
-                                    <select wire:model="selectedCountryAlt1"
-                                        wire:change="GetCountryDetails($event.target.selectedOptions[0].getAttribute('data-length'), 'alt_phone_1')"
-                                        class="form-control form-control-sm">
-                                        <option value="" selected hidden>Select Country</option>
-                                        @foreach($countries as $country)
-                                        <option value="{{ $country->country_code }}"
-                                            data-length="{{ $country->mobile_length }}">
-                                            {{ $country->title }} ({{ $country->country_code }})
-                                        </option>
-                                        @endforeach
-                                    </select>
-
-                                    <!-- Alternative Phone 1 Input Field -->
-                                    <input type="text" wire:model="alternative_phone_number_1"
-                                        class="form-control form-control-sm border border-1 p-2 {{ $errorClass['alternative_phone_number_1'] ?? '' }}"
-                                        placeholder="Alternative Phone No" maxlength="{{ $mobileLengthAlt1 }}">
-
-                                    <!-- Error Message -->
+                                <label for="alt_phone_1" class="form-label">Alternative Phone 1</label>
+                                <div class="input-group input-group-sm" id="parent_alt_phone_code_1" wire:ignore>
+                                    <input id="alt_phone_1" type="tel" class="form-control tel-code-input" style="width:269px;">
+                                    <input type="hidden" wire:model="alt_phone_code_1" id="alt_phone_code_1">
+                                    <input type="hidden" wire:model="alternative_phone_number_1" id="alt_phone_hidden_1">
                                 </div>
                                 @if(isset($errorMessage['alternative_phone_number_1']))
-                                <div class="text-danger">{{ $errorMessage['alternative_phone_number_1'] }}</div>
+                                    <div class="text-danger error-message">{{ $errorMessage['alternative_phone_number_1'] }}</div>
                                 @endif
                                 <div class="form-check-label-group">
                                     <input type="checkbox" id="is_whatsapp2" wire:model="isWhatsappAlt1">
@@ -231,36 +197,20 @@
 
                             <!-- Alternative Phone Number 2 -->
                             <div class="mb-2 col-md-3">
-                                <label for="alternative_phone_number_2" class="form-label">Alternative Phone Number
-                                    2</label>
-                                <div class="extention-group">
-                                    <!-- Country Select Dropdown for Alternative Phone 2 -->
-                                    <select wire:model="selectedCountryAlt2"
-                                        wire:change="GetCountryDetails($event.target.selectedOptions[0].getAttribute('data-length'), 'alt_phone_2')"
-                                        class="form-control form-control-sm">
-                                        <option value="" selected hidden>Select Country</option>
-                                        @foreach($countries as $country)
-                                        <option value="{{ $country->country_code }}"
-                                            data-length="{{ $country->mobile_length }}">
-                                            {{ $country->title }} ({{ $country->country_code }})
-                                        </option>
-                                        @endforeach
-                                    </select>
-
-                                    <!-- Alternative Phone 2 Input Field -->
-                                    <input type="text" wire:model="alternative_phone_number_2"
-                                        class="form-control form-control-sm border border-1 p-2 {{ $errorClass['alternative_phone_number_2'] ?? '' }}"
-                                        placeholder="Alternative Phone No" maxlength="{{ $mobileLengthAlt2 }}">
+                                <label for="alt_phone_2" class="form-label">Alternative Phone 2</label>
+                                <div class="input-group input-group-sm" id="parent_alt_phone_code_2" wire:ignore>
+                                    <input id="alt_phone_2" type="tel" class="form-control tel-code-input" style="width:269px;">
+                                    <input type="hidden" wire:model="alt_phone_code_2" id="alt_phone_code_2">
+                                    <input type="hidden" wire:model="alternative_phone_number_2" id="alt_phone_hidden_2">
                                 </div>
                                 @if(isset($errorMessage['alternative_phone_number_2']))
-                                <div class="text-danger">{{ $errorMessage['alternative_phone_number_2'] }}</div>
+                                    <div class="text-danger error-message">{{ $errorMessage['alternative_phone_number_2'] }}</div>
                                 @endif
                                 <div class="form-check-label-group">
                                     <input type="checkbox" id="is_whatsapp3" wire:model="isWhatsappAlt2">
                                     <label for="is_whatsapp3" class="form-check-label ms-1">Is Whatsapp</label>
                                 </div>
                             </div>
-
                         </div>
 
                     {{-- </div> --}}
@@ -540,45 +490,54 @@
                                 @enderror
 
                             </div>
-                            @if(isset($item['selected_collection']) && $items[$index]['selected_collection'] == 2)
-                                <div class="row mb-3">
-                                    <div class="col-md-2">
-                                        <label for="">Expected Delivery Date</label>
-                                        <input type="date" class="form-control form-control-sm border border-1" wire:model="items.{{$index}}.expected_delivery_date" 
-                                        min="{{ \Carbon\Carbon::today()->format('Y-m-d') }}">
-                                        @error("items.$index.expected_delivery_date")
-                                        <div class="text-danger">{{ $message }}</div>
-                                        @enderror
+                                @if(isset($item['selected_collection']) && $items[$index]['selected_collection'] == 2)
+                                    <div class="row mb-3">
+                                        <div class="col-md-2">
+                                            <label for="">Delivery Date</label>
+                                            <input type="date" class="form-control form-control-sm border border-1" wire:model="items.{{$index}}.expected_delivery_date" 
+                                            min="{{ \Carbon\Carbon::today()->format('Y-m-d') }}">
+                                            @error("items.$index.expected_delivery_date")
+                                            <div class="text-danger">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label"><strong>Priority Level</strong></label>
+                                            <select class="form-control form-control-sm border border-1"
+                                                    wire:model="items.{{ $index }}.priority">
+                                                <option value="" hidden>Select Priority</option>
+                                                <option value="Priority">Priority</option>
+                                                <option value="Non Priority">Non Priority</option>
+                                            </select>
+                                            @error("items.$index.priority")
+                                            <div class="text-danger">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label"><strong>Item Status</strong></label>
+                                            <select class="form-control form-control-sm border border-1"
+                                                    wire:model="items.{{ $index }}.item_status"
+                                                    @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
+                                                <option value="" hidden>Select Item Status</option>
+                                                <option value="Process">Process</option>
+                                                <option value="Hold">Hold</option>
+                                            </select>
+                                            @error("items.$index.item_status")
+                                            <div class="text-danger">{{ $message }}</div>
+                                            @enderror
+                                        </div>
                                     </div>
-                                    <div class="col-md-2">
-                                        <label class="form-label"><strong>Priority Level</strong></label>
-                                        <select class="form-control form-control-sm border border-1"
-                                                wire:model="items.{{ $index }}.priority">
-                                            <option value="" hidden>Select Priority</option>
-                                            <option value="Priority">Priority</option>
-                                            <option value="Non Priority">Non Priority</option>
-                                        </select>
-                                        @error("items.$index.priority")
-                                        <div class="text-danger">{{ $message }}</div>
-                                        @enderror
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <label class="form-label"><strong>Remarks</strong></label>
+                                            <textarea type="text" wire:model="items.{{ $index }}.remarks"
+                                                class="form-control form-control-sm border border-1 customer_input"
+                                                placeholder="Enter Product Remarks" rows="4"></textarea>
+                                            @error("items.".$index.".remarks")
+                                            <div class="text-danger">{{ $message }}</div>
+                                            @enderror
+                                        </div>
                                     </div>
-                                    <div class="col-md-2">
-                                        
-                                        <label class="form-label"><strong>Item Status</strong></label>
-                                        <select class="form-control form-control-sm border border-1"
-                                                wire:model="items.{{ $index }}.item_status"
-                                                 @if($status === 'Process' && $tlStatus === 'Approved') disabled @endif>
-                                            <option value="" hidden>Select Item Status</option>
-                                            <option value="Process">Process</option>
-                                            <option value="Hold">Hold</option>
-                                        </select>
-                                        @error("items.$index.item_status")
-                                        <div class="text-danger">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                               
-                            @endif
+                                @endif
                             @endif
                         </div>
                         <!-- Measurements -->
@@ -653,8 +612,7 @@
                                             wire:change="SelectedCatalogue($event.target.value, {{ $index }})">
                                             <option value="" selected hidden>Select Catalogue</option>
                                             @foreach($item['catalogues'] ?? [] as $cat_log)
-                                            <option value="{{ $cat_log['id'] }}" {{ (isset($item['selectedCatalogue'])
-                                                && $item['selectedCatalogue']==$cat_log['id']) ? 'selected' : '' }}>
+                                            <option value="{{ $cat_log['catalogue_title_id'] }}">
                                                 {{ $cat_log['catalogue_title']['title'] ?? 'No Title' }} (1 - {{
                                                 $cat_log['page_number'] }})
                                             </option>
@@ -664,6 +622,7 @@
                                         <div class="text-danger inputerror">{{ $message }}</div>
                                         @enderror
                                     </div>
+                                    
                                     {{-- Page number --}}
                                     <div class="mb-3 col-md-3">
                                         <label class="form-label"><strong>Page Number</strong></label>
@@ -685,12 +644,12 @@
                                             class="form-control form-control-sm border border-2 @error('items.'.$index.'.page_item') border-danger @enderror">
                                             <option value="" selected hidden>Select Page Item</option>
                                             @if(!empty($items[$index]['pageItems']))
-                                            @foreach($items[$index]['pageItems'] ?? [] as $item)
-                                            <option value="{{ $item }}" {{$items[$index]['pageItems']==$item
-                                                ? 'selected' : '' }}>
-                                                {{ $item }}
-                                            </option>
-                                            @endforeach
+                                                @foreach($items[$index]['pageItems'] ?? [] as $pageItems)
+                                                <option value="{{ $pageItems }}" {{$items[$index]['pageItems']==$pageItems
+                                                    ? 'selected' : '' }}>
+                                                    {{ $pageItems }}
+                                                </option>
+                                                @endforeach
                                             @endif
                                         </select>
                                         @error("items.".$index.".page_item")
@@ -699,10 +658,11 @@
                                         @endif
                                     </div>
                                     {{-- Expected Delivery Date,Fittings,Priority Level --}}
-                                     @if(isset($item['selected_collection']) && $item['selected_collection'] == 1)
+                                    {{-- {{dd($item)}} --}}
+                                    @if(isset($item['selected_collection']) && $item['selected_collection'] == 1)
                                         <div class="row mb-3">
-                                            <div class="col-md-4">
-                                                <label for="">Expected Delivery Date</label>
+                                            <div class="col-md-3">
+                                                <label for="">Delivery Date</label>
                                                 <input type="date" class="form-control form-control-sm border border-1" wire:model="items.{{$index}}.expected_delivery_date"
                                                 
                                                 min="{{ \Carbon\Carbon::today()->format('Y-m-d') }}">
@@ -711,7 +671,7 @@
                                                 @enderror
                                             </div>
                                             {{-- Fittings --}}
-                                            <div class="col-md-4">
+                                            <div class="col-md-3">
                                                 <label class="form-label"><strong>Fittings</strong></label>
                                                 <select class="form-control form-control-sm border border-1"
                                                         wire:model="items.{{ $index }}.fitting">
@@ -726,7 +686,7 @@
                                             </div>
 
                                             {{-- Priority Level --}}
-                                            <div class="col-md-4">
+                                            <div class="col-md-3">
                                                 <label class="form-label"><strong>Priority Level</strong></label>
                                                 <select class="form-control form-control-sm border border-1"
                                                         wire:model="items.{{ $index }}.priority">
@@ -738,10 +698,7 @@
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
                                             </div>
-                                        </div>
-                                        <div class="row mb-4">
-                                           
-                                            <div class="col-md-4" >
+                                            <div class="col-md-3" >
                                                 <label class="form-label"><strong>Item Status</strong></label>
                                                 <select class="form-control form-control-sm border border-1"
                                                         wire:model="items.{{ $index }}.item_status"  
@@ -752,6 +709,380 @@
                                                 </select>
                                                 @error("items.$index.item_status")
                                                 <div class="text-danger">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        @if(count($extra_measurement)>0)
+                                            <div class="row mb-4">
+                                                @if($extra_measurement[$index] == 'mens')
+                                                    <div class="col-md-3 tooltip-wrapper">
+                                                        <label class="form-label"><strong>Vents</strong></label>
+                                                        <select class="form-control form-control-sm border border-1"
+                                                            wire:model="items.{{ $index }}.vents"
+                                                            wire:change="validateSingle('items.{{ $index }}.vents')">
+                                                            <option value="" hidden>Select Vents</option>
+                                                            <option value="1 Vent">1 Vent</option>
+                                                            <option value="2 Vents">2 Vents</option>
+                                                        </select>
+                                                        @error("items.$index.vents")
+                                                        <div class="text-danger">{{ $message }}</div>
+                                                        @enderror
+
+                                                        {{-- <span class="tooltip-text">
+                                                                    Choose {{strtoupper($items[$index]['searchproduct'])}} vent
+                                                        style: <br>
+                                                        <strong>1 Vent</strong> – Single slit at the back <br>
+                                                        <strong>2 Vents</strong> – Two slits for more comfort & flexibility
+                                                        </span> --}}
+                                                    </div>
+                                                @elseif($extra_measurement[$index] == 'ladies')
+                                                    <!-- Vents Required -->
+                                                    <div class="col-md-3 tooltip-wrapper">
+                                                        <label class="form-label"><strong>Vents Required?</strong></label>
+                                                        <select class="form-control form-control-sm border border-1"
+                                                            wire:model="items.{{ $index }}.vents_required"
+                                                            wire:change="validateSingle('items.{{ $index }}.vents_required')">
+                                                            <option value="" hidden>Select Option</option>
+                                                            <option value="Yes">Yes</option>
+                                                            <option value="No">No</option>
+                                                        </select>
+                                                        @error("items.$index.vents_required")
+                                                        <div class="text-danger">{{ $message }}</div>
+                                                        @enderror
+                                                        {{-- <span class="tooltip-text">
+                                                                    Specify whether vents are required for the {{strtoupper($items[$index]['searchproduct'])}}.
+                                                        </span> --}}
+                                                    </div>
+
+                                                    <!-- Number of Vents (only if required) -->
+                                                    @if(!empty($items[$index]['vents_required']) &&
+                                                    $items[$index]['vents_required'] == 'Yes')
+                                                        <div class="col-md-3 tooltip-wrapper">
+                                                            <label class="form-label"><strong>How Many Vents?</strong></label>
+                                                            <select class="form-control form-control-sm border border-1"
+                                                                wire:model="items.{{ $index }}.vents_count"
+                                                                wire:change="validateSingle('items.{{ $index }}.vents_count')">
+                                                                {{-- <option value="" hidden>Select Count</option> --}}
+                                                                <option value="1" selected>1 Vent</option>
+                                                                <option value="2">2 Vents</option>
+                                                            </select>
+                                                            @error("items.$index.vents_count")
+                                                            <div class="text-danger">{{ $message }}</div>
+                                                            @enderror
+                                                            {{-- <span class="tooltip-text">
+                                                                            Choose how many vents if required.
+                                                                        </span> --}}
+                                                        </div>
+                                                    @endif
+                                                @elseif($extra_measurement[$index] == 'trouser')
+                                                    <!-- Fold Cuff -->
+                                                    <div class="col-md-3 tooltip-wrapper">
+                                                        <label class="form-label"><strong>Fold Cuff</strong></label>
+                                                        <select class="form-control form-control-sm border border-1"
+                                                            wire:model="items.{{ $index }}.fold_cuff_required"
+                                                            wire:change="validateSingle('items.{{ $index }}.fold_cuff_required')">
+                                                            <option value="" hidden>Select Option</option>
+                                                            <option value="Yes">Yes</option>
+                                                            <option value="No">No</option>
+                                                        </select>
+                                                        @error("items.$index.fold_cuff_required")
+                                                        <div class="text-danger">{{ $message }}</div>
+                                                        @enderror
+
+                                                        {{-- <span class="tooltip-text">Specify if trouser fold cuff is needed.</span> --}}
+                                                    </div>
+
+                                                    @if(!empty($items[$index]['fold_cuff_required']) &&
+                                                    $items[$index]['fold_cuff_required'] == 'Yes')
+                                                    <div class="col-md-3 tooltip-wrapper">
+                                                        <label class="form-label"><strong>Fold Cuff (cm)</strong></label>
+                                                        <input type="number" min="1"
+                                                            class="form-control form-control-sm border border-1"
+                                                            wire:model="items.{{ $index }}.fold_cuff_size"
+                                                            wire:change="validateSingle('items.{{ $index }}.fold_cuff_size')">
+                                                        @error("items.$index.fold_cuff_size")
+                                                        <div class="text-danger">{{ $message }}</div>
+                                                        @enderror
+                                                        {{-- <span class="tooltip-text">Enter fold cuff size in cm.</span> --}}
+                                                    </div>
+                                                    @endif
+
+                                                    <!-- Pleats -->
+                                                    <div class="col-md-3 tooltip-wrapper">
+                                                        <label class="form-label"><strong>Pleats</strong></label>
+                                                        <select class="form-control form-control-sm border border-1"
+                                                            wire:model="items.{{ $index }}.pleats_required"
+                                                            wire:change="validateSingle('items.{{ $index }}.pleats_required')">
+                                                            <option value="" hidden>Select Option</option>
+                                                            <option value="Yes">Yes</option>
+                                                            <option value="No">No</option>
+                                                        </select>
+                                                        @error("items.$index.pleats_required")
+                                                        <div class="text-danger">{{ $message }}</div>
+                                                        @enderror
+                                                        {{-- <span class="tooltip-text">Select if pleats are needed.</span> --}}
+                                                    </div>
+
+                                                    @if(!empty($items[$index]['pleats_required']) &&
+                                                    $items[$index]['pleats_required'] == 'Yes')
+                                                    <div class="col-md-3 tooltip-wrapper">
+                                                        <label class="form-label"><strong>How Many Pleats?</strong></label>
+                                                        <select class="form-control form-control-sm border border-1"
+                                                            wire:model="items.{{ $index }}.pleats_count"
+                                                            wire:change="validateSingle('items.{{ $index }}.pleats_count')">
+                                                            <option value="" hidden>Select Count</option>
+                                                            <option value="1">1</option>
+                                                            <option value="2">2</option>
+                                                            <option value="3">3</option>
+                                                            <option value="4">4</option>
+                                                            <option value="5">5</option>
+                                                        </select>
+                                                        @error("items.$index.pleats_count")
+                                                        <div class="text-danger">{{ $message }}</div>
+                                                        @enderror
+                                                        {{-- <span class="tooltip-text">Choose number of pleats.</span> --}}
+                                                    </div>
+                                                    @endif
+
+                                                    <!-- Back Pocket -->
+                                                    <div class="col-md-3 tooltip-wrapper">
+                                                        <label class="form-label"><strong>Back Pocket</strong></label>
+                                                        <select class="form-control form-control-sm border border-1"
+                                                            wire:model="items.{{ $index }}.back_pocket_required"
+                                                            wire:change="validateSingle('items.{{ $index }}.back_pocket_required')">
+                                                            <option value="" hidden>Select Option</option>
+                                                            <option value="Yes">Yes</option>
+                                                            <option value="No">No</option>
+                                                        </select>
+                                                        @error("items.$index.back_pocket_required")
+                                                        <div class="text-danger">{{ $message }}</div>
+                                                        @enderror
+                                                        {{-- <span class="tooltip-text">Specify if back pockets are needed.</span> --}}
+                                                    </div>
+
+                                                    @if(!empty($items[$index]['back_pocket_required']) &&
+                                                    $items[$index]['back_pocket_required'] == 'Yes')
+                                                    <div class="col-md-3 tooltip-wrapper">
+                                                        <label class="form-label"><strong>How Many Pockets?</strong></label>
+                                                        <select class="form-control form-control-sm border border-1"
+                                                            wire:model="items.{{ $index }}.back_pocket_count"
+                                                            wire:change="validateSingle('items.{{ $index }}.back_pocket_count')">
+                                                            <option value="" hidden>Select Count</option>
+                                                            <option value="1">1</option>
+                                                            <option value="2">2</option>
+                                                            <option value="3">3</option>
+                                                        </select>
+                                                        @error("items.$index.back_pocket_count")
+                                                        <div class="text-danger">{{ $message }}</div>
+                                                        @enderror
+                                                        {{-- <span class="tooltip-text">Choose number of back pockets.</span> --}}
+                                                    </div>
+                                                    @endif
+
+                                                    <!-- Adjustable Belt -->
+                                                    <div class="col-md-3 tooltip-wrapper">
+                                                        <label class="form-label"><strong>Adjustable Belt</strong></label>
+                                                        <select class="form-control form-control-sm border border-1"
+                                                            wire:model="items.{{ $index }}.adjustable_belt"
+                                                            wire:change="validateSingle('items.{{ $index }}.adjustable_belt')">
+                                                            <option value="" hidden>Select Option</option>
+                                                            <option value="Yes">Yes</option>
+                                                            <option value="No">No</option>
+                                                        </select>
+                                                        @error("items.$index.adjustable_belt")
+                                                        <div class="text-danger">{{ $message }}</div>
+                                                        @enderror
+                                                        {{-- <span class="tooltip-text">Add adjustable side belt option.</span> --}}
+                                                    </div>
+
+                                                    <!-- Suspender Button -->
+                                                    <div class="col-md-3 tooltip-wrapper">
+                                                        <label class="form-label"><strong>Suspender Buttons</strong></label>
+                                                        <select class="form-control form-control-sm border border-1"
+                                                            wire:model="items.{{ $index }}.suspender_button"
+                                                            wire:change="validateSingle('items.{{ $index }}.suspender_button')">
+                                                            <option value="" hidden>Select Option</option>
+                                                            <option value="Yes">Yes</option>
+                                                            <option value="No">No</option>
+                                                        </select>
+                                                        @error("items.$index.suspender_button")
+                                                        <div class="text-danger">{{ $message }}</div>
+                                                        @enderror
+                                                        {{-- <span class="tooltip-text">Specify if suspender buttons are needed.</span> --}}
+                                                    </div>
+
+                                                    <!-- Trouser Position -->
+                                                    <div class="col-md-3 tooltip-wrapper">
+                                                        <label class="form-label"><strong>Trouser Position</strong></label>
+                                                        <select class="form-control form-control-sm border border-1"
+                                                            wire:model="items.{{ $index }}.trouser_position"
+                                                            wire:change="validateSingle('items.{{ $index }}.trouser_position')">
+                                                            <option value="" hidden>Select Position</option>
+                                                            <option value="High Waist">High Waist</option>
+                                                            <option value="Normal">Normal</option>
+                                                            <option value="Low Waist">Low Waist</option>
+                                                        </select>
+                                                        @error("items.$index.trouser_position")
+                                                        <div class="text-danger">{{ $message }}</div>
+                                                        @enderror
+                                                        {{-- <span class="tooltip-text">Select waist position for trousers.</span> --}}
+                                                    </div>
+                                                @elseif($extra_measurement[$index] == 'shirt')
+                                                    <!-- Sleeves -->
+                                                    <div class="col-md-3 tooltip-wrapper">
+                                                        <label class="form-label"><strong>Sleeves</strong></label>
+                                                        <select class="form-control form-control-sm border border-1"
+                                                            wire:model="items.{{ $index }}.sleeves"
+                                                            wire:change="validateSingle('items.{{ $index }}.sleeves')">
+                                                            <option value="" hidden>Select Option</option>
+                                                            <option value="L/S">Long Sleeve (L/S)</option>
+                                                            <option value="H/S">Half Sleeve (H/S)</option>
+                                                        </select>
+                                                        @error("items.$index.sleeves")
+                                                        <div class="text-danger">{{ $message }}</div>
+                                                        @enderror
+                                                    </div>
+
+                                                    <!-- Collar -->
+                                                    <div class="col-md-3 tooltip-wrapper">
+                                                        <label class="form-label"><strong>Collar</strong></label>
+                                                        <select class="form-control form-control-sm border border-1"
+                                                            wire:model="items.{{ $index }}.collar"
+                                                            wire:change="validateSingle('items.{{ $index }}.collar')">
+                                                            <option value="" hidden>Select Option</option>
+                                                            <option value="Normal">Normal Collar</option>
+                                                            <option value="Other">Other</option>
+                                                        </select>
+                                                        @error("items.$index.collar")
+                                                        <div class="text-danger">{{ $message }}</div>
+                                                        @enderror
+                                                    </div>
+
+                                                    @if(!empty($items[$index]['collar']) && $items[$index]['collar'] == 'Other')
+                                                        <div class="col-md-3 tooltip-wrapper">
+                                                            <label class="form-label"><strong>Collar Style</strong></label>
+                                                            <input type="text"
+                                                                class="form-control form-control-sm border border-1"
+                                                                wire:model="items.{{ $index }}.collar_style"
+                                                                wire:change="validateSingle('items.{{ $index }}.collar_style')"
+                                                                placeholder="Enter Collar Style">
+                                                            @error("items.$index.collar_style")
+                                                            <div class="text-danger">{{ $message }}</div>
+                                                            @enderror
+                                                        </div>
+                                                    @endif
+
+                                                    <!-- Pocket -->
+                                                    <div class="col-md-3 tooltip-wrapper">
+                                                        <label class="form-label"><strong>Pocket</strong></label>
+                                                        <select class="form-control form-control-sm border border-1"
+                                                            wire:model="items.{{ $index }}.pocket"
+                                                            wire:change="validateSingle('items.{{ $index }}.pocket')">
+                                                            <option value="" hidden>Select Option</option>
+                                                            <option value="With Pocket">With Pocket</option>
+                                                            <option value="Without Pocket">Without Pocket</option>
+                                                        </select>
+                                                        @error("items.$index.pocket")
+                                                        <div class="text-danger">{{ $message }}</div>
+                                                        @enderror
+                                                    </div>
+
+                                                    <!-- Cuffs -->
+                                                    <div class="col-md-3 tooltip-wrapper">
+                                                        <label class="form-label"><strong>Cuffs</strong></label>
+                                                        <select class="form-control form-control-sm border border-1"
+                                                            wire:model="items.{{ $index }}.cuffs"
+                                                            wire:change="validateSingle('items.{{ $index }}.cuffs')">
+                                                            <option value="" hidden>Select Option</option>
+                                                            <option value="Regular">Regular Cuffs</option>
+                                                            <option value="French">French Fold Cuffs</option>
+                                                            <option value="Other">Other</option>
+                                                        </select>
+                                                        @error("items.$index.cuffs")
+                                                        <div class="text-danger">{{ $message }}</div>
+                                                        @enderror
+                                                    </div>
+
+                                                    @if(!empty($items[$index]['cuffs']) && $items[$index]['cuffs'] == 'Other')
+                                                        <div class="col-md-3 tooltip-wrapper">
+                                                            <label class="form-label"><strong>Cuff Style</strong></label>
+                                                            <input type="text"
+                                                                class="form-control form-control-sm border border-1"
+                                                                wire:model="items.{{ $index }}.cuff_style"
+                                                                wire:change="validateSingle('items.{{ $index }}.cuff_style')"
+                                                                placeholder="Enter Cuff Style">
+                                                            @error("items.$index.cuff_style")
+                                                            <div class="text-danger">{{ $message }}</div>
+                                                            @enderror
+                                                        </div>
+                                                    @endif
+                                                    <div class="col-md-3">
+                                                        <label><strong>Client Name</strong></label>
+                                                        <select class="form-control form-control-sm"
+                                                            wire:model="items.{{ $index }}.client_name_required">
+                                                            <option value="" hidden>Select</option>
+                                                            <option value="Yes">Yes</option>
+                                                            <option value="No">No</option>
+                                                        </select>
+                                                        @error("items.$index.client_name_required") 
+                                                            <div class="text-danger">{{ $message }}</div> 
+                                                        @enderror
+                                                    </div>
+
+                                                    @if(!empty($items[$index]['client_name_required']) && $items[$index]['client_name_required'] == 'Yes')
+                                                        <div class="col-md-3">
+                                                            <label><strong>Where?</strong></label>
+                                                            <select class="form-control form-control-sm"
+                                                                wire:model="items.{{ $index }}.client_name_place">
+                                                                <option value="" hidden>Select</option>
+                                                                <option value="On Cuff">On Cuff</option>
+                                                                <option value="On Pocket">On Pocket</option>
+                                                                <option value="On Pocket Space">On Pocket Space</option>
+                                                            </select>
+                                                            @error("items.$index.client_name_place") 
+                                                                <div class="text-danger">{{ $message }}</div> 
+                                                            @enderror
+                                                        </div>
+                                                    @endif
+                                                @elseif($extra_measurement[$index] == 'jacket_suit')
+                                                    <div class="col-md-3">
+                                                        <label><strong>Client Name</strong></label>
+                                                        <select class="form-control form-control-sm"
+                                                            wire:model="items.{{ $index }}.client_name_required">
+                                                            <option value="" hidden>Select</option>
+                                                            <option value="Yes">Yes</option>
+                                                            <option value="No">No</option>
+                                                        </select>
+                                                        @error("items.$index.client_name_required") 
+                                                            <div class="text-danger">{{ $message }}</div> 
+                                                        @enderror
+                                                    </div>
+
+                                                    @if(!empty($items[$index]['client_name_required']) && $items[$index]['client_name_required'] == 'Yes')
+                                                        <div class="col-md-3">
+                                                            <label><strong>Where?</strong></label>
+                                                            <select class="form-control form-control-sm"
+                                                                wire:model="items.{{ $index }}.client_name_place">
+                                                                <option value="" hidden>Select</option>
+                                                                <option value="Inside Jacket">Inside Jacket</option>
+                                                                <option value="Inside Suit">Inside Suit</option>
+                                                            </select>
+                                                            @error("items.$index.client_name_place") 
+                                                                <div class="text-danger">{{ $message }}</div> 
+                                                            @enderror
+                                                        </div>
+                                                    @endif
+                                                @endif
+                                            </div>
+                                        @endif
+                                        <div class="row mb-4">
+                                            <div class="col-md-12">
+                                                <label class="form-label"><strong>Remarks</strong></label>
+                                                <textarea type="text" wire:model="items.{{ $index }}.remarks"
+                                                    class="form-control form-control-sm border border-1 customer_input"
+                                                    placeholder="Enter Product Remarks"></textarea>
+                                                @error("items.".$index.".remarks")
+                                                <div class="text-danger error-message">{{ $message }}</div>
                                                 @enderror
                                             </div>
                                         </div>
@@ -893,17 +1224,6 @@
                         @else
 
                         @endif
-                        <div class="row">
-                            <div class="col-12 col-md-6">
-                                <label class="form-label"><strong>Remarks</strong></label>
-                                <textarea type="text" wire:model="items.{{ $index }}.remarks"
-                                    class="form-control form-control-sm border border-1 customer_input"
-                                    placeholder="Enter Product Remarks" rows="4"></textarea>
-                                @error("items.".$index.".remarks")
-                                <div class="text-danger">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
                         @endforeach
                         <!-- Add Item Button and Payment Section -->
                         <div class="row align-items-end mb-4" style="justify-content: end;">
@@ -1043,7 +1363,108 @@
 }
 
 </script>
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/12.1.6/js/intlTelInput.min.js"></script>
 <script>
     
+    $(function () {
+        // Main Phone
+        initIntlTelInput("#mobile", "phone", "phone_code");
+
+        // Alternative Phone 1
+        initIntlTelInput("#alt_phone_1", "alternative_phone_number_1", "alt_phone_code_1");
+
+        // Alternative Phone 2
+        initIntlTelInput("#alt_phone_2", "alternative_phone_number_2", "alt_phone_code_2");
+    });
+
+    function initIntlTelInput(selector, phoneModel, codeModel, defaultCountry = "cf") {
+        var input = $(selector);
+
+        input.intlTelInput({
+            initialCountry: defaultCountry,  // Central African Republic by default
+            preferredCountries: ["us", "gb", "in", "cf"],
+            separateDialCode: true
+        });
+
+        // On input change (number typing)
+        input.on("input", function () {
+            let number = input.val().replace(/\D/g, ''); // only digits
+            @this.set(phoneModel, number);
+        });
+
+        // On country change
+        input.on("countrychange", function () {
+            let code = "+" + input.intlTelInput("getSelectedCountryData").dialCode;
+            @this.set(codeModel, code);
+            @this.call('CountryCodeSet', selector, code);
+        });
+
+        // Set default on load
+        let defaultCode = "+" + input.intlTelInput("getSelectedCountryData").dialCode;
+        @this.set(codeModel, defaultCode);
+        @this.call('CountryCodeSet', selector, defaultCode);
+    }
+    // Already existing
+    window.addEventListener('update_input_max_length', function (event) {
+        let itemId = event.detail[0].id;
+        let mobile_length = event.detail[0].mobile_length;
+        if (itemId && mobile_length) {
+            document.querySelector(itemId).setAttribute("maxlength", mobile_length);
+        }
+    });
+
+    function collectPreferredMap(parentId) {
+        let map = {};
+        $(`#${parentId} .country-list li.country`).each(function () {
+            let dialCode = $(this).data("dial-code");
+            let iso2 = $(this).data("country-code");
+            map["+" + dialCode] = iso2;
+        });
+
+        return map;
+    }
+
+    // Example
+    $(function () {
+        // collect once on load
+        window.preferredMap = collectPreferredMap("parent_mobile");
+        console.log(window.preferredMap); 
+        // 👉 { "+1": "us", "+44": "gb", "+91": "in", "+236": "cf" }
+    });
+
+    window.addEventListener('update_input_code_number', function (event) {
+        let itemId = event.detail[0].id;
+        let dialCode = event.detail[0].dialCode;
+        let number = event.detail[0].number || '';
+        console.log("Event received:", itemId, dialCode, number);
+        if (itemId && dialCode) {
+            // find corresponding parent wrapper
+            let parentId = "";
+            if (itemId === "#mobile") {
+                parentId = "#parent_mobile";
+            } else if (itemId === "#alt_phone_1") {
+                parentId = "#parent_alt1";
+            } else if (itemId === "#alt_phone_2") {
+                parentId = "#parent_alt2";
+            }
+
+            if (parentId) {
+                let countryCode = window.preferredMap[dialCode]; // e.g. "in"
+                console.log("Updating:", countryCode, dialCode);
+                if (countryCode) {
+                    // ✅ Update flag inside .selected-flag
+                    $(`${parentId} .selected-flag .iti-flag`)
+                        .attr("class", `iti-flag ${countryCode}`);
+
+                    // ✅ Update dial code inside .selected-flag
+                    $(`${parentId} .selected-flag .selected-dial-code`).text(dialCode);
+
+                    // ✅ Optionally set value to input
+                    $(`${itemId}`).val(number);
+                }
+            }
+        }
+    });
 </script>
 @endpush

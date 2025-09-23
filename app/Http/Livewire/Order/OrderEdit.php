@@ -43,7 +43,7 @@ class OrderEdit extends Component
     public $errorClass = [];
     public $collections = [];
     public $errorMessage = [];
-    public $activeTab = 1;
+    public $activeTab = 2;
     public $items = [];
 
     public $FetchProduct = 1;
@@ -53,7 +53,7 @@ class OrderEdit extends Component
     public $customers = null;
     public $orders;
     public $is_wa_same, $prefix, $name, $company_name,$employee_rank, $email,$customer_image, $dob, $customer_id, $phone ,$alternative_phone_number_1, $alternative_phone_number_2,
-    $selectedCountryPhone, $selectedCountryWhatsapp, $selectedCountryAlt1 , $selectedCountryAlt2 ,$mobileLengthPhone, $mobileLengthWhatsapp, $mobileLengthAlt1, $mobileLengthAlt2,
+    $phone_code, $selectedCountryWhatsapp, $alt_phone_code_1 , $alt_phone_code_2 ,$mobileLengthPhone, $mobileLengthWhatsapp, $mobileLengthAlt1, $mobileLengthAlt2,
     $countries,$isWhatsappPhone,$isWhatsappAlt1,$isWhatsappAlt2;
 
     public $order_number, $billing_address,$billing_landmark,$billing_city,$billing_state,$billing_country,$billing_pin;
@@ -86,12 +86,12 @@ class OrderEdit extends Component
     public $existingImages = [];
     public $voiceUploads = [];
     public $existingVideos = [];
+    public $extra_measurement = [];
 
     public function mount($id)
     {
         $this->orders = Order::with(['items.measurements'])->findOrFail($id); // Fetch the order by ID
 
-    //    dd($this->orders->customer->id);
         if ($this->orders) {
             $this->customer_image = $this->orders->customer_image;
             $this->order_number = $this->orders->order_number;
@@ -105,16 +105,12 @@ class OrderEdit extends Component
             $this->alternative_phone_number_1 = optional($this->orders->customer)->alternative_phone_number_1;
             $this->alternative_phone_number_2 = optional($this->orders->customer)->alternative_phone_number_2;
             $this->countries = Country::where('status',1)->get();
-            $this->selectedCountryPhone =  optional($this->orders->customer)->country_code_phone;
+            $this->phone_code =  optional($this->orders->customer)->country_code_phone;
             $this->selectedCountryWhatsapp =  optional($this->orders->customer)->country_code_whatsapp;
-            $this->selectedCountryAlt1 =  optional($this->orders->customer)->country_code_alt_1;
-            $this->selectedCountryAlt2 =  optional($this->orders->customer)->country_code_alt_2;
+            $this->alt_phone_code_1 =  optional($this->orders->customer)->country_code_alt_1;
+            $this->alt_phone_code_2 =  optional($this->orders->customer)->country_code_alt_2;
 
             // Set mobile lengths based on selected countries
-            $this->mobileLengthPhone = Country::where('country_code', $this->selectedCountryPhone)->value('mobile_length') ?? '';
-            $this->mobileLengthWhatsapp = Country::where('country_code', $this->selectedCountryWhatsapp)->value('mobile_length') ?? '';
-            $this->mobileLengthAlt1 = Country::where('country_code', $this->selectedCountryAlt1)->value('mobile_length') ?? '';
-            $this->mobileLengthAlt2 = Country::where('country_code', $this->selectedCountryAlt2)->value('mobile_length') ?? '';
             if($this->orders->customer){
                  $this->isWhatsappPhone = UserWhatsapp::where('user_id',$this->orders->customer->id)->where('whatsapp_number',$this->phone)->exists();
                  $this->isWhatsappAlt1 = UserWhatsapp::where('user_id',$this->orders->customer->id)->where('whatsapp_number',$this->alternative_phone_number_1)->exists();
@@ -123,10 +119,6 @@ class OrderEdit extends Component
                 $this->isWhatsappPhone = false;
                 $this->isWhatsappAlt1 = false;
             }
-
-            // dd( $this->phone);
-
-
 
             $this->catalogues = Catalogue::with('catalogueTitle')->get()->toArray();
 
@@ -195,9 +187,28 @@ class OrderEdit extends Component
                     'priority' => $item->priority_level,
                     'status'  =>  $item->status,
                     'tl_status' => $item->tl_status,
-
+                    'vents' => $item->vents,
+                    'vents_required' => $item->vents_required,
+                    'vents_count' => $item->vents_count,
+                    'fold_cuff_required' => $item->fold_cuff_required,
+                    'fold_cuff_size' => $item->fold_cuff_size,
+                    'pleats_required' => $item->pleats_required,
+                    'pleats_count' => $item->pleats_count,
+                    'back_pocket_required' => $item->back_pocket_required,
+                    'back_pocket_count' => $item->back_pocket_count,
+                    'adjustable_belt' => $item->adjustable_belt,
+                    'suspender_button' => $item->suspender_button,
+                    'trouser_position' => $item->trouser_position,
+                    // Shirt fields
+                    'sleeves'      => $item->sleeves,
+                    'collar'       => $item->collar,
+                    'collar_style' => $item->collar_style,
+                    'pocket'       => $item->pocket,
+                    'cuffs'        => $item->cuffs,
+                    'cuff_style'   => $item->cuff_style,
                 ];
             })->toArray();
+
         }
         // Split the address and assign to the properties
         $billingAddress = explode(',', $this->orders->billing_address);
@@ -245,7 +256,7 @@ class OrderEdit extends Component
 
 
         foreach ($this->items as $index => $item) {
-            // dd($item);
+            $this->extra_measurement[$index] = Helper::ExtraRequiredMeasurement(trim($item['searchproduct']));
             if(!empty($item['page_item'])){
                 $this->catalogue_page_item[$index] = $item['page_item'];
             }
@@ -253,6 +264,7 @@ class OrderEdit extends Component
             $this->existingVideos[$index] = OrderItemVoiceMessage::where('order_item_id', $item['order_item_id'])->pluck('voices_path')->toArray();
             $this->imageUploads[$index] = [];
             $this->items[$index]['copy_previous_measurements'] = false; // Ensure checkbox is not selected
+
         }
     }
 
@@ -323,18 +335,6 @@ class OrderEdit extends Component
         }
     }
 
-    public function selectCountry($countryId){
-        $country = Country::find($countryId);
-        if($country){
-            $this->selectedCountryId = $country->id;
-            $this->search = $country->title;
-            $this->country_code = $country->country_code;
-            $this->mobileLength = $country->mobile_length;
-        }
-
-        $this->filteredCountries = [];
-    }
-
     public function searchFabrics($index)
     {
         // Ensure product_id exists for the given index
@@ -380,36 +380,107 @@ class OrderEdit extends Component
     }
 
 
-    protected $rules = [
-        'items.*.selected_collection' => 'required',
-        'items.*.selected_category' => 'required',
-        'items.*.searchproduct' => 'required',
-        'items.*.price' => 'required|numeric|min:1',
-        'items.*.selectedCatalogue' => 'required_if:items.*.selected_collection,1',
-        'items.*.page_number' => 'required_if:items.*.selected_collection,1',
-        'items.*.quantity' => 'required|numeric|min:1',
-        'items.*.fitting' => 'required_if:items.*.collection,1',
-        'items.*.priority' => 'required',
-        'items.*.expected_delivery_date' => 'required',
-        'items.*.item_status' => 'required',
-    ];
-
-    protected function messages(){
-        return [
-             'items.*.selected_category.required' => 'Please select a category for the item.',
-             'items.*.searchproduct.required' => 'Please select a product for the item.',
-             'items.*.selectedCatalogue.required_if' => 'Please select a catalogue for the item.',
-             'items.*.page_number.required_if' => 'Please select a page for the item.',
-             'items.*.price.required'  => 'Please enter a price for the item.',
-             'items.*.selected_collection.required' =>  'Please enter a collection for the item.',
-             'items.*.quantity' => 'Please select a quantity for the item.',
-             'items.*.fitting.required_if'  => 'Please select a fittings for the item.',
-             'items.*.priority.required'  => 'Please select a priority for the item.',
-             'items.*.item_status.required'  => 'Please select a status for the item.',
-             'items.*.expected_delivery_date.required'  => 'Please select expected delivery date for the item.',
+    public function rules()
+    {
+        $rules = [
+            'items.*.selected_collection' => 'required',
+            'items.*.selected_category' => 'required',
+            'items.*.searchproduct' => 'required',
+            'items.*.price' => 'required|numeric|min:1',
+            'items.*.selectedCatalogue' => 'required_if:items.*.selected_collection,1',
+            'items.*.page_number' => 'required_if:items.*.selected_collection,1',
+            'items.*.quantity' => 'required|numeric|min:1',
+            'items.*.fitting' => 'required_if:items.*.collection,1',
+            'items.*.priority' => 'required',
+            'items.*.expected_delivery_date' => 'required',
+            'items.*.item_status' => 'required',
         ];
+        // ✅ Add dynamic rules based on extra measurement per index
+        foreach ($this->items as $index => $item) {
+            $extra = $this->extra_measurement[$index] ?? null;
+
+            if ($extra === 'mens') {
+                $rules["items.$index.vents"] = 'required';
+            }
+
+            if ($extra === 'ladies') {
+                $rules["items.$index.vents_required"] = 'required';
+                $rules["items.$index.vents_count"]    = 'required_if:items.'.$index.'.vents_required,Yes|nullable|integer|min:1';
+            }
+
+            if ($extra === 'trouser') {
+                $rules["items.$index.fold_cuff_required"]   = 'required';
+                $rules["items.$index.fold_cuff_size"]       = 'required_if:items.'.$index.'.fold_cuff_required,Yes|nullable|numeric|min:1';
+                $rules["items.$index.pleats_required"]      = 'required';
+                $rules["items.$index.pleats_count"]         = 'required_if:items.'.$index.'.pleats_required,Yes|nullable|integer|min:1';
+                $rules["items.$index.back_pocket_required"] = 'required';
+                $rules["items.$index.back_pocket_count"]    = 'required_if:items.'.$index.'.back_pocket_required,Yes|nullable|integer|min:1';
+                $rules["items.$index.adjustable_belt"]      = 'required';
+                $rules["items.$index.suspender_button"]     = 'required';
+                $rules["items.$index.trouser_position"]     = 'required';
+            }
+            if ($extra === 'shirt') {
+                $rules["items.$index.sleeves"] = 'required';
+                $rules["items.$index.collar"]  = 'required';
+                $rules["items.$index.pocket"]  = 'required';
+                $rules["items.$index.cuffs"]   = 'required';
+                $rules["items.$index.collar_style"] = 'required_if:items.'.$index.'.collar,Other';
+                $rules["items.$index.cuff_style"]   = 'required_if:items.'.$index.'.cuffs,Other';
+            }
+            if ($extra === 'jacket_suit' || $extra === 'shirt') {
+                $rules["items.$index.client_name_required"] = 'required';
+                $rules["items.$index.client_name_place"] = 'required_if:items.'.$index.'.client_name_required,Yes';
+            }
+        }
+        return $rules;
     }
 
+    protected function messages()
+    {
+        return [
+            'items.*.selected_collection.required'    => 'Please select a collection for the item.',
+            'items.*.selected_category.required'      => 'Please select a category for the item.',
+            'items.*.searchproduct.required'          => 'Please select a product for the item.',
+            'items.*.price.required'                  => 'Please enter a price for the item.',
+            'items.*.selectedCatalogue.required_if'   => 'Please select a catalogue for the item.',
+            'items.*.page_number.required_if'         => 'Please select a page for the item.',
+            'items.*.quantity.required'               => 'Please select a quantity for the item.',
+            'items.*.fitting.required_if'             => 'Please select fittings for the item.',
+            'items.*.priority.required'               => 'Please select a priority for the item.',
+            'items.*.expected_delivery_date.required' => 'Please select expected delivery date for the item.',
+            'items.*.item_status.required'            => 'Please select a status for the item.',
+
+            // ✅ Extra measurement messages
+            'items.*.vents.required'                  => 'Please select vents option for mens suit/jacket.',
+            'items.*.vents_required.required'         => 'Please specify if vents are required for ladies suit/jacket.',
+            'items.*.vents_count.required_if'         => 'Please specify how many vents for ladies suit/jacket.',
+            'items.*.fold_cuff_required.required'     => 'Please specify if fold cuffs are required for the trouser.',
+            'items.*.fold_cuff_size.required_if'      => 'Please enter the cuff size if fold cuffs are required.',
+            'items.*.pleats_required.required'        => 'Please specify if pleats are required for the trouser.',
+            'items.*.pleats_count.required_if'        => 'Please specify how many pleats for the trouser.',
+            'items.*.back_pocket_required.required'   => 'Please specify if back pockets are required for the trouser.',
+            'items.*.back_pocket_count.required_if'   => 'Please specify how many back pockets for the trouser.',
+            'items.*.adjustable_belt.required'        => 'Please specify if an adjustable belt is required.',
+            'items.*.suspender_button.required'       => 'Please specify if suspender buttons are required.',
+            'items.*.trouser_position.required'       => 'Please select the trouser position.',
+
+            'items.*.sleeves.required'      => 'Please select sleeves (L/S or H/S).',
+            'items.*.collar.required'       => 'Please select a collar option.',
+            'items.*.collar_style.required_if' => 'Please specify the collar style.',
+            'items.*.pocket.required'       => 'Please select pocket option.',
+            'items.*.cuffs.required'        => 'Please select cuff option.',
+            'items.*.cuff_style.required_if'=> 'Please specify the cuff style.',
+        ];
+    }
+     public function updated($propertyName)
+    {
+        $this->validateOnly($propertyName, $this->rules());
+    }
+
+    public function validateSingle($propertyName)
+    {
+        $this->validateOnly($propertyName, $this->rules());
+    }
     public function removeItem($index)
     {
         $itemId = $this->items[$index]['order_item_id'] ?? null;
@@ -421,6 +492,7 @@ class OrderEdit extends Component
             }
         }
         unset($this->items[$index]);
+        unset($this->extra_measurement[$index]);
         $this->items = array_values($this->items);
         $this->updateBillingAmount();  // Update billing amount after checking price
     }
@@ -570,6 +642,7 @@ class OrderEdit extends Component
         $this->items[$index]['searchproduct'] = $name;
         $this->items[$index]['product_id'] = $id;
         $this->items[$index]['products'] = [];
+        $this->extra_measurement[$index] = Helper::ExtraRequiredMeasurement(trim($name));
         $this->items[$index]['measurements'] = Measurement::where('product_id', $id)
                                                             ->where('status', 1)
                                                             ->orderBy('position','ASC')
@@ -587,6 +660,7 @@ class OrderEdit extends Component
                 ? $product->collection->first()->id
                 : null;
         }
+        $this->items[$index]['catalogues'] = $this->items[$index]['selected_collection'] == 1 ? $this->catalogues : [];
 
         session()->forget('measurements_error.' . $index);
         if (count($this->items[$index]['measurements']) == 0) {
@@ -931,11 +1005,11 @@ class OrderEdit extends Component
 
 
                     // 'country_id' => $this->country_id,
-                    'country_code_phone' => $this->selectedCountryPhone,
+                    'country_code_phone' => $this->phone_code,
                     'phone' => $this->phone,
-                    'country_code_alt_1'  => $this->selectedCountryAlt1,
+                    'country_code_alt_1'  => $this->alt_phone_code_1,
                     'alternative_phone_number_1' => $this->alternative_phone_number_1,
-                    'country_code_alt_2'  => $this->selectedCountryAlt2,
+                    'country_code_alt_2'  => $this->alt_phone_code_2,
                     'alternative_phone_number_2' => $this->alternative_phone_number_2,
                 ]);
             }
@@ -1009,7 +1083,6 @@ class OrderEdit extends Component
                     $orderItem->order_id = $order->id;
                     $orderItem->product_id = $item['product_id'];
                 }
-                // dd($orderItem->id);
                 if ($orderItem) {
                     $orderItem->product_id = $item['product_id'];
                     $orderItem->order_id = $order->id;
@@ -1032,7 +1105,7 @@ class OrderEdit extends Component
                     $orderItem->expected_delivery_date  = $item['expected_delivery_date'];
                     $orderItem->cat_page_number  = $item['page_number'] ?? null;
                     $orderItem->cat_page_item  = $item['page_item'] ?? null;
-                      $loggedInAdmin = auth()->guard('admin')->user();
+                    $loggedInAdmin = auth()->guard('admin')->user();
                     //   old working for sales person 
                     //   $originalStatus = $orderItem->status;
                     // if ($orderItem->status === 'Process' && $originalStatus != 'Process') {
@@ -1135,7 +1208,48 @@ class OrderEdit extends Component
                         }
                     // ------------------------------------------------------------------
 
+                    // Extra Fields
+                    if ($item['selected_collection'] == 1) {
+                        $extra = $this->extra_measurement[$key] ?? null;
 
+                        if ($extra == 'mens') {
+                            $orderItem->vents = $item['vents'] ?? null;
+                        } elseif ($extra == 'ladies') {
+                            $orderItem->vents_required = $item['vents_required'] ?? null;
+                            if ($orderItem->vents_required) {
+                                $orderItem->vents_count = $item['vents_count'] ?? null;
+                            }
+                        } elseif ($extra == 'trouser') {
+                            $orderItem->fold_cuff_required   = $item['fold_cuff_required'] ?? null;
+                            if ($orderItem->fold_cuff_required=="Yes") {
+                                $orderItem->fold_cuff_size  = $item['fold_cuff_size'] ?? null;
+                            }else{
+                                $orderItem->fold_cuff_size  = null;
+                            }
+                            $orderItem->pleats_required      = $item['pleats_required'] ?? null;
+                            if ($orderItem->pleats_required=="Yes") {
+                                $orderItem->pleats_count = $item['pleats_count'] ?? null;
+                            }else{
+                                $orderItem->pleats_count = null;
+                            }
+                            $orderItem->back_pocket_required = $item['back_pocket_required'] ?? null;
+                            if ($orderItem->back_pocket_required=="Yes") {
+                                $orderItem->back_pocket_count = $item['back_pocket_count'] ?? null;
+                            }else{
+                                $orderItem->back_pocket_count = null;
+                            }
+                            $orderItem->adjustable_belt      = $item['adjustable_belt'] ?? null;
+                            $orderItem->suspender_button     = $item['suspender_button'] ?? null;
+                            $orderItem->trouser_position     = $item['trouser_position'] ?? null;
+                        }elseif ($extra == 'shirt') {
+                            $orderItem->sleeves       = $item['sleeves'] ?? null;          // L/S or H/S
+                            $orderItem->collar        = $item['collar'] ?? null;           // Normal or Other
+                            $orderItem->collar_style  = $item['collar_style'] ?? null;     // If "Other"
+                            $orderItem->pocket        = $item['pocket'] ?? null;           // With / Without
+                            $orderItem->cuffs         = $item['cuffs'] ?? null;            // Regular / French / Other
+                            $orderItem->cuff_style    = $item['cuff_style'] ?? null;       // If "Other"
+                        }
+                    }
 
                     $orderItem->save();
 
@@ -1221,7 +1335,7 @@ class OrderEdit extends Component
             if ($this->isWhatsappPhone) {
                 UserWhatsapp::updateOrCreate(
                     ['user_id' => $this->orders->customer->id, 'whatsapp_number' => $this->phone], // Search criteria
-                    ['country_code' => $this->selectedCountryPhone, 'updated_at' => now()]
+                    ['country_code' => $this->phone_code, 'updated_at' => now()]
                 );
                 $updatedNumbers[] = $this->phone;
             }
@@ -1229,7 +1343,7 @@ class OrderEdit extends Component
             if ($this->isWhatsappAlt1) {
                 UserWhatsapp::updateOrCreate(
                     ['user_id' => $this->orders->customer->id, 'whatsapp_number' => $this->alternative_phone_number_1], // Search criteria
-                    ['country_code' => $this->selectedCountryAlt1, 'updated_at' => now()]
+                    ['country_code' => $this->alt_phone_code_1, 'updated_at' => now()]
                 );
                 $updatedNumbers[] = $this->alternative_phone_number_1;
             }
@@ -1237,7 +1351,7 @@ class OrderEdit extends Component
             if ($this->isWhatsappAlt2) {
                 UserWhatsapp::updateOrCreate(
                     ['user_id' => $this->orders->customer->id, 'whatsapp_number' => $this->alternative_phone_number_2], // Search criteria
-                    ['country_code' => $this->selectedCountryAlt2, 'updated_at' => now()]
+                    ['country_code' => $this->alt_phone_code_2, 'updated_at' => now()]
                 );
                 $updatedNumbers[] = $this->alternative_phone_number_2;
             }
@@ -1248,12 +1362,6 @@ class OrderEdit extends Component
                 ->delete();
 
             // Maintain Log
-
-            //  $staff = $loggedInAdmin;
-            // if ($staff && (in_array($staff->designation,[1,12]))) {
-            //     $orderRepo->approveOrder($order->id, $staff->id);
-            // }
-
 
             DB::commit();
             session()->flash('success', 'Order has been updated successfully.');
@@ -1308,6 +1416,30 @@ class OrderEdit extends Component
             'phone',
 
         ]);
+    }
+    public function updateMobileLengths()
+    {
+        $this->mobileLengthPhone = Country::where('country_code', $this->phone_code)->value('mobile_length') ?? '';
+        $this->mobileLengthAlt1 = Country::where('country_code', $this->alt_phone_code_1)->value('mobile_length') ?? '';
+        $this->mobileLengthAlt2 = Country::where('country_code', $this->alt_phone_code_2)->value('mobile_length') ?? '';
+    }
+    public function CountryCodeSet($selector, $Code, $number = null)
+    {
+        $mobile_length = Country::where('country_code', $Code)->value('mobile_length') ?? '';
+
+        // Dispatch for maxlength
+        $this->dispatch('update_input_max_length', [
+            'id' => $selector,
+            'mobile_length' => $mobile_length
+        ]);
+
+        // Dispatch for setting code + number
+        $this->dispatch('update_input_code_number', [
+            'id' => $selector,
+            'dialCode' => $Code,
+            'number' => $number
+        ]);
+        $this->mobileLengthPhone = $mobile_length;
     }
 
     public function render()

@@ -845,17 +845,6 @@
                                                 @enderror
                                                 @endif
                                             </div>
-                                            <div class="row mb-4">
-                                                <div class="col-md-12">
-                                                    <label class="form-label"><strong>Remarks</strong></label>
-                                                    <textarea type="text" wire:model="items.{{ $index }}.remarks"
-                                                        class="form-control form-control-sm border border-1 customer_input"
-                                                        placeholder="Enter Product Remarks"></textarea>
-                                                    @error("items.".$index.".remarks")
-                                                    <div class="text-danger error-message">{{ $message }}</div>
-                                                    @enderror
-                                                </div>
-                                            </div>
 
                                         </div>
                                         @if(isset($items[$index]['collection']) && $items[$index]['collection'] == 1)
@@ -1146,7 +1135,7 @@
                                                     @endif
                                                 </div>
                                             @endif
-                                            {{-- <div class="row mb-4">
+                                            <div class="row mb-4">
                                                 <div class="col-md-12">
                                                     <label class="form-label"><strong>Remarks</strong></label>
                                                     <textarea type="text" wire:model="items.{{ $index }}.remarks"
@@ -1156,7 +1145,7 @@
                                                     <div class="text-danger error-message">{{ $message }}</div>
                                                     @enderror
                                                 </div>
-                                            </div> --}}
+                                            </div>
                                         @endif
                                         <div class="row">
                                             {{-- Image Upload Section --}}
@@ -1548,6 +1537,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 if (parentId) {
                     let countryCode = window.preferredMap[dialCode]; // e.g. "in"
+                        console.log("Updating:", countryCode, dialCode);
                     if (countryCode) {
                         // ✅ Update flag inside .selected-flag
                         $(`${parentId} .selected-flag .iti-flag`)

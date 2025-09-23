@@ -88,7 +88,6 @@ class OrderNew extends Component
     public $country_id;
     public $Business_type;
     public $selectedBusinessType = "TEXTILES";
-    public $countries;
     public $pageItems = [];
 
     public $phone_code,$selectedCountryWhatsapp,$alt_phone_code_1,$alt_phone_code_2;
@@ -215,7 +214,6 @@ class OrderNew extends Component
         }
         $this->Business_type = BusinessType::all();
         $this->selectedBusinessType = BusinessType::where('title','TEXTILES')->value('id');
-        $this->countries = Country::where('status',1)->get();
     }
 
     public function skipOrder(){
@@ -396,7 +394,6 @@ class OrderNew extends Component
     {
         $this->validateOnly($propertyName, $this->rules());
     }
-
 
     public function messages(){
         return [

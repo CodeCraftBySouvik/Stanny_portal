@@ -221,6 +221,9 @@ class Helper
             "LADIES JACKET/BLAZER"    => "ladies",
             "MEN'S TROUSER"  => "trouser",
             "LADIES TROUSER" => "trouser",
+            "MEN'S SHIRT" => "shirt",
+            "HUNTING SHIRT" => "shirt",
+            "LADIES SHIRT" => "shirt",
         ];
 
         $name = strtoupper(trim($product_name));

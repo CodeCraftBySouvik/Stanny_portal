@@ -150,6 +150,10 @@
                                 <span class="badge bg-{{ $order->status_class }}">{{ $order->status_label }}</span>
                             </td>
                             <td class="text-center">
+                                <a href="{{ route('admin.order.edit', $order->id) }}"
+                                    class="btn btn-outline-success select-md btn_outline">
+                                    Edit
+                                </a>
                                 @php
                                 $userDesignationId = auth()->guard('admin')->user()->designation;
                                 @endphp
@@ -164,10 +168,10 @@
                                     Approve Order
                                 </a>
 
-                                <a href="{{ route('admin.order.edit', $order->id) }}"
+                                {{-- <a href="{{ route('admin.order.edit', $order->id) }}"
                                     class="btn btn-outline-success select-md btn_outline">
                                     Edit
-                                </a>
+                                </a> --}}
 
                                 <button wire:click="confirmCancelOrder({{ $order->id }})"
                                     class="btn btn-outline-danger select-md btn_outline">

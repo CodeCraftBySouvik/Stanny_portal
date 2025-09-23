@@ -13,7 +13,7 @@ class OrderItem extends Model
     protected $table = 'order_items';
 
     protected $fillable = [
-        'catalogue_id', 'cat_page_number', 'cat_page_item', 'order_id', 'product_id', 'collection', 'fabrics', 'fittings', 'priority_level', 'expected_delivery_date', 'category', 'sub_category', 'quantity', 'piece_price', 'product_name', 'total_price', 'vents', 'vents_required', 'vents_count', 'fold_cuff_required', 'fold_cuff_size', 'pleats_required', 'pleats_count', 'back_pocket_required', 'back_pocket_count', 'adjustable_belt', 'suspender_button', 'trouser_position', 'remarks', 'status', 'tl_status', 'admin_status', 'assigned_team'
+        'catalogue_id', 'cat_page_number', 'cat_page_item', 'order_id', 'product_id', 'collection', 'fabrics', 'fittings', 'priority_level', 'expected_delivery_date', 'category', 'sub_category', 'quantity', 'piece_price', 'product_name', 'total_price', 'vents', 'vents_required', 'vents_count', 'fold_cuff_required', 'fold_cuff_size', 'pleats_required', 'pleats_count', 'back_pocket_required', 'back_pocket_count', 'adjustable_belt', 'suspender_button', 'trouser_position', 'sleeves', 'collar', 'collar_style', 'pocket', 'cuffs', 'cuff_style', 'remarks', 'status', 'tl_status', 'admin_status', 'assigned_team','client_name_required','client_name_place'
     ];
 
     public function catalogue()
