@@ -1082,9 +1082,7 @@ class OrderNew extends Component
             }
             // dd($order);
             $order->save();
-
-
-
+            
             $update_bill_book = SalesmanBilling::where('id',$this->bill_id)->first();
             if($update_bill_book){
                 $update_bill_book->no_of_used = $update_bill_book->no_of_used +1;
