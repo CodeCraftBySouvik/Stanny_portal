@@ -1170,9 +1170,6 @@ label.form-check-label {
     width: 100%;
 }
 
-
-
-/*--- 26-05-2025 Karunadri ---*/
 .bg-approved_order{
     color:#d1e7dd !important;
     background-color:#00CA14 !important;
@@ -1243,9 +1240,15 @@ label.form-check-label {
     font-weight: bold;
 
 }
-.bg-approved_by_tl{
+.bg-partial_approved_by_tl{
     color:#000000 !important;
     background-color:#D0CE55 !important;
+    font-weight: bold;
+}
+
+.bg-fully_approved_by_tl{
+    color:#b5d3b5 !important;
+    background-color:#008080 !important; /* Teal */
     font-weight: bold;
 }
 

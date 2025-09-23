@@ -75,7 +75,7 @@
                                         @foreach($categories as $k => $category)
                                             <tr>
                                                 <td><h6 class="mb-0 text-sm">{{ $k + 1 }}</h6></td>
-                                                <td><p class="text-xs font-weight-bold mb-0">{{ $category->collection?$category->collection->title : "" }}</p></td>
+                                                <td><p class="text-xs font-weight-bold mb-0">{{ strtoupper($category->collection?$category->collection->title : "") }}</p></td>
                                                 <td><p class="text-xs font-weight-bold mb-0">{{ $category->short_code}}</p></td>
                                                 {{-- <td class="align-middle">
                                                     @if($category->image)
@@ -131,7 +131,7 @@
                                         <select wire:model="collection_id" class="form-control form-control-sm border border-2 p-2">
                                             <option value="" selected hidden>Select Collection</option>
                                             @foreach ($collections as $id=> $title)
-                                                <option value="{{$id}}">{{$title}}</option>
+                                                <option value="{{$id}}">{{strtoupper($title)}}</option>
                                             @endforeach
                                         </select>
                                     </div>

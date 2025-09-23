@@ -96,6 +96,7 @@ class OrderNew extends Component
     public $mobileLengthPhone,$mobileLengthWhatsapp,$mobileLengthAlt1,$mobileLengthAlt2;
     public $items = [];
     public $imageUploads = [];
+    public $newUploads = [];
     public $voiceUploads = [];
     public $air_mail,$logedin_user;
     public $customerType = 'new';
@@ -301,11 +302,12 @@ class OrderNew extends Component
 
         if (!empty($searchTerm) && !is_null($productId)) {
             $this->items[$index]['searchResults'] = Fabric::join('product_fabrics', 'fabrics.id', '=', 'product_fabrics.fabric_id')
+                ->leftJoin('stock_fabrics', 'fabrics.id', '=', 'stock_fabrics.fabric_id')
                 ->where('product_fabrics.product_id', $productId)
                 ->where('fabrics.status', 1)
                 ->where('fabrics.title', 'LIKE', "%{$searchTerm}%")
-                ->select('fabrics.id', 'fabrics.title')
-                ->distinct()
+                ->select('fabrics.id', 'fabrics.title', \DB::raw('COALESCE(SUM(stock_fabrics.qty_in_meter),0) as available_stock'))
+                 ->groupBy('fabrics.id', 'fabrics.title')
                 ->limit(10)
                 ->get();
         } else {
@@ -337,6 +339,7 @@ class OrderNew extends Component
     // Define rules for validation
     public function rules()
     {
+        $auth = Auth::guard('admin')->user();
         $rules = [
             'items' => 'required|min:1',
             'items.*.collection' => 'required|string',
@@ -348,7 +351,6 @@ class OrderNew extends Component
             'items.*.page_number' => 'required_if:items.*.collection,1',
             'items.*.price' => 'required|numeric|min:1',
             'items.*.fitting' => 'required_if:items.*.collection,1',
-            'items.*.priority' => 'required',
             'items.*.expected_delivery_date' => 'required',
             'items.*.item_status' => 'required',
             'items.*.searchTerm' => 'required_if:items.*.collection,1',
@@ -382,6 +384,11 @@ class OrderNew extends Component
                 $rules["items.$index.trouser_position"] = 'required';
             }
         }
+
+        if (in_array($auth->designation, [1, 4])) {
+            $rules['items.*.priority'] = 'required';
+        }
+
 
         return $rules;
     }
@@ -542,15 +549,24 @@ class OrderNew extends Component
         $this->items[$index]['fabrics'] = [];
         $this->items[$index]['selectedCatalogue'] = null; // Reset catalogue
         // $this->items[$index]['selectedPage'] = null;
-
             // Fetch categories and products based on the selected collection
-            $this->items[$index]['categories'] = Category::orderBy('title', 'ASC')->where('collection_id', $value)->where('status',1)->get();
-            // $this->items[$index]['products'] = Product::orderBy('name', 'ASC')->where('collection_id', $value)->where('status',1)->get();
-
+            $this->items[$index]['categories'] = Category::orderBy('title', 'ASC')->where('collection_id', $value)->where('status',1)->get()->toArray();
+          
+            // If collection_id = 2, auto-select "ACCESSORIES"
+            if($value == 2){
+                $category = Category::where([
+                        ['collection_id','=',2],
+                        ['title','=','ACCESSORIES'],
+                        ['status', '=', 1]
+                ])->first();
+                if ($category) {
+                    $this->items[$index]['category'] = (string)$category->id;
+                }                       
+            }
             if ($value == 1) {
                 $catalogues = Catalogue::with('catalogueTitle')->where('status',1)->get();
                 $this->catalogues[$index] = $catalogues->pluck('catalogueTitle.title', 'catalogue_title_id');
-        // dd($this->catalogues[$index]);
+       
                 // Fetch max page numbers per catalogue
                 $this->maxPages[$index] = [];
                 foreach ($catalogues as $catalogue) {
@@ -910,6 +926,19 @@ class OrderNew extends Component
         }
     }
 
+    public function updatedNewUploads($value, $index)
+    {
+        if (!isset($this->imageUploads[$index])) {
+            $this->imageUploads[$index] = [];
+        }
+
+        // Merge new uploads
+        $this->imageUploads[$index] = array_merge($this->imageUploads[$index], $value);
+
+        // Clear temporary uploads so input can be used again
+        $this->newUploads[$index] = [];
+    }
+
     public function removeUploadedImage($index, $imageIndex){
         unset($this->imageUploads[$index][$imageIndex]);
         $this->imageUploads[$index] = array_values($this->imageUploads[$index]);
@@ -1075,9 +1104,24 @@ class OrderNew extends Component
             // for team-lead id
             $loggedInAdmin = auth()->guard('admin')->user();
             $order->team_lead_id = $loggedInAdmin->parent_id ?? null;
-            if ($loggedInAdmin->designation == 4) { // 4 = TL
-                $order->status = 'Approved By TL';
-            } else {
+            if ($loggedInAdmin->designation == 4) { // TL
+            // Count pending items: Hold items OR Process items not TL approved
+            $pendingItemsCount = $order->items()
+                ->where(function ($q) {
+                    $q->where('status', 'Hold')
+                    ->orWhere(function ($q2) {
+                        $q2->where('status', 'Process')
+                            ->where(function ($q3) {
+                                $q3->whereNull('tl_status')
+                                    ->orWhere('tl_status', '!=', 'Approved');
+                            });
+                    });
+                })
+                ->count();
+
+            $status = $pendingItemsCount == 0 ? 'Fully Approved By TL' : 'Partial Approved By TL';
+            $order->status = $status; 
+            }else {
                 $order->status = 'Approval Pending'; // default if not TL or Admin
             }
             // dd($order);
@@ -1125,14 +1169,15 @@ class OrderNew extends Component
                 // $orderItem->quantity = $item['quantity'];
                 $orderItem->quantity = ($item['collection'] == 1) ? 1 : $item['quantity'];
                 $orderItem->fittings  = ($item['collection'] == 1) ? $item['fitting'] : null;
-                $orderItem->priority_level  = $item['priority'];
+
+                $orderItem->priority_level = in_array($loggedInAdmin->designation, [1, 4]) 
+                    ? ($item['priority'] ?? null) 
+                    : null;
                 $orderItem->expected_delivery_date  = $item['expected_delivery_date'];
                 $itemPrice = floatval($item['price']);
                 $orderItem->total_price = $itemPrice * $orderItem->quantity;
                 $orderItem->fabrics = $fabric_data ? $fabric_data->id : "";
-                // if($loggedInAdmin->designation == 4 && $orderItem->status == 'Process'){
-                //     $orderItem->tl_status = 'Approved';
-                // }
+               
 
                 if ($orderItem->status === 'Process') {
                     if (in_array($loggedInAdmin->designation,[1,12])) {
