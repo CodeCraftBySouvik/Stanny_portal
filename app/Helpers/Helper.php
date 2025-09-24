@@ -215,10 +215,10 @@ class Helper
     public static function ExtraRequiredMeasurement($product_name)
     {
         $map = [
-            "3 PCS SUIT"     => "mens",
-            "MEN'S SUIT"     => "mens",
-            "LADIES SUIT"    => "ladies",
-            "LADIES JACKET/BLAZER"    => "ladies",
+            "3 PCS SUIT"     => "mens_jacket_suit",
+            "MEN'S SUIT"     => "mens_jacket_suit",
+            "LADIES SUIT"    => "ladies_jacket_suit",
+            "LADIES JACKET/BLAZER"    => "ladies_jacket_suit",
             "MEN'S TROUSER"  => "trouser",
             "LADIES TROUSER" => "trouser",
             "MEN'S SHIRT" => "shirt",

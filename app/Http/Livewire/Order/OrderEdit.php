@@ -206,6 +206,8 @@ class OrderEdit extends Component
                     'pocket'       => $item->pocket,
                     'cuffs'        => $item->cuffs,
                     'cuff_style'   => $item->cuff_style,
+                    'client_name_required' => $item->client_name_required,
+                    'client_name_place'   => $item->client_name_place,
                 ];
             })->toArray();
 
@@ -399,11 +401,11 @@ class OrderEdit extends Component
         foreach ($this->items as $index => $item) {
             $extra = $this->extra_measurement[$index] ?? null;
 
-            if ($extra === 'mens') {
+            if ($extra === 'mens_jacket_suit') {
                 $rules["items.$index.vents"] = 'required';
             }
 
-            if ($extra === 'ladies') {
+            if ($extra === 'ladies_jacket_suit') {
                 $rules["items.$index.vents_required"] = 'required';
                 $rules["items.$index.vents_count"]    = 'required_if:items.'.$index.'.vents_required,Yes|nullable|integer|min:1';
             }
@@ -427,7 +429,7 @@ class OrderEdit extends Component
                 $rules["items.$index.collar_style"] = 'required_if:items.'.$index.'.collar,Other';
                 $rules["items.$index.cuff_style"]   = 'required_if:items.'.$index.'.cuffs,Other';
             }
-            if ($extra === 'jacket_suit' || $extra === 'shirt') {
+            if ($extra === 'ladies_jacket_suit' || $extra === 'shirt' || $extra === 'mens_jacket_suit') {
                 $rules["items.$index.client_name_required"] = 'required';
                 $rules["items.$index.client_name_place"] = 'required_if:items.'.$index.'.client_name_required,Yes';
             }
@@ -470,6 +472,8 @@ class OrderEdit extends Component
             'items.*.pocket.required'       => 'Please select pocket option.',
             'items.*.cuffs.required'        => 'Please select cuff option.',
             'items.*.cuff_style.required_if'=> 'Please specify the cuff style.',
+            'items.*.client_name_required.required' => 'Please specify if client name is required on the item.',
+            'items.*.client_name_place.required_if' => 'Please specify where the client name should be placed on the item.',
         ];
     }
      public function updated($propertyName)
@@ -1212,9 +1216,9 @@ class OrderEdit extends Component
                     if ($item['selected_collection'] == 1) {
                         $extra = $this->extra_measurement[$key] ?? null;
 
-                        if ($extra == 'mens') {
+                        if ($extra == 'mens_jacket_suit') {
                             $orderItem->vents = $item['vents'] ?? null;
-                        } elseif ($extra == 'ladies') {
+                        } elseif ($extra == 'ladies_jacket_suit') {
                             $orderItem->vents_required = $item['vents_required'] ?? null;
                             if ($orderItem->vents_required) {
                                 $orderItem->vents_count = $item['vents_count'] ?? null;
@@ -1248,6 +1252,14 @@ class OrderEdit extends Component
                             $orderItem->pocket        = $item['pocket'] ?? null;           // With / Without
                             $orderItem->cuffs         = $item['cuffs'] ?? null;            // Regular / French / Other
                             $orderItem->cuff_style    = $item['cuff_style'] ?? null;       // If "Other"
+                        }
+                        if ($extra === 'ladies_jacket_suit' || $extra === 'shirt' || $extra === 'mens_jacket_suit') {
+                            $orderItem->client_name_required = $item['client_name_required'] ?? null;
+                            if ($orderItem->client_name_required=="Yes") {
+                                $orderItem->client_name_place = $item['client_name_place'] ?? null;
+                            }else{
+                                $orderItem->client_name_place = null;
+                            }
                         }
                     }
 

@@ -945,7 +945,7 @@
                                     </div>
                                     @if(count($extra_measurement)>0)
                                     <div class="row mb-4">
-                                        @if($extra_measurement[$index] == 'mens')
+                                        @if($extra_measurement[$index] == 'mens_jacket_suit')
                                         <div class="col-md-3 tooltip-wrapper">
                                             <label class="form-label"><strong>Vents</strong></label>
                                             <select class="form-control form-control-sm border border-1"
@@ -966,7 +966,7 @@
                                                 <strong>2 Vents</strong> – Two slits for more comfort & flexibility
                                             </span> --}}
                                         </div>
-                                        @elseif($extra_measurement[$index] == 'ladies')
+                                        @elseif($extra_measurement[$index] == 'ladies_jacket_suit')
                                         <!-- Vents Required -->
                                         <div class="col-md-3 tooltip-wrapper">
                                             <label class="form-label"><strong>Vents Required?</strong></label>

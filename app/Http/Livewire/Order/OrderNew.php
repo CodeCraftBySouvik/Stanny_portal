@@ -361,11 +361,11 @@ class OrderNew extends Component
         // ✅ Add dynamic rules based on extra measurement per index
         foreach ($this->items as $index => $item) {
             $extra = $this->extra_measurement[$index] ?? null;
-            if ($extra === 'mens') {
+            if ($extra === 'mens_jacket_suit') {
                 $rules["items.$index.vents"] = 'required';
             }
 
-            if ($extra === 'ladies') {
+            if ($extra === 'ladies_jacket_suit') {
                 $rules["items.$index.vents_required"] = 'required';
                 $rules["items.$index.vents_count"] = 'required_if:items.'.$index.'.vents_required,Yes|nullable|integer|min:1';
             }
@@ -1199,9 +1199,9 @@ class OrderNew extends Component
                 if ($item['collection'] == 1) {
                     $extra = $this->extra_measurement[$k] ?? null;
 
-                    if ($extra == 'mens') {
+                    if ($extra == 'mens_jacket_suit') {
                         $orderItem->vents = $item['vents'] ?? null;
-                    } elseif ($extra == 'ladies') {
+                    } elseif ($extra == 'ladies_jacket_suit') {
                         $orderItem->vents_required = $item['vents_required'] ?? null;
                         $orderItem->vents_count = $item['vents_count'] ?? null;
                     } elseif ($extra == 'trouser') {
