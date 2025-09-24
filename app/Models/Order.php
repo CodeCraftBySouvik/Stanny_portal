@@ -95,13 +95,23 @@ class Order extends Model
         "Received at Production"           => ["Received at Production", "received_at_production"],
         "Partial Delivered By Production"  => ["Partial Delivered By Production", "partial_delivered_by_production"],
         "Fully Delivered By Production"    => ["Fully Delivered By Production", "fully_delivered_by_production"],
-        "Approved By TL"    => ["Approved By TL", "approved_by_tl"],
+        "Partial Approved By TL"    => ["Partial Approved By TL", "partial_approved_by_tl"],
+        "Fully Approved By TL"    => ["Fully Approved By TL", "fully_approved_by_tl"],
 
     ];
 
     // Accessor to get status label
     public function getStatusLabelAttribute()
     {
+            // Check for TL partial/full approval first
+        // if ($this->hasHoldItemsWithApprovedTLStatus()) {
+        //     return $this->status_classes['Partial Approved By TL'][0];
+        // }
+
+        // if ($this->items()->where('tl_status', 'Approved')->count() === $this->items()->count() && $this->items()->count() > 0) {
+        //     return $this->status_classes['Fully Approved By TL'][0];
+        // }
+
         $order_status = $this->attributes['status'] ?? 'Returned'; // Default to "Returned"
         return $this->status_classes[$order_status][0] ?? "Unknown"; // Fallback to "Unknown"
     }
@@ -109,8 +119,26 @@ class Order extends Model
     // Accessor to get status class
     public function getStatusClassAttribute()
     {
+        //  if ($this->hasHoldItemsWithApprovedTLStatus()) {
+        //     return $this->status_classes['Partial Approved By TL'][1];
+        // }
+
+        // if ($this->items()->where('tl_status', 'Approved')->count() === $this->items()->count() && $this->items()->count() > 0) {
+        //     return $this->status_classes['Fully Approved By TL'][1];
+        // }
+
         $order_status = $this->attributes['status'] ?? 'Returned'; // Default to "Returned"
         return $this->status_classes[$order_status][1] ?? "muted"; // Default class if not found
+    }
+
+      public function isFullyApprovedByTl()
+    {
+        return $this->items()
+            ->where('status', 'Process')
+            ->where(function ($q) {
+                $q->whereNull('tl_status')->orWhere('tl_status', '!=', 'Approved');
+            })
+            ->doesntExist();
     }
     // In the Order model
 

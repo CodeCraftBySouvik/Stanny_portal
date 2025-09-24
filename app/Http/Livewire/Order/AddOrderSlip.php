@@ -72,11 +72,7 @@ class AddOrderSlip extends Component
                 'catlogue_image' => $order_item->catlogue_image,
                 'voice_remark' => $order_item->voice_remark,
              ];
-                // $this->order_item[$key]['id']= $order_item->id;
-                // $this->order_item[$key]['piece_price']= (int)$order_item->piece_price;
-                // $this->order_item[$key]['quantity']= $order_item->quantity;
-                // $this->order_item[$key]['measurements']= $order_item->measurements->toArray();
-            //  dd($this->order_item[$key]['team']);
+                
             }
             $this->total_amount = $this->order->total_amount;
             $this->actual_amount = $this->order->total_amount;
@@ -146,37 +142,7 @@ class AddOrderSlip extends Component
     }
 
 
-    //  public function setTeamAndSubmit()
-    // {
-    //     dd($this->hasTeamSelected());
-    //      if (!$this->hasTeamSelected()) {
-    //         session()->flash('error', 'Please select at least one team before submitting.');
-    //          return;
-    //     }
-    //     foreach ($this->order_item as $itemData) {
-    //         $item = OrderItem::find($itemData['id']);
-    //         if ($item && $item->status === 'Process' && isset($itemData['team'])) {
-    //             $item->assigned_team = $itemData['team'];
-    //             $item->admin_status = 'Approved';
-    //             $item->save();
-
-    //             // if team is sales and deliver immediately and reduce stock
-    //             if($itemData['team'] === 'sales'){
-    //                 $this->autoDeliverItem($item);
-    //             }
-    //         }
-    //     }
-
-    //     $allApproved = OrderItem::where('order_id', $this->order->id)
-    //         ->where('admin_status', '!=', 'Approved')
-    //         ->doesntExist();
-
-    //     if ($allApproved) {
-    //         Order::where('id', $this->order->id)->update(['status' => 'Approved']);
-    //     }
-
-    //    return $this->submitForm(); // Call your existing form submit logic
-    // }
+ 
 
     protected function autoDeliverItem(OrderItem $item)
     {
@@ -348,19 +314,7 @@ class AddOrderSlip extends Component
                        return redirect()->route('admin.order.add_order_slip', $this->order->id);
                    }
                 }
-                // old
-                // if($userDesignationId == 1){
-                //      $hasProcessItem = OrderItem::where('order_id', $this->order->id)
-                //        ->where('status', 'Process')
-                //        ->where('tl_status', 'Approved')
-                //        ->where('admin_status', 'Approved')
-                //        ->exists();
-
-                //    if (!$hasProcessItem) {
-                //        session()->flash('error', 'Cannot approve order. No items are approved by Admin.');
-                //        return redirect()->route('admin.order.add_order_slip', $this->order->id);
-                //    }
-                // }
+               
 
                 // new
                 if ($userDesignationId == 1) {
@@ -374,7 +328,7 @@ class AddOrderSlip extends Component
                         ->orWhere('admin_status', '!=', 'Approved');
                     })
                     ->update(['admin_status' => 'Approved']);
-
+                    
                 // now re‑run your guard
                 $hasProcessItem = OrderItem::where('order_id', $this->order->id)
                     ->where('status', 'Process')
@@ -412,33 +366,116 @@ class AddOrderSlip extends Component
         }
 
     }
+    // public function updateOrder()
+    // {
+    //     $this->validate([
+    //         'total_amount' => 'required|numeric',
+    //         'customer_id' => 'required|exists:users,id',
+    //         'staff_id' => 'required|exists:users,id',
+    //     ]);
+
+    //     $order = Order::find($this->order->id);
+    //     $userDesignationId = auth()->guard('admin')->user()->designation;
+    //     if($userDesignationId==4)
+    //     {
+    //         $status="Approved By TL";
+    //     }
+    //     else{
+
+    //         $status="Approved";
+    //     }
+    //     if ($order) {
+    //         $order->update([
+    //             'customer_id' => $this->customer_id,
+    //             'created_by' => $this->staff_id,
+    //             'status' => $status,
+    //             'last_payment_date' => $this->payment_date,
+    //         ]);
+    //     }
+    // }
     public function updateOrder()
     {
         $this->validate([
             'total_amount' => 'required|numeric',
-            'customer_id' => 'required|exists:users,id',
-            'staff_id' => 'required|exists:users,id',
+            'customer_id'  => 'required|exists:users,id',
+            'staff_id'     => 'required|exists:users,id',
         ]);
 
         $order = Order::find($this->order->id);
         $userDesignationId = auth()->guard('admin')->user()->designation;
-        if($userDesignationId==4)
-        {
-            $status="Approved By TL";
-        }
-        else{
 
-            $status="Approved";
-        }
         if ($order) {
+            if ($userDesignationId == 4) {
+                // Count all process items
+                $processItemsCount = $order->items()->where('status', 'Process')->count();
+
+                // Count process items not yet approved by TL
+                $pendingItemsCount = $order->items()
+                ->where(function ($q) {
+                    $q->where('status', 'Hold')
+                    ->orWhere(function ($q2) {
+                        $q2->where('status', 'Process')
+                            ->where(function ($q3) {
+                                $q3->whereNull('tl_status')
+                                    ->orWhere('tl_status', '!=', 'Approved');
+                            });
+                    });
+                })
+                ->count();
+
+                if ($pendingItemsCount == 0) {
+                    $status = "Fully Approved By TL";
+                } else {
+                    $status = "Partial Approved By TL";
+                }
+            } else {
+                $status = "Approved";
+            }
+
             $order->update([
-                'customer_id' => $this->customer_id,
-                'created_by' => $this->staff_id,
-                'status' => $status,
+                'customer_id'       => $this->customer_id,
+                'created_by'        => $this->staff_id,
+                'status'            => $status,
                 'last_payment_date' => $this->payment_date,
             ]);
         }
     }
+
+
+    //     public function updateOrder()
+    // {
+    //     $this->validate([
+    //         'total_amount' => 'required|numeric',
+    //         'customer_id' => 'required|exists:users,id',
+    //         'staff_id' => 'required|exists:users,id',
+    //     ]);
+
+    //     $order = Order::find($this->order->id);
+    //     $userDesignationId = auth()->guard('admin')->user()->designation;
+
+    //     $status = 'Approval Pending'; // default
+
+    //     if ($userDesignationId == 4) { // Team Lead
+    //         if ($order->isFullyApprovedByTl()) {
+    //             $status = "Fully Approved By TL";
+    //         } else {
+    //             $status = "Partial Approved By TL";
+    //         }
+    //     } elseif (in_array($userDesignationId, [1, 12])) { // Admin / Store Person
+    //         $status = "Approved";
+    //     }
+
+    //     if ($order) {
+    //         $order->update([
+    //             'customer_id' => $this->customer_id,
+    //             'created_by' => $this->staff_id,
+    //             'status' => $status,
+    //             'last_payment_date' => $this->payment_date,
+    //         ]);
+    //     }
+    // }
+
+
     public function updateOrderItems()
     {
             $subtotal = 0;

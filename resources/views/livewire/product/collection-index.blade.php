@@ -49,7 +49,7 @@
                                         @foreach ($collections as $k => $collection)
                                             <tr data-id="{{ $collection->id }}" class="handle">
                                                 <td><h6 class="text-sm mb-0">{{ $k + 1 }}</h6></td>
-                                                <td><p class="text-xs font-weight-bold mb-0">{{ $collection->title }}</p></td>
+                                                <td><p class="text-xs font-weight-bold mb-0">{{ strtoupper($collection->title) }}</p></td>
                                                 <td class="align-middle">
                                                     <button wire:click="edit({{ $collection->id }})" class="btn btn-outline-primary select-md btn_action btn_outline">
                                                         Edit

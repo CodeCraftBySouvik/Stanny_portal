@@ -65,20 +65,22 @@
                             @enderror
                         </div>
 
+                        
+                        <div class="mb-3 col-md-3">
+                            <label for="employee_rank" class="form-label"> Rank</label>
+                            <input type="text" wire:model="employee_rank"
+                                class="form-control form-control-sm border border-1 p-2" placeholder="Enter Rank">
+                            @error('employee_rank')
+                            <div class="text-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+
                         <div class="mb-3 col-md-3">
                             <label for="company_name" class="form-label">Company Name</label>
                             <input type="text" wire:model="company_name" id="company_name"
                                 class="form-control form-control-sm border border-1 p-2"
                                 placeholder="Enter Company Name">
                             @error('company_name')
-                            <div class="text-danger">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="mb-3 col-md-3">
-                            <label for="employee_rank" class="form-label"> Rank</label>
-                            <input type="text" wire:model="employee_rank"
-                                class="form-control form-control-sm border border-1 p-2" placeholder="Enter Rank">
-                            @error('employee_rank')
                             <div class="text-danger">{{ $message }}</div>
                             @enderror
                         </div>
