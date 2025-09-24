@@ -131,15 +131,22 @@ class Order extends Model
         return $this->status_classes[$order_status][1] ?? "muted"; // Default class if not found
     }
 
-      public function isFullyApprovedByTl()
+    //   public function isFullyApprovedByTl()
+    // {
+    //     return $this->items()
+    //         ->where('status', 'Process')
+    //         ->where(function ($q) {
+    //             $q->whereNull('tl_status')->orWhere('tl_status', '!=', 'Approved');
+    //         })
+    //         ->doesntExist();
+    // }
+
+    public function allItemsAssigned()
     {
-        return $this->items()
-            ->where('status', 'Process')
-            ->where(function ($q) {
-                $q->whereNull('tl_status')->orWhere('tl_status', '!=', 'Approved');
-            })
-            ->doesntExist();
+        // return true only if NO item has assigned_team = NULL
+        return !$this->items()->whereNull('assigned_team')->exists();
     }
+
     // In the Order model
 
     public function invoice()
@@ -152,7 +159,7 @@ class Order extends Model
     // TL can approve if there are any 'Process' items not yet invoiced
     public function canTLApprove()
     {
-        return OrderItem::where('order_id', $this->id)
+        return $this->items()
             ->where('status', 'Process')
             ->where(function ($query) {
                 $query->whereNull('tl_status')
@@ -164,7 +171,7 @@ class Order extends Model
     // Admin can approve only if 'Process' + 'tl_status' = 'Approved'
     public function canAdminApprove()
     {
-       return $this->items()
+       return $this->allItemsAssigned() && $this->items()
             ->where('status', 'Process')
             ->where('tl_status', 'Approved')
             ->where(function($q) {

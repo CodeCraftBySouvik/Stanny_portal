@@ -364,11 +364,14 @@ class OrderNew extends Component
 
             if ($extra === 'mens_jacket_suit') {
                 $rules["items.$index.vents"] = 'required';
+                $rules["items.$index.shoulder_type"] = 'required';
             }
 
             if ($extra === 'ladies_jacket_suit') {
                 $rules["items.$index.vents_required"] = 'required';
                 $rules["items.$index.vents_count"]    = 'required_if:items.'.$index.'.vents_required,Yes|nullable|integer|min:1';
+                $rules["items.$index.shoulder_type"] = 'required';
+
             }
 
             if ($extra === 'trouser') {
@@ -436,6 +439,7 @@ class OrderNew extends Component
              'items.*.get_measurements.*.value.required' => 'Each measurement value is required.',
 
              //  Extra measurement messages
+            'items.*.shoulder_type.required'          => 'Please select shoulder type',
             'items.*.vents.required'                  => 'Please select vents option for mens suit/jacket.',
             'items.*.vents_required.required'         => 'Please specify if vents are required for ladies suit/jacket.',
             'items.*.vents_count.required_if'         => 'Please specify how many vents for ladies suit/jacket.',
@@ -661,41 +665,43 @@ class OrderNew extends Component
 
 
 
-    public function validateMeasurement($itemIndex, $measurementId)
-    {
-        $measurement = $this->items[$itemIndex]['get_measurements'][$measurementId] ?? null;
+    // public function validateMeasurement($itemIndex, $measurementId)
+    // {
+    //     $measurement = $this->items[$itemIndex]['get_measurements'][$measurementId] ?? null;
 
-        if ($measurement) {
-            $value = trim($measurement['value'] ?? '');
+    //     if ($measurement) {
+    //         $value = trim($measurement['value'] ?? '');
 
-            if ($value === '') {
-                $this->addError("items.$itemIndex.get_measurements.$measurementId.value", 'Measurement value is required.');
-            } elseif (!is_numeric($value) || floatval($value) < 1) {
-                $this->addError("items.$itemIndex.get_measurements.$measurementId.value", 'Measurement must be a number greater than 0.');
-            } else {
-                $this->resetErrorBag("items.$itemIndex.get_measurements.$measurementId.value");
-            }
+    //         if ($value === '') {
+    //             $this->addError("items.$itemIndex.get_measurements.$measurementId.value", 'Measurement value is required.');
+    //         } elseif (!is_numeric($value) || floatval($value) < 1) {
+    //             $this->addError("items.$itemIndex.get_measurements.$measurementId.value", 'Measurement must be a number greater than 0.');
+    //         } else {
+    //             $this->resetErrorBag("items.$itemIndex.get_measurements.$measurementId.value");
+    //         }
 
-            // Check if all required measurements for the product are present
-            $productId = $this->items[$itemIndex]['product_id'] ?? null;
+    //         // Check if all required measurements for the product are present
+    //         $productId = $this->items[$itemIndex]['product_id'] ?? null;
 
-            if ($productId) {
-                $expectedMeasurementIds = Measurement::where('product_id', $productId)->pluck('id')->toArray();
+    //         if ($productId) {
+    //             $expectedMeasurementIds = Measurement::where('product_id', $productId)->pluck('id')->toArray();
 
-                $enteredMeasurementIds = array_keys(array_filter($this->items[$itemIndex]['get_measurements'] ?? [], function ($m) {
-                    return isset($m['value']) && is_numeric($m['value']) && floatval($m['value']) > 0;
-                }));
+    //             $enteredMeasurementIds = array_keys(array_filter($this->items[$itemIndex]['get_measurements'] ?? [], function ($m) {
+    //                 return isset($m['value']) && is_numeric($m['value']) && floatval($m['value']) > 0;
+    //             }));
 
-                $missing = array_diff($expectedMeasurementIds, $enteredMeasurementIds);
+    //             $missing = array_diff($expectedMeasurementIds, $enteredMeasurementIds);
 
-                if (!empty($missing)) {
-                    session()->flash("measurements_error.$itemIndex", '🚨 Oops! All measurement data should be mandatory.');
-                } else {
-                    session()->forget("measurements_error.$itemIndex");
-                }
-            }
-        }
-    }
+    //             if (!empty($missing)) {
+    //                 session()->flash("measurements_error.$itemIndex", '🚨 Oops! All measurement data should be mandatory.');
+    //             } else {
+    //                 session()->forget("measurements_error.$itemIndex");
+    //             }
+    //         }
+    //     }
+    // }
+
+    
 
 
 
@@ -1004,9 +1010,7 @@ class OrderNew extends Component
                     'country_id' => $this->country_id,
                     'country_code_phone' => $this->phone_code,
                     'phone' => $this->phone,
-                    // 'country_code_whatsapp' => $this->selectedCountryWhatsapp,
-                    // 'whatsapp_no' => $this->whatsapp_no,
-                    // 'country_code' => $this->country_code,
+                   
                     'country_code_alt_1'  => $this->alt_phone_code_1,
                     'alternative_phone_number_1' => $this->alternative_phone_number_1,
                     'country_code_alt_2'  => $this->alt_phone_code_2,
@@ -1044,8 +1048,7 @@ class OrderNew extends Component
                     'country_id' => $this->country_id,
                     'country_code_phone' => $this->phone_code,
                     'phone' => $this->phone,
-                    // 'country_code_whatsapp' => $this->selectedCountryWhatsapp,
-                    // 'whatsapp_no' => $this->whatsapp_no,
+                    
                     'country_code_alt_1'  => $this->alt_phone_code_1,
                     'alternative_phone_number_1' => $this->alternative_phone_number_1,
                     'country_code_alt_2'  => $this->alt_phone_code_2,
@@ -1219,7 +1222,9 @@ class OrderNew extends Component
 
                     if ($extra == 'mens_jacket_suit') {
                         $orderItem->vents = $item['vents'] ?? null;
+                        $orderItem->shoulder_type = $item['shoulder_type'] ?? null;
                     } elseif ($extra == 'ladies_jacket_suit') {
+                        $orderItem->shoulder_type = $item['shoulder_type'] ?? null;
                         $orderItem->vents_required = $item['vents_required'] ?? null;
                         if ($orderItem->vents_required) {
                             $orderItem->vents_count = $item['vents_count'] ?? null;
@@ -1308,12 +1313,12 @@ class OrderNew extends Component
 
                         $value = trim($measurement['value']);
 
-                        if ($value === '' || !is_numeric($value) || floatval($value) < 1) {
-                            $measurement_data = Measurement::find($mindex);
-                            $title = $measurement_data->title ?? 'Unknown';
-                            session()->flash('measurements_error.' . $k, '🚨 Oops! Measurement "' . $title . '" must be numeric and greater than 0.');
-                            return;
-                        }
+                        // if ($value === '' || !is_numeric($value) || floatval($value) < 1) {
+                        //     $measurement_data = Measurement::find($mindex);
+                        //     $title = $measurement_data->title ?? 'Unknown';
+                        //     session()->flash('measurements_error.' . $k, '🚨 Oops! Measurement "' . $title . '" must be numeric and greater than 0.');
+                        //     return;
+                        // }
 
                         // Now store only validated value
                         $measurement_data = Measurement::find($mindex);

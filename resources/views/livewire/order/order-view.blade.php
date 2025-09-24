@@ -431,10 +431,13 @@
                                             </div>
                                             <div class="col-lg-3">
                                                 @if($item['extra_type'] === 'mens_jacket_suit')
+                                                <p><strong>Shoulder Type:</strong> {{ $item['shoulder_type'] ?? 'N/A' }}</p>
                                                 <p><strong>Vents:</strong> {{ $item['vents'] ?? 'N/A' }}</p>
                                                 @endif
 
-                                                @if($item['extra_type'] === 'ladies')
+                                                @if($item['extra_type'] === 'ladies_jacket_suit')
+                                                <p><strong>Shoulder Type:</strong> {{ $item['shoulder_type'] ?? 'N/A'
+                                                    }}</p>
                                                 <p><strong>Vents Required:</strong> {{ $item['vents_required'] ?? 'N/A'
                                                     }}</p>
                                                 <p><strong>Vents Count:</strong> {{ $item['vents_count'] ?? 'N/A' }}</p>

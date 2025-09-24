@@ -635,8 +635,8 @@ class AddOrderSlip extends Component
         ])->findOrFail($this->orderId);
         //echo "<pre>";print_r($order->toArray());exit;
          $orderItems = $order->items->map(function ($item) use($order) {
+             $product = \App\Models\Product::find($item->product_id);
 
-            $product = \App\Models\Product::find($item->product_id);
             return [
                 'product_name' => $item->product_name ?? $product->name,
                 'collection_id' => $item->collection,
@@ -672,6 +672,22 @@ class AddOrderSlip extends Component
                 'expected_delivery_date' => $item->expected_delivery_date,
                 'fittings' => $item->fittings,
                 'priority' => $item->priority_level,
+
+                 // Extra fields packed here
+                // 'extra_type'           => $extra,
+                // 'shoulder_type'        => $item->shoulder_type,
+                // 'vents'                => $item->vents,
+                // 'vents_required'       => $item->vents_required,
+                // 'vents_count'          => $item->vents_count,
+                // 'fold_cuff_required'   => $item->fold_cuff_required,
+                // 'fold_cuff_size'       => $item->fold_cuff_size,
+                // 'pleats_required'      => $item->pleats_required,
+                // 'pleats_count'         => $item->pleats_count,
+                // 'back_pocket_required' => $item->back_pocket_required,
+                // 'back_pocket_count'    => $item->back_pocket_count,
+                // 'adjustable_belt'      => $item->adjustable_belt,
+                // 'suspender_button'     => $item->suspender_button,
+                // 'trouser_position'     => $item->trouser_position, 
             ];
         });
 

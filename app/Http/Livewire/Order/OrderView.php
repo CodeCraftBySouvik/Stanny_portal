@@ -86,10 +86,11 @@ class OrderView extends Component
                 'priority' => $item->priority_level,
 
                 // Extra fields packed here
-                'extra_type'     => $extra,
-                'vents'          => $item->vents,
-                'vents_required' => $item->vents_required,
-                'vents_count'    => $item->vents_count,
+                'extra_type'           => $extra,
+                'shoulder_type'        => $item->shoulder_type,
+                'vents'                => $item->vents,
+                'vents_required'       => $item->vents_required,
+                'vents_count'          => $item->vents_count,
                 'fold_cuff_required'   => $item->fold_cuff_required,
                 'fold_cuff_size'       => $item->fold_cuff_size,
                 'pleats_required'      => $item->pleats_required,

@@ -578,10 +578,10 @@
                                                         $measurement['short_code'] :
                                                         '' }}]</strong>
                                                 </label>
-                                                <input type="number" required
+                                                <input type="text" required
                                                     class="form-control form-control-sm border border-1 customer_input measurement_input"
-                                                    wire:model="items.{{ $index }}.measurements.{{ $key }}.value"
-                                                    wire:keyup="validateMeasurement({{ $index }}, {{ $key }})">
+                                                    wire:model="items.{{ $index }}.measurements.{{ $key }}.value" {{--
+                                                    wire:keyup="validateMeasurement({{ $index }}, {{ $key }})" --}}>
                                                 @error("items.{$index}.measurements.{$key}.value")
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
@@ -766,7 +766,38 @@
                                             @enderror
                                         </div>
                                         @endif
+                                        {{-- Shoulder Type --}}
+                                        <div class="col-md-3">
+                                            <label><strong>Shoulder Type</strong></label>
+                                            <select class="form-control form-control-sm"
+                                                wire:model="items.{{ $index }}.shoulder_type"
+                                                wire:change="validateSingle('items.{{ $index }}.shoulder_type')">
+                                                <option value="" hidden>Select</option>
+                                                <option value="Straight">Straight</option>
+                                                <option value="Normal">Normal</option>
+                                                <option value="Little Down">Little Down</option>
+                                                <option value="Down">Down</option>
+                                            </select>
+                                            @error("items.$index.shoulder_type")
+                                            <div class="text-danger">{{ $message }}</div>
+                                            @enderror
+                                        </div>
                                         @elseif($extra_measurement[$index] == 'ladies_jacket_suit')
+                                        <div class="col-md-3">
+                                            <label><strong>Shoulder Type</strong></label>
+                                            <select class="form-control form-control-sm"
+                                                wire:model="items.{{ $index }}.shoulder_type"
+                                                wire:change="validateSingle('items.{{ $index }}.shoulder_type')">
+                                                <option value="" hidden>Select</option>
+                                                <option value="Straight">Straight</option>
+                                                <option value="Normal">Normal</option>
+                                                <option value="Little Down">Little Down</option>
+                                                <option value="Down">Down</option>
+                                            </select>
+                                            @error("items.$index.shoulder_type")
+                                            <div class="text-danger">{{ $message }}</div>
+                                            @enderror
+                                        </div>
                                         <!-- Vents Required -->
                                         <div class="col-md-3 tooltip-wrapper">
                                             <label class="form-label"><strong>Vents Required?</strong></label>

@@ -550,7 +550,7 @@
                                     </table> --}}
                                 </div>
                                 {{-- @dd($order_item) --}}
-                                <div class="col-sm-6">
+                                <div class="col-sm-3">
                                     <p><strong>Fabric:</strong> {{ $order_item['fabric']->title ?? 'N/A' }}</p>
                                     <p><strong>Catalogue:</strong>
                                         {{ optional(optional($order_item['catalogue'])->catalogueTitle)->title ?? 'N/A'
@@ -579,8 +579,8 @@
                                     @endif
                                     {{-- @dd($item['voice_remarks']) --}}
                                     @if(!empty($order_item['voice_remark']))
-                                     <p><i class="fas fa-microphone"></i> Voice Remarks</p>
-                                         <div class="d-flex flex-column gap-2">
+                                    <p><i class="fas fa-microphone"></i> Voice Remarks</p>
+                                    <div class="d-flex flex-column gap-2">
                                         @foreach ($order_item['voice_remark'] as $voice)
                                         {{-- @dd($voice) --}}
                                         <audio controls>
@@ -589,6 +589,44 @@
                                         </audio>
                                         @endforeach
                                     </div>
+                                    @endif
+                                </div>
+                                @php  
+                                   $extra = \App\Helpers\Helper::ExtraRequiredMeasurement($order_item->product_name);
+                                @endphp
+                                <div class="col-sm-3">
+                                    @if($extra === 'mens_jacket_suit')
+                                    <p><strong>Shoulder Type:</strong> {{ $order_item->shoulder_type ?? 'N/A' }}</p>
+                                    <p><strong>Vents:</strong> {{ $order_item['vents'] ?? 'N/A' }}</p>
+                                    @endif
+
+                                    @if($extra === 'ladies_jacket_suit')
+                                    <p><strong>Shoulder Type:</strong> {{ $order_item->shoulder_type ?? 'N/A'
+                                        }}</p>
+                                    <p><strong>Vents Required:</strong> {{ $order_item->vents_required ?? 'N/A'
+                                        }}</p>
+                                    <p><strong>Vents Count:</strong> {{ $order_item->vents_count ?? 'N/A' }}</p>
+                                    @endif
+
+                                    @if($extra === 'trouser')
+                                    <p><strong>Fold Cuff Required:</strong> {{ $order_item->fold_cuff_required
+                                        ?? 'N/A' }}</p>
+                                    <p><strong>Fold Cuff Size:</strong> {{ $order_item->fold_cuff_size ?? 'N/A'
+                                        }}</p>
+                                    <p><strong>Pleats Required:</strong> {{ $order_item->pleats_required ??
+                                        'N/A' }}</p>
+                                    <p><strong>Pleats Count:</strong> {{ $order_item->pleats_count ?? 'N/A' }}
+                                    </p>
+                                    <p><strong>Back Pocket Required:</strong> {{
+                                        $order_item->back_pocket_required ?? 'N/A' }}</p>
+                                    <p><strong>Back Pocket Count:</strong> {{ $order_item->back_pocket_count ??
+                                        'N/A' }}</p>
+                                    <p><strong>Adjustable Belt:</strong> {{ $order_item->adjustable_belt ??
+                                        'N/A' }}</p>
+                                    <p><strong>Suspender Button:</strong> {{ $order_item->suspender_button ??
+                                        'N/A' }}</p>
+                                    <p><strong>Trouser Position:</strong> {{ $order_item->trouser_position ??
+                                        'N/A' }}</p>
                                     @endif
                                 </div>
                             </div>

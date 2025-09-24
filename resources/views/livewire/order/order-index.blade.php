@@ -175,7 +175,7 @@
                                 @endif
 
                                 {{-- (Optional) TL Approve button --}}
-                                @if($userDesignationId == 4 && $order->status == 'Approval Pending')
+                                @if($userDesignationId == 4 && in_array($order->status, ['Approval Pending', 'Partial Approved By TL']))
                                 <a href="{{ route('admin.order.add_order_slip', $order->id) }}"
                                     class="btn btn-outline-success select-md btn_outline">
                                     Approve Order
