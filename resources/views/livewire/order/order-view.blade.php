@@ -1,37 +1,39 @@
 <div class="container">
     <style>
-        .skip-order{
+        .skip-order {
             font-size: 24px !important;
             margin-top: 8px !important;
         }
+
         .catelog-wrap {
             margin-bottom: 25px;
         }
+
         .audio-stack {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
         }
+
         .audio-stack audio {
             max-width: 214px;
         }
 
-        p{
-            font-size:13px;
+        p {
+            font-size: 13px;
         }
 
         .td-details {
-            padding:15px 0;
+            padding: 15px 0;
         }
 
         .odd {
             border-bottom: 1px solid #ccc;
         }
 
-        .odd:last-child{
-            border-bottom:0;
+        .odd:last-child {
+            border-bottom: 0;
         }
-        
     </style>
     <section class="admin__title">
         <h5>Order detail</h5>
@@ -104,22 +106,22 @@
                             {{-- @php
                             $hasDelivered = false;
                             foreach ($orderItems as $key => $item) {
-                                foreach ($item['deliveries'] as $delivery) {
-                                    if($delivery['status'] == 'Delivered'){
-                                    $hasDelivered = true;
-                                    break 2; // exit both loops
-                                }
+                            foreach ($item['deliveries'] as $delivery) {
+                            if($delivery['status'] == 'Delivered'){
+                            $hasDelivered = true;
+                            break 2; // exit both loops
+                            }
                             }
                             }
                             @endphp --}}
                             @php
-                                $hasDelivered = false;
-                                foreach ($orderItems as $item) {
-                                    if (!empty($item['deliveries']) && $item['deliveries']['status'] === 'Delivered') {
-                                        $hasDelivered = true;
-                                        break;
-                                    }
-                                }
+                            $hasDelivered = false;
+                            foreach ($orderItems as $item) {
+                            if (!empty($item['deliveries']) && $item['deliveries']['status'] === 'Delivered') {
+                            $hasDelivered = true;
+                            break;
+                            }
+                            }
                             @endphp
                             <div class="d-flex justify-content-between align-items-center">
                                 <h6>Customer Details</h6>
@@ -278,7 +280,8 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {{-- @foreach ($item['deliveries'] as $index=> $item['deliveries']) --}}
+                                                    {{-- @foreach ($item['deliveries'] as $index=> $item['deliveries'])
+                                                    --}}
                                                     {{-- @dd($item['deliveries']) --}}
                                                     @if ($item['deliveries'])
                                                     <tr class="odd" style="background-color: #f2f2f2;">
@@ -318,7 +321,8 @@
                                                             <button href="javascript:void(0)" data-bs-toggle="tooltip"
                                                                 data-bs-placement="top"
                                                                 class="btn btn-outline-info select-md mt-3"
-                                                                title="{{ $item['deliveries']['remarks'] }}">Show Remarks
+                                                                title="{{ $item['deliveries']['remarks'] }}">Show
+                                                                Remarks
                                                                 Click Here</button>
                                                         </td>
                                                         <td>
@@ -339,7 +343,7 @@
                                                         </td>
 
                                                     </tr>
-                                                     @endif
+                                                    @endif
                                                     {{-- @endforeach --}}
                                                 </tbody>
                                             </table>
@@ -364,7 +368,8 @@
                                                     <div class="col-md-3 mb-2">
                                                         <label>
                                                             {{$measurement['measurement_name']}}
-                                                            <strong style="display:block;">[{{$measurement['measurement_title_prefix']}}]</strong>
+                                                            <strong
+                                                                style="display:block;">[{{$measurement['measurement_title_prefix']}}]</strong>
                                                         </label>
                                                         <input type="text"
                                                             class="form-control form-control-sm border border-1 customer_input text-center measurement_input"
@@ -372,31 +377,36 @@
                                                     </div>
                                                     @endforeach
                                                 </div>
-                                                {{-- @dd($item) --}}
+
+
                                                 @if(!empty($item['remarks']))
                                                 <div class="mt-3">
                                                     <label for="remarks"><strong>Remarks:</strong></label>
-                                                    <textarea  class="form-control form-control-sm border border-1" rows="3" disabled>{{$item['remarks']}}</textarea>
+                                                    <textarea class="form-control form-control-sm border border-1"
+                                                        rows="3" disabled>{{$item['remarks']}}</textarea>
                                                 </div>
                                                 @endif
                                             </div>
-                                            <div class="col-lg-6">
+                                            <div class="col-lg-3">
                                                 <p>FABRIC : <strong>{{$item['fabrics']->title ?? 'N/A'}}</strong></p>
                                                 <p>CATLOGUE : <strong>{{
-                                                        optional(optional($item['catalogue'])->catalogueTitle)->title }}</strong>
+                                                        optional(optional($item['catalogue'])->catalogueTitle)->title
+                                                        }}</strong>
                                                     (PAGE:
                                                     <strong>{{$item['cat_page_number'] ?? 'N/A'}}</strong>)
                                                 </p>
-                                               <p>Expected Delivery Date : <strong>{{$item['expected_delivery_date'] ?? 'N/A'}}</strong></p>
-                                               <p>Fittings  : <strong>{{$item['fittings'] ?? 'N/A'}}</strong></p>
-                                               <p>Priority Level : <strong>{{$item['priority'] ?? 'N/A'}}</strong></p>
-                                                {{-- Catalogue images --}}
+                                                <p>Expected Delivery Date : <strong>{{$item['expected_delivery_date'] ??
+                                                        'N/A'}}</strong></p>
+                                                <p>Fittings : <strong>{{$item['fittings'] ?? 'N/A'}}</strong></p>
+                                                <p>Priority Level : <strong>{{$item['priority'] ?? 'N/A'}}</strong></p>
+
                                                 @if(!empty($item['catlogue_images']))
                                                 <div class="catelog-wrap">
                                                     <p>CATALOGUE IMAGES :</p>
                                                     <div class="d-flex flex-wrap gap-2">
                                                         @foreach ($item['catlogue_images'] as $img)
-                                                        <a target="_blank" href="{{ asset('storage/'.$img->image_path) }}">
+                                                        <a target="_blank"
+                                                            href="{{ asset('storage/'.$img->image_path) }}">
                                                             <img src="{{ asset('storage/'.$img->image_path) }}"
                                                                 class="img-fluid rounded shadow border border-secondary"
                                                                 style="width:50px;height:50px;" alt="Catalogue image">
@@ -405,19 +415,50 @@
                                                     </div>
                                                 </div>
                                                 @endif
-                                                {{-- @dd($item['voice_remarks']) --}}
                                                 @if(!empty($item['voice_remarks']))
                                                 <p>VOICE REMARKS : </p>
                                                 <div class="audio-stack">
-                                                
+
                                                     @foreach ($item['voice_remarks'] as $voice)
-                                                    {{-- @dd($voice) --}}
                                                     <audio controls>
-                                                        <source src="{{ asset('storage/'.$voice->voices_path) }}" type="audio/mpeg">
+                                                        <source src="{{ asset('storage/'.$voice->voices_path) }}"
+                                                            type="audio/mpeg">
                                                         Your browser does not support the audio element.
                                                     </audio>
                                                     @endforeach
                                                 </div>
+                                                @endif
+                                            </div>
+                                            <div class="col-lg-3">
+                                                @if($item['extra_type'] === 'mens')
+                                                <p><strong>Vents:</strong> {{ $item['vents'] ?? 'N/A' }}</p>
+                                                @endif
+
+                                                @if($item['extra_type'] === 'ladies')
+                                                <p><strong>Vents Required:</strong> {{ $item['vents_required'] ?? 'N/A'
+                                                    }}</p>
+                                                <p><strong>Vents Count:</strong> {{ $item['vents_count'] ?? 'N/A' }}</p>
+                                                @endif
+
+                                                @if($item['extra_type'] === 'trouser')
+                                                <p><strong>Fold Cuff Required:</strong> {{ $item['fold_cuff_required']
+                                                    ?? 'N/A' }}</p>
+                                                <p><strong>Fold Cuff Size:</strong> {{ $item['fold_cuff_size'] ?? 'N/A'
+                                                    }}</p>
+                                                <p><strong>Pleats Required:</strong> {{ $item['pleats_required'] ??
+                                                    'N/A' }}</p>
+                                                <p><strong>Pleats Count:</strong> {{ $item['pleats_count'] ?? 'N/A' }}
+                                                </p>
+                                                <p><strong>Back Pocket Required:</strong> {{
+                                                    $item['back_pocket_required'] ?? 'N/A' }}</p>
+                                                <p><strong>Back Pocket Count:</strong> {{ $item['back_pocket_count'] ??
+                                                    'N/A' }}</p>
+                                                <p><strong>Adjustable Belt:</strong> {{ $item['adjustable_belt'] ??
+                                                    'N/A' }}</p>
+                                                <p><strong>Suspender Button:</strong> {{ $item['suspender_button'] ??
+                                                    'N/A' }}</p>
+                                                <p><strong>Trouser Position:</strong> {{ $item['trouser_position'] ??
+                                                    'N/A' }}</p>
                                                 @endif
                                             </div>
                                         </div>
@@ -433,14 +474,14 @@
                                 </td>
                             </tr>
                             @endif
-                             @if ($order->air_mail > 0)
-                                <tr>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td class="text-left"><small>Air Mail:</small></td>
-                                    <td><strong>{{ number_format(round($order->air_mail), 2) }}</strong></td>
-                                </tr>
+                            @if ($order->air_mail > 0)
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="text-left"><small>Air Mail:</small></td>
+                                <td><strong>{{ number_format(round($order->air_mail), 2) }}</strong></td>
+                            </tr>
                             @endif
                             <tr>
                                 <td></td>
@@ -449,7 +490,7 @@
                                 <td class="text-left"><small>Total Amount:</small></td>
                                 <td><strong>{{number_format($order->total_amount, 2)}}</strong></td>
                             </tr>
-                           
+
                             <tr>
                                 <td></td>
                                 <td></td>
@@ -513,8 +554,8 @@
                                             <strong>Remarks</strong> <span class="text-danger">*</span>
                                         </label>
 
-                                        <textarea
-                                            class="form-control @error('remarks') is-invalid @enderror" wire:model="remarks">
+                                        <textarea class="form-control @error('remarks') is-invalid @enderror"
+                                            wire:model="remarks">
                                         </textarea>
                                         @error('remarks') <span class="text-danger">{{ $message }}</span> @enderror
                                     </div>

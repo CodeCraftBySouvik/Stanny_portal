@@ -51,6 +51,8 @@ class OrderView extends Component
             // dd($item);
             $product = Product::find($item->product_id);
             $delivery = $item->deliveries->first();
+             // Decide extra measurement type
+             $extra = \App\Helpers\Helper::ExtraRequiredMeasurement($item->product_name);
             return [
                 'product_name' => $item->product_name ?? $product->name,
                 'collection_id' => $item->collection,
@@ -61,21 +63,7 @@ class OrderView extends Component
                 'catalogue_id' => $item->catalogue_id,
                 'cat_page_number' => $item->cat_page_number,
                 'price' => $item->piece_price,
-                // 'deliveries' => !empty($item->deliveries)
-                //     ? $item->deliveries->map(function ($delivery) use ($item) {
-                //         return [
-                //             'id' => $delivery->id,
-                //             'delivered_at' => $delivery->delivered_at,
-                //             'delivered_by' => $delivery->delivered_by,
-                //             'status' => $delivery->status,
-                //             'remarks' => $delivery->remarks,
-                //             'fabric_quantity' => $delivery->fabric_quantity,
-                //             'delivered_quantity' => $delivery->delivered_quantity,
-                //             'user' => $delivery->user ? ['name' => $delivery->user->name] : ['name' => 'N/A'],
-                //             'collection_id' => $item->collection, // inject here for later use
-                //         ];
-                //     })
-                //     : [],
+               
                 'deliveries' => $delivery ? [
                     'id' => $delivery->id,
                     'delivered_at' => $delivery->delivered_at,
@@ -96,6 +84,21 @@ class OrderView extends Component
                 'expected_delivery_date' => $item->expected_delivery_date,
                 'fittings' => $item->fittings,
                 'priority' => $item->priority_level,
+
+                // Extra fields packed here
+                'extra_type'     => $extra,
+                'vents'          => $item->vents,
+                'vents_required' => $item->vents_required,
+                'vents_count'    => $item->vents_count,
+                'fold_cuff_required'   => $item->fold_cuff_required,
+                'fold_cuff_size'       => $item->fold_cuff_size,
+                'pleats_required'      => $item->pleats_required,
+                'pleats_count'         => $item->pleats_count,
+                'back_pocket_required' => $item->back_pocket_required,
+                'back_pocket_count'    => $item->back_pocket_count,
+                'adjustable_belt'      => $item->adjustable_belt,
+                'suspender_button'     => $item->suspender_button,
+                'trouser_position'     => $item->trouser_position,   
             ];
         });
 
