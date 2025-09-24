@@ -358,28 +358,41 @@ class OrderNew extends Component
             'voiceUploads.*.*' => 'nullable|mimes:mp3,wav,ogg,m4a,wma,webm,mpga', 
         ];
 
-        // ✅ Add dynamic rules based on extra measurement per index
+        //  Add dynamic rules based on extra measurement per index
         foreach ($this->items as $index => $item) {
             $extra = $this->extra_measurement[$index] ?? null;
+
             if ($extra === 'mens_jacket_suit') {
                 $rules["items.$index.vents"] = 'required';
             }
 
             if ($extra === 'ladies_jacket_suit') {
                 $rules["items.$index.vents_required"] = 'required';
-                $rules["items.$index.vents_count"] = 'required_if:items.'.$index.'.vents_required,Yes|nullable|integer|min:1';
+                $rules["items.$index.vents_count"]    = 'required_if:items.'.$index.'.vents_required,Yes|nullable|integer|min:1';
             }
 
             if ($extra === 'trouser') {
-                $rules["items.$index.fold_cuff_required"] = 'required';
-                $rules["items.$index.fold_cuff_size"] = 'required_if:items.'.$index.'.fold_cuff_required,Yes|nullable|numeric|min:1';
-                $rules["items.$index.pleats_required"] = 'required';
-                $rules["items.$index.pleats_count"] = 'required_if:items.'.$index.'.pleats_required,Yes|nullable|integer|min:1';
+                $rules["items.$index.fold_cuff_required"]   = 'required';
+                $rules["items.$index.fold_cuff_size"]       = 'required_if:items.'.$index.'.fold_cuff_required,Yes|nullable|numeric|min:1';
+                $rules["items.$index.pleats_required"]      = 'required';
+                $rules["items.$index.pleats_count"]         = 'required_if:items.'.$index.'.pleats_required,Yes|nullable|integer|min:1';
                 $rules["items.$index.back_pocket_required"] = 'required';
-                $rules["items.$index.back_pocket_count"] = 'required_if:items.'.$index.'.back_pocket_required,Yes|nullable|integer|min:1';
-                $rules["items.$index.adjustable_belt"] = 'required';
-                $rules["items.$index.suspender_button"] = 'required';
-                $rules["items.$index.trouser_position"] = 'required';
+                $rules["items.$index.back_pocket_count"]    = 'required_if:items.'.$index.'.back_pocket_required,Yes|nullable|integer|min:1';
+                $rules["items.$index.adjustable_belt"]      = 'required';
+                $rules["items.$index.suspender_button"]     = 'required';
+                $rules["items.$index.trouser_position"]     = 'required';
+            }
+            if ($extra === 'shirt') {
+                $rules["items.$index.sleeves"] = 'required';
+                $rules["items.$index.collar"]  = 'required';
+                $rules["items.$index.pocket"]  = 'required';
+                $rules["items.$index.cuffs"]   = 'required';
+                $rules["items.$index.collar_style"] = 'required_if:items.'.$index.'.collar,Other';
+                $rules["items.$index.cuff_style"]   = 'required_if:items.'.$index.'.cuffs,Other';
+            }
+            if ($extra === 'ladies_jacket_suit' || $extra === 'shirt' || $extra === 'mens_jacket_suit') {
+                $rules["items.$index.client_name_required"] = 'required';
+                $rules["items.$index.client_name_place"] = 'required_if:items.'.$index.'.client_name_required,Yes';
             }
         }
 
@@ -422,23 +435,28 @@ class OrderNew extends Component
              'order_number.unique' => 'Order number already exists, please try again.',
              'items.*.get_measurements.*.value.required' => 'Each measurement value is required.',
 
-             // Mens Suit / Jacket
-            'items.*.vents.required_if' => 'Please select vents option for mens suit/jacket.',
+             //  Extra measurement messages
+            'items.*.vents.required'                  => 'Please select vents option for mens suit/jacket.',
+            'items.*.vents_required.required'         => 'Please specify if vents are required for ladies suit/jacket.',
+            'items.*.vents_count.required_if'         => 'Please specify how many vents for ladies suit/jacket.',
+            'items.*.fold_cuff_required.required'     => 'Please specify if fold cuffs are required for the trouser.',
+            'items.*.fold_cuff_size.required_if'      => 'Please enter the cuff size if fold cuffs are required.',
+            'items.*.pleats_required.required'        => 'Please specify if pleats are required for the trouser.',
+            'items.*.pleats_count.required_if'        => 'Please specify how many pleats for the trouser.',
+            'items.*.back_pocket_required.required'   => 'Please specify if back pockets are required for the trouser.',
+            'items.*.back_pocket_count.required_if'   => 'Please specify how many back pockets for the trouser.',
+            'items.*.adjustable_belt.required'        => 'Please specify if an adjustable belt is required.',
+            'items.*.suspender_button.required'       => 'Please specify if suspender buttons are required.',
+            'items.*.trouser_position.required'       => 'Please select the trouser position.',
 
-            // Ladies Suit / Jacket
-            'items.*.ladies_vents.required_if' => 'Please select if vents are required for ladies suit/jacket.',
-            'items.*.ladies_vents_count.required_if' => 'Please specify how many vents for ladies suit/jacket.',
-
-            // Trousers
-            'items.*.fold_cuff_required.required_if' => 'Please select if fold cuff is required.',
-            'items.*.fold_cuff_size.required_if' => 'Please enter cuff length in cm.',
-            'items.*.pleats_required.required_if' => 'Please select if pleats are required.',
-            'items.*.pleats_count.required_if' => 'Please enter number of pleats.',
-            'items.*.back_pocket_required.required_if' => 'Please select if back pocket is required.',
-            'items.*.back_pocket_count.required_if' => 'Please enter number of back pockets.',
-            'items.*.adjustable_belt.required_if' => 'Please select if adjustable belt is required.',
-            'items.*.suspender_button.required_if' => 'Please select if suspender button is required.',
-            'items.*.trouser_position.required_if' => 'Please select trouser position.',
+            'items.*.sleeves.required'      => 'Please select sleeves (L/S or H/S).',
+            'items.*.collar.required'       => 'Please select a collar option.',
+            'items.*.collar_style.required_if' => 'Please specify the collar style.',
+            'items.*.pocket.required'       => 'Please select pocket option.',
+            'items.*.cuffs.required'        => 'Please select cuff option.',
+            'items.*.cuff_style.required_if'=> 'Please specify the cuff style.',
+            'items.*.client_name_required.required' => 'Please specify if client name is required on the item.',
+            'items.*.client_name_place.required_if' => 'Please specify where the client name should be placed on the item.',
         ];
     }
 
@@ -1203,17 +1221,46 @@ class OrderNew extends Component
                         $orderItem->vents = $item['vents'] ?? null;
                     } elseif ($extra == 'ladies_jacket_suit') {
                         $orderItem->vents_required = $item['vents_required'] ?? null;
-                        $orderItem->vents_count = $item['vents_count'] ?? null;
+                        if ($orderItem->vents_required) {
+                            $orderItem->vents_count = $item['vents_count'] ?? null;
+                        }
                     } elseif ($extra == 'trouser') {
                         $orderItem->fold_cuff_required   = $item['fold_cuff_required'] ?? null;
-                        $orderItem->fold_cuff_size       = $item['fold_cuff_size'] ?? null;
+                        if ($orderItem->fold_cuff_required=="Yes") {
+                            $orderItem->fold_cuff_size  = $item['fold_cuff_size'] ?? null;
+                        }else{
+                            $orderItem->fold_cuff_size  = null;
+                        }
                         $orderItem->pleats_required      = $item['pleats_required'] ?? null;
-                        $orderItem->pleats_count         = $item['pleats_count'] ?? null;
+                        if ($orderItem->pleats_required=="Yes") {
+                            $orderItem->pleats_count = $item['pleats_count'] ?? null;
+                        }else{
+                            $orderItem->pleats_count = null;
+                        }
                         $orderItem->back_pocket_required = $item['back_pocket_required'] ?? null;
-                        $orderItem->back_pocket_count    = $item['back_pocket_count'] ?? null;
+                        if ($orderItem->back_pocket_required=="Yes") {
+                            $orderItem->back_pocket_count = $item['back_pocket_count'] ?? null;
+                        }else{
+                            $orderItem->back_pocket_count = null;
+                        }
                         $orderItem->adjustable_belt      = $item['adjustable_belt'] ?? null;
                         $orderItem->suspender_button     = $item['suspender_button'] ?? null;
                         $orderItem->trouser_position     = $item['trouser_position'] ?? null;
+                    }elseif ($extra == 'shirt') {
+                        $orderItem->sleeves       = $item['sleeves'] ?? null;          // L/S or H/S
+                        $orderItem->collar        = $item['collar'] ?? null;           // Normal or Other
+                        $orderItem->collar_style  = $item['collar_style'] ?? null;     // If "Other"
+                        $orderItem->pocket        = $item['pocket'] ?? null;           // With / Without
+                        $orderItem->cuffs         = $item['cuffs'] ?? null;            // Regular / French / Other
+                        $orderItem->cuff_style    = $item['cuff_style'] ?? null;       // If "Other"
+                    }
+                    if ($extra === 'ladies_jacket_suit' || $extra === 'shirt' || $extra === 'mens_jacket_suit') {
+                        $orderItem->client_name_required = $item['client_name_required'] ?? null;
+                        if ($orderItem->client_name_required=="Yes") {
+                            $orderItem->client_name_place = $item['client_name_place'] ?? null;
+                        }else{
+                            $orderItem->client_name_place = null;
+                        }
                     }
                 }
                 $orderItem->save();
