@@ -236,8 +236,8 @@
                                         @endif
                                     </button>
                                     @if ($item['has_stock_entry'])
-                                    <button  id="delivery-btn-{{ $loop->index }}"
-                                         class="btn btn-outline-success select-md"
+                                    <button id="delivery-btn-{{ $loop->index }}"
+                                        class="btn btn-outline-success select-md"
                                         wire:click="openGarmentDeliveryModal({{ $loop->index }})">
                                         Delivery
                                     </button>
@@ -303,7 +303,7 @@
                                             @endif
                                         </div>
 
-                                        <div class="col-md-6">
+                                        <div class="col-md-3">
                                             <p>FABRIC : <strong>{{$item['fabrics']->title ?? 'N/A'}}</strong></p>
                                             <p>CATALOGUE : <strong>{{
                                                     optional(optional($item['catalogue'])->catalogueTitle)->title
@@ -343,6 +343,38 @@
                                                 </audio>
                                                 @endforeach
                                             </div>
+                                            @endif
+                                        </div>
+                                        <div class="col-md-3">
+                                            @if($item['extra_type'] === 'mens')
+                                            <p><strong>Vents:</strong> {{ $item['vents'] ?? 'N/A' }}</p>
+                                            @endif
+
+                                            @if($item['extra_type'] === 'ladies')
+                                            <p><strong>Vents Required:</strong> {{ $item['vents_required'] ?? 'N/A'
+                                                }}</p>
+                                            <p><strong>Vents Count:</strong> {{ $item['vents_count'] ?? 'N/A' }}</p>
+                                            @endif
+
+                                            @if($item['extra_type'] === 'trouser')
+                                            <p><strong>Fold Cuff Required:</strong> {{ $item['fold_cuff_required']
+                                                ?? 'N/A' }}</p>
+                                            <p><strong>Fold Cuff Size:</strong> {{ $item['fold_cuff_size'] ?? 'N/A'
+                                                }}</p>
+                                            <p><strong>Pleats Required:</strong> {{ $item['pleats_required'] ??
+                                                'N/A' }}</p>
+                                            <p><strong>Pleats Count:</strong> {{ $item['pleats_count'] ?? 'N/A' }}
+                                            </p>
+                                            <p><strong>Back Pocket Required:</strong> {{
+                                                $item['back_pocket_required'] ?? 'N/A' }}</p>
+                                            <p><strong>Back Pocket Count:</strong> {{ $item['back_pocket_count'] ??
+                                                'N/A' }}</p>
+                                            <p><strong>Adjustable Belt:</strong> {{ $item['adjustable_belt'] ??
+                                                'N/A' }}</p>
+                                            <p><strong>Suspender Button:</strong> {{ $item['suspender_button'] ??
+                                                'N/A' }}</p>
+                                            <p><strong>Trouser Position:</strong> {{ $item['trouser_position'] ??
+                                                'N/A' }}</p>
                                             @endif
                                         </div>
                                     </div>
@@ -632,7 +664,7 @@
                                                 @error('deliveryEntries.' . $entryIndex . '.delivered_meter')
                                                 <span class="invalid-feedback d-block">{{ $message }}</span>
                                                 @enderror
-                                                 @if (session()->has('stock_error'))
+                                                @if (session()->has('stock_error'))
                                                 <p class="small text-danger">{{ session('stock_error') }}</p>
                                                 @endif
                                             </div>

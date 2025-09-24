@@ -503,6 +503,8 @@ public function revertBackStock($index, $inputName, $entryId)
             $initialStock = $totalStock + $used;
             $totalUsed = $initialStock - $totalStock;
 
+            $extra = \App\Helpers\Helper::ExtraRequiredMeasurement($item->product_name);
+
             return [
                 'id' => $item->id,
                 'product_name' => $item->product_name ?? $product?->name,
@@ -531,6 +533,21 @@ public function revertBackStock($index, $inputName, $entryId)
                 'expected_delivery_date' => $item->expected_delivery_date,
                 'fittings' => $item->fittings,
                 'priority' => $item->priority_level,
+
+                // Extra fields packed here
+                'extra_type'     => $extra,
+                'vents'          => $item->vents,
+                'vents_required' => $item->vents_required,
+                'vents_count'    => $item->vents_count,
+                'fold_cuff_required'   => $item->fold_cuff_required,
+                'fold_cuff_size'       => $item->fold_cuff_size,
+                'pleats_required'      => $item->pleats_required,
+                'pleats_count'         => $item->pleats_count,
+                'back_pocket_required' => $item->back_pocket_required,
+                'back_pocket_count'    => $item->back_pocket_count,
+                'adjustable_belt'      => $item->adjustable_belt,
+                'suspender_button'     => $item->suspender_button,
+                'trouser_position'     => $item->trouser_position,   
             ];
         });
 }
