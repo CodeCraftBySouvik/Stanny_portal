@@ -714,7 +714,7 @@
                                         </div>
                                         @if(count($extra_measurement)>0)
                                             <div class="row mb-4">
-                                                @if($extra_measurement[$index] == 'mens')
+                                                @if($extra_measurement[$index] == 'mens_jacket_suit')
                                                     <div class="col-md-3 tooltip-wrapper">
                                                         <label class="form-label"><strong>Vents</strong></label>
                                                         <select class="form-control form-control-sm border border-1"
@@ -727,15 +727,36 @@
                                                         @error("items.$index.vents")
                                                         <div class="text-danger">{{ $message }}</div>
                                                         @enderror
-
-                                                        {{-- <span class="tooltip-text">
-                                                                    Choose {{strtoupper($items[$index]['searchproduct'])}} vent
-                                                        style: <br>
-                                                        <strong>1 Vent</strong> – Single slit at the back <br>
-                                                        <strong>2 Vents</strong> – Two slits for more comfort & flexibility
-                                                        </span> --}}
                                                     </div>
-                                                @elseif($extra_measurement[$index] == 'ladies')
+                                                    <div class="col-md-3">
+                                                        <label><strong>Client Name</strong></label>
+                                                        <select class="form-control form-control-sm"
+                                                            wire:model="items.{{ $index }}.client_name_required"
+                                                            wire:change="validateSingle('items.{{ $index }}.client_name_required')">
+                                                            <option value="" hidden>Select</option>
+                                                            <option value="Yes">Yes</option>
+                                                            <option value="No">No</option>
+                                                        </select>
+                                                        @error("items.$index.client_name_required") 
+                                                            <div class="text-danger">{{ $message }}</div> 
+                                                        @enderror
+                                                    </div>
+
+                                                    @if(!empty($items[$index]['client_name_required']) && $items[$index]['client_name_required'] == 'Yes')
+                                                        <div class="col-md-3">
+                                                            <label><strong>Where?</strong></label>
+                                                            <select class="form-control form-control-sm"
+                                                                wire:model="items.{{ $index }}.client_name_place">
+                                                                <option value="" hidden>Select</option>
+                                                                <option value="Inside Jacket">Inside Jacket</option>
+                                                                <option value="Inside Suit">Inside Suit</option>
+                                                            </select>
+                                                            @error("items.$index.client_name_place") 
+                                                                <div class="text-danger">{{ $message }}</div> 
+                                                            @enderror
+                                                        </div>
+                                                    @endif
+                                                @elseif($extra_measurement[$index] == 'ladies_jacket_suit')
                                                     <!-- Vents Required -->
                                                     <div class="col-md-3 tooltip-wrapper">
                                                         <label class="form-label"><strong>Vents Required?</strong></label>
@@ -772,6 +793,34 @@
                                                             {{-- <span class="tooltip-text">
                                                                             Choose how many vents if required.
                                                                         </span> --}}
+                                                        </div>
+                                                    @endif
+                                                    <div class="col-md-3">
+                                                        <label><strong>Client Name</strong></label>
+                                                        <select class="form-control form-control-sm"
+                                                            wire:model="items.{{ $index }}.client_name_required"
+                                                            wire:change="validateSingle('items.{{ $index }}.client_name_required')">
+                                                            <option value="" hidden>Select</option>
+                                                            <option value="Yes">Yes</option>
+                                                            <option value="No">No</option>
+                                                        </select>
+                                                        @error("items.$index.client_name_required") 
+                                                            <div class="text-danger">{{ $message }}</div> 
+                                                        @enderror
+                                                    </div>
+
+                                                    @if(!empty($items[$index]['client_name_required']) && $items[$index]['client_name_required'] == 'Yes')
+                                                        <div class="col-md-3">
+                                                            <label><strong>Where?</strong></label>
+                                                            <select class="form-control form-control-sm"
+                                                                wire:model="items.{{ $index }}.client_name_place">
+                                                                <option value="" hidden>Select</option>
+                                                                <option value="Inside Jacket">Inside Jacket</option>
+                                                                <option value="Inside Suit">Inside Suit</option>
+                                                            </select>
+                                                            @error("items.$index.client_name_place") 
+                                                                <div class="text-danger">{{ $message }}</div> 
+                                                            @enderror
                                                         </div>
                                                     @endif
                                                 @elseif($extra_measurement[$index] == 'trouser')
@@ -1019,7 +1068,8 @@
                                                     <div class="col-md-3">
                                                         <label><strong>Client Name</strong></label>
                                                         <select class="form-control form-control-sm"
-                                                            wire:model="items.{{ $index }}.client_name_required">
+                                                            wire:model="items.{{ $index }}.client_name_required"
+                                                            wire:change="validateSingle('items.{{ $index }}.client_name_required')">
                                                             <option value="" hidden>Select</option>
                                                             <option value="Yes">Yes</option>
                                                             <option value="No">No</option>
@@ -1038,34 +1088,6 @@
                                                                 <option value="On Cuff">On Cuff</option>
                                                                 <option value="On Pocket">On Pocket</option>
                                                                 <option value="On Pocket Space">On Pocket Space</option>
-                                                            </select>
-                                                            @error("items.$index.client_name_place") 
-                                                                <div class="text-danger">{{ $message }}</div> 
-                                                            @enderror
-                                                        </div>
-                                                    @endif
-                                                @elseif($extra_measurement[$index] == 'jacket_suit')
-                                                    <div class="col-md-3">
-                                                        <label><strong>Client Name</strong></label>
-                                                        <select class="form-control form-control-sm"
-                                                            wire:model="items.{{ $index }}.client_name_required">
-                                                            <option value="" hidden>Select</option>
-                                                            <option value="Yes">Yes</option>
-                                                            <option value="No">No</option>
-                                                        </select>
-                                                        @error("items.$index.client_name_required") 
-                                                            <div class="text-danger">{{ $message }}</div> 
-                                                        @enderror
-                                                    </div>
-
-                                                    @if(!empty($items[$index]['client_name_required']) && $items[$index]['client_name_required'] == 'Yes')
-                                                        <div class="col-md-3">
-                                                            <label><strong>Where?</strong></label>
-                                                            <select class="form-control form-control-sm"
-                                                                wire:model="items.{{ $index }}.client_name_place">
-                                                                <option value="" hidden>Select</option>
-                                                                <option value="Inside Jacket">Inside Jacket</option>
-                                                                <option value="Inside Suit">Inside Suit</option>
                                                             </select>
                                                             @error("items.$index.client_name_place") 
                                                                 <div class="text-danger">{{ $message }}</div> 
