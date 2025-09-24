@@ -474,7 +474,7 @@ class OrderEdit extends Component
             'items.*.expected_delivery_date.required' => 'Please select expected delivery date for the item.',
             'items.*.item_status.required'            => 'Please select a status for the item.',
 
-            // ✅ Extra measurement messages
+            //  Extra measurement messages
             'items.*.vents.required'                  => 'Please select vents option for mens suit/jacket.',
             'items.*.vents_required.required'         => 'Please specify if vents are required for ladies suit/jacket.',
             'items.*.vents_count.required_if'         => 'Please specify how many vents for ladies suit/jacket.',
