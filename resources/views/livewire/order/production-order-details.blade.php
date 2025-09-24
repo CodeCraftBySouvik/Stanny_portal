@@ -346,7 +346,7 @@
                                             @endif
                                         </div>
                                         <div class="col-md-3">
-                                            @if($item['extra_type'] === 'mens')
+                                            @if($item['extra_type'] === 'mens_jacket_suit')
                                             <p><strong>Vents:</strong> {{ $item['vents'] ?? 'N/A' }}</p>
                                             @endif
 

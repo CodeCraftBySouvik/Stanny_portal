@@ -83,6 +83,7 @@ class OrderEdit extends Component
     public $country_id;
     public $air_mail;
     public $imageUploads = [];
+    public $newUploads = [];
     public $existingImages = [];
     public $voiceUploads = [];
     public $existingVideos = [];
@@ -267,6 +268,21 @@ class OrderEdit extends Component
             $this->imageUploads[$index] = [];
             $this->items[$index]['copy_previous_measurements'] = false; // Ensure checkbox is not selected
 
+             // Load categories for the selected collection
+            $categories = Category::orderBy('title', 'ASC')
+                ->where('collection_id', $item['selected_collection'])
+                ->where('status', 1)
+                ->get();
+
+            $this->items[$index]['categories'] = $categories;
+
+            // Auto-select ACCESSORIES for collection 2 if no category selected yet
+            if ($item['selected_collection'] == 2 && empty($item['selected_category'])) {
+                $accessories = $categories->firstWhere('title', 'ACCESSORIES');
+                if ($accessories) {
+                    $this->items[$index]['selected_category'] = $accessories->id;
+                }
+            }
         }
     }
 
@@ -351,11 +367,12 @@ class OrderEdit extends Component
 
         if (!empty($searchTerm)) {
             $this->items[$index]['searchResults'] = Fabric::join('product_fabrics', 'fabrics.id', '=', 'product_fabrics.fabric_id')
+                ->leftJoin('stock_fabrics', 'fabrics.id', '=', 'stock_fabrics.fabric_id')
                 ->where('product_fabrics.product_id', $productId)
                 ->where('fabrics.status', 1)
                 ->where('fabrics.title', 'LIKE', "%{$searchTerm}%")
-                ->select('fabrics.id', 'fabrics.title')
-                ->distinct()
+                ->select('fabrics.id', 'fabrics.title', \DB::raw('COALESCE(SUM(stock_fabrics.qty_in_meter),0) as available_stock'))
+                ->groupBy('fabrics.id', 'fabrics.title')
                 ->limit(10)
                 ->get();
                 // dd($this->items[$index]['searchResults']);
@@ -384,6 +401,7 @@ class OrderEdit extends Component
 
     public function rules()
     {
+        $auth = Auth::guard('admin')->user();
         $rules = [
             'items.*.selected_collection' => 'required',
             'items.*.selected_category' => 'required',
@@ -393,7 +411,7 @@ class OrderEdit extends Component
             'items.*.page_number' => 'required_if:items.*.selected_collection,1',
             'items.*.quantity' => 'required|numeric|min:1',
             'items.*.fitting' => 'required_if:items.*.collection,1',
-            'items.*.priority' => 'required',
+            // 'items.*.priority' => 'required',
             'items.*.expected_delivery_date' => 'required',
             'items.*.item_status' => 'required',
         ];
@@ -433,6 +451,10 @@ class OrderEdit extends Component
                 $rules["items.$index.client_name_required"] = 'required';
                 $rules["items.$index.client_name_place"] = 'required_if:items.'.$index.'.client_name_required,Yes';
             }
+        }
+
+        if (in_array($auth->designation, [1, 4])) {
+            $rules['items.*.priority'] = 'required';
         }
         return $rules;
     }
@@ -553,7 +575,20 @@ class OrderEdit extends Component
 
         // Fetch categories and products based on the selected collection
         $this->items[$index]['categories'] = Category::orderBy('title', 'ASC')->where('collection_id', $value)->get();
-        $this->items[$index]['products'] = Product::orderBy('name', 'ASC')->where('collection_id', $value)->get();
+        // $this->items[$index]['products'] = Product::orderBy('name', 'ASC')->where('collection_id', $value)->get();
+        $categories = $this->items[$index]['categories'];
+         // Auto-select ACCESSORIES if collection = 2
+            if ($value == 2) {
+                $accessories = $categories->firstWhere('title', 'ACCESSORIES');
+                if ($accessories) {
+                    $this->items[$index]['selected_category'] = $accessories->id;
+                } else {
+                    $this->items[$index]['selected_category'] = null;
+                }
+            } else {
+                // Reset category if collection != 2
+                $this->items[$index]['selected_category'] = null;
+            }
 
         if ($value == 1) {
             $catalogues = Catalogue::with('catalogueTitle')->get();
@@ -881,6 +916,19 @@ class OrderEdit extends Component
                 }
             }
         }
+    }
+
+    public function updatedNewUploads($value, $index)
+    {
+        if (!isset($this->imageUploads[$index])) {
+            $this->imageUploads[$index] = [];
+        }
+
+        // Merge new uploads
+        $this->imageUploads[$index] = array_merge($this->imageUploads[$index], $value);
+
+        // Clear temporary uploads so input can be used again
+        $this->newUploads[$index] = [];
     }
 
 
