@@ -1052,9 +1052,7 @@
                                                             @error("items.$index.vents_count")
                                                             <div class="text-danger">{{ $message }}</div>
                                                             @enderror
-                                                            {{-- <span class="tooltip-text">
-                                                                                            Choose how many vents if required.
-                                                                                        </span> --}}
+                                                            
                                                         </div>
                                                     @endif
                                                     <div class="col-md-3">
