@@ -76,7 +76,7 @@ class Dashboard extends Component
                                       ]);
                                   })->count();
                                  
-           $this->total_pending = Order::where('status','Approved')
+           $this->total_pending = Order::where('status','Fully Approved By Admin')
                                     ->whereHas('items', function($query){
                                       $query->where([
                                         'status' => 'Process',

@@ -364,7 +364,7 @@
                                                 <h6 class="badge bg-danger custom_success_badge">Measurements</h6>
                                                 <div class="row">
 
-                                                    @foreach ($item['measurements'] as $index => $measurement)
+                                                    {{-- @foreach ($item['measurements'] as $index => $measurement)
                                                     <div class="col-md-3 mb-2">
                                                         <label>
                                                             {{$measurement['measurement_name']}}
@@ -374,6 +374,18 @@
                                                         <input type="text"
                                                             class="form-control form-control-sm border border-1 customer_input text-center measurement_input"
                                                             readonly value="{{ $measurement['measurement_value'] }}">
+                                                    </div>
+                                                    @endforeach --}}
+                                                    @foreach ($item['measurements'] as $m)
+                                                    <div class="col-md-3 mb-2">
+                                                        <label>
+                                                            {{ $m['measurement_name'] }}
+                                                            <strong style="display:block;">[{{
+                                                                $m['measurement_title_prefix'] }}]</strong>
+                                                        </label>
+                                                        <input type="text"
+                                                            class="form-control form-control-sm border border-1 text-center"
+                                                            readonly value="{{ $m['measurement_value'] }}">
                                                     </div>
                                                     @endforeach
                                                 </div>
@@ -431,7 +443,8 @@
                                             </div>
                                             <div class="col-lg-3">
                                                 @if($item['extra_type'] === 'mens_jacket_suit')
-                                                <p><strong>Shoulder Type:</strong> {{ $item['shoulder_type'] ?? 'N/A' }}</p>
+                                                <p><strong>Shoulder Type:</strong> {{ $item['shoulder_type'] ?? 'N/A' }}
+                                                </p>
                                                 <p><strong>Vents:</strong> {{ $item['vents'] ?? 'N/A' }}</p>
                                                 @endif
 

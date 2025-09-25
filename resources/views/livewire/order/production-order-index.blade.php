@@ -131,7 +131,7 @@
                                 </span>
                             </td>
                             <td class="text-center">
-                                @if ($order->status == 'Approved')
+                                @if ($order->status == 'Fully Approved By Admin')
                                     <button wire:click="confirmMarkAsReceived({{ $order->id }})"
                                        class="btn btn-outline-success select-md btn_outline" @click.stop>Mark As
                                         Received

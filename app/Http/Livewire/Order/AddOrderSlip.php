@@ -134,7 +134,7 @@ class AddOrderSlip extends Component
             ->doesntExist();
 
         if ($allApproved) {
-            Order::where('id', $this->order->id)->update(['status' => 'Approved']);
+            Order::where('id', $this->order->id)->update(['status' => 'Fully Approved By Admin']);
         }
 
         // Call the final submit function
@@ -428,8 +428,38 @@ class AddOrderSlip extends Component
                 } else {
                     $status = "Partial Approved By TL";
                 }
-            } else {
-                $status = "Approved";
+            }
+            elseif ($userDesignationId == 1) { // Admin
+                // Total items that are either Process or Hold
+                $allRelevantItems = $order->items()
+                    ->whereIn('status', ['Process', 'Hold'])
+                    ->get();
+
+                $totalItems = $allRelevantItems->count();
+
+                // Count of items Admin approved and TL approved
+                $adminApprovedCount = $allRelevantItems
+                    ->where('tl_status', 'Approved')
+                    ->where('admin_status', 'Approved')
+                    ->count();
+
+                // Check if any remaining Hold or TL-approved but not Admin-approved
+                $hasPending = $allRelevantItems->where(function($item){
+                    return $item->status == 'Hold' || ($item->tl_status == 'Approved' && $item->admin_status != 'Approved');
+                })->count();
+
+                if ($adminApprovedCount == 0) {
+                    $status = "Approval Pending";
+                } elseif ($hasPending > 0) {
+                    $status = "Partial Approved By Admin";
+                } elseif ($adminApprovedCount == $totalItems) {
+                    $status = "Fully Approved By Admin";
+                }
+            }
+
+
+            else {
+                $status = "Approval Pending";
             }
 
             $order->update([
@@ -635,7 +665,7 @@ class AddOrderSlip extends Component
         ])->findOrFail($this->orderId);
         //echo "<pre>";print_r($order->toArray());exit;
          $orderItems = $order->items->map(function ($item) use($order) {
-             $product = \App\Models\Product::find($item->product_id);
+         $product = \App\Models\Product::find($item->product_id);
 
             return [
                 'product_name' => $item->product_name ?? $product->name,
@@ -673,21 +703,7 @@ class AddOrderSlip extends Component
                 'fittings' => $item->fittings,
                 'priority' => $item->priority_level,
 
-                 // Extra fields packed here
-                // 'extra_type'           => $extra,
-                // 'shoulder_type'        => $item->shoulder_type,
-                // 'vents'                => $item->vents,
-                // 'vents_required'       => $item->vents_required,
-                // 'vents_count'          => $item->vents_count,
-                // 'fold_cuff_required'   => $item->fold_cuff_required,
-                // 'fold_cuff_size'       => $item->fold_cuff_size,
-                // 'pleats_required'      => $item->pleats_required,
-                // 'pleats_count'         => $item->pleats_count,
-                // 'back_pocket_required' => $item->back_pocket_required,
-                // 'back_pocket_count'    => $item->back_pocket_count,
-                // 'adjustable_belt'      => $item->adjustable_belt,
-                // 'suspender_button'     => $item->suspender_button,
-                // 'trouser_position'     => $item->trouser_position, 
+                
             ];
         });
 

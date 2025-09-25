@@ -153,6 +153,7 @@
                                
                                 @php
                                 $userDesignationId = auth()->guard('admin')->user()->designation;
+                                 $userId = auth()->guard('admin')->id();
                                 @endphp
 
                                 @if(empty($order->packingslip))
@@ -175,7 +176,7 @@
                                 @endif
 
                                 {{-- (Optional) TL Approve button --}}
-                                @if($userDesignationId == 4 && in_array($order->status, ['Approval Pending', 'Partial Approved By TL']))
+                                @if($userDesignationId == 4 && in_array($order->status, ['Approval Pending', 'Partial Approved By TL']) && $order->created_by != $userId)
                                 <a href="{{ route('admin.order.add_order_slip', $order->id) }}"
                                     class="btn btn-outline-success select-md btn_outline">
                                     Approve Order

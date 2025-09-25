@@ -361,7 +361,7 @@ class OrderNew extends Component
         //  Add dynamic rules based on extra measurement per index
         foreach ($this->items as $index => $item) {
             $extra = $this->extra_measurement[$index] ?? null;
-
+            
             if ($extra === 'mens_jacket_suit') {
                 $rules["items.$index.vents"] = 'required';
                 $rules["items.$index.shoulder_type"] = 'required';
@@ -989,10 +989,7 @@ class OrderNew extends Component
 
             $airMail = floatval($this->air_mail);
             $total_amount += $airMail;
-            // if ($this->paid_amount > $total_amount) {
-            //     session()->flash('error', '🚨 The paid amount cannot exceed the total billing amount.');
-            //     return;
-            // }
+          
             $this->remaining_amount = $total_amount - $this->paid_amount;
 
             // Retrieve user details
@@ -1122,26 +1119,28 @@ class OrderNew extends Component
             // for team-lead id
             $loggedInAdmin = auth()->guard('admin')->user();
             $order->team_lead_id = $loggedInAdmin->parent_id ?? null;
-            if ($loggedInAdmin->designation == 4) { // TL
-            // Count pending items: Hold items OR Process items not TL approved
-            $pendingItemsCount = $order->items()
-                ->where(function ($q) {
-                    $q->where('status', 'Hold')
-                    ->orWhere(function ($q2) {
-                        $q2->where('status', 'Process')
-                            ->where(function ($q3) {
-                                $q3->whereNull('tl_status')
-                                    ->orWhere('tl_status', '!=', 'Approved');
-                            });
-                    });
-                })
-                ->count();
+            // if ($loggedInAdmin->designation == 4) { // TL
+            // // Count pending items: Hold items OR Process items not TL approved
+            // $pendingItemsCount = $order->items()
+            //     ->where(function ($q) {
+            //         $q->where('status', 'Hold')
+            //         ->orWhere(function ($q2) {
+            //             $q2->where('status', 'Process')
+            //                 ->where(function ($q3) {
+            //                     $q3->whereNull('tl_status')
+            //                         ->orWhere('tl_status', '!=', 'Approved');
+            //                 });
+            //         });
+            //     })
+            //     ->count();
 
-            $status = $pendingItemsCount == 0 ? 'Fully Approved By TL' : 'Partial Approved By TL';
-            $order->status = $status; 
-            }else {
-                $order->status = 'Approval Pending'; // default if not TL or Admin
-            }
+            // $status = $pendingItemsCount == 0 ? 'Fully Approved By TL' : 'Partial Approved By TL';
+            // $order->status = $status; 
+            // }else {
+            //     $order->status = 'Approval Pending'; // default if not TL or Admin
+            // }
+           
+
             // dd($order);
             $order->save();
             
@@ -1269,7 +1268,23 @@ class OrderNew extends Component
                     }
                 }
                 $orderItem->save();
+                // When Tl Logged in and create the order 
+                    if ($loggedInAdmin->designation == 4) {
+                        $totalItems = count($this->items);
+                        $approvedItems = $order->items()
+                        ->where('status', 'Process')
+                        ->where('tl_status', 'Approved')
+                         ->count();
 
+                    if ($approvedItems == $totalItems) {
+                        $order->status = 'Fully Approved By TL';
+                    } elseif ($approvedItems > 0) {
+                        $order->status = 'Partial Approved By TL';
+                    } else {
+                        $order->status = 'Approval Pending';
+                    }
+                     $order->save();
+                }
                  // upload multiple catalogue images
                 if(!empty($this->imageUploads)){
                     foreach ($this->imageUploads as $images) {
@@ -1422,7 +1437,6 @@ class OrderNew extends Component
             'email',
             'dob',
             'phone',
-            // 'whatsapp_no',
 
         ]);
     }

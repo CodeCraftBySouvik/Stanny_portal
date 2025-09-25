@@ -793,7 +793,7 @@
                                                     class="form-control form-control-sm border border-1 customer_input measurement_input"
                                                     wire:model="items.{{ $index }}.get_measurements.{{ $measurement['id'] }}.value"
                                                     {{-- wire:keyup="validateMeasurement({{ $index }}, {{ $measurement['id'] }})" --}}
-                                                    >
+                                                    wire:keydown.enter.prevent>
                                                 @error('items.' . $index . '.get_measurements.'
                                                 .$measurement['id'].'.value')
                                                 <div class="text-danger error-message">{{ $message }}</div>

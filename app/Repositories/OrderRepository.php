@@ -20,9 +20,28 @@ class OrderRepository
             DB::beginTransaction();
 
             $order = Order::with('items', 'customer')->findOrFail($orderId);
+             // Update each item as Approved if needed
+                foreach ($order->items as $item) {
+                    if ($item->status == 'Process' && $item->admin_status != 'Approved') {
+                        $item->admin_status = 'Approved';
+                        $item->save();
+                    }
+                }
 
+                // Determine order status based on items
+                $totalItems = $order->items->count();
+                $approvedItems = $order->items->where('admin_status', 'Approved')->count();
+                $holdItems = $order->items->where('status', 'Hold')->count();
+
+                if ($approvedItems == $totalItems) {
+                    $orderStatus = 'Fully Approved By Admin';
+                } elseif ($approvedItems > 0 || $holdItems > 0) {
+                    $orderStatus = 'Partial Approved By Admin';
+                } else {
+                    $orderStatus = 'Approval Pending';
+                }
             $order->update([
-                'status' => 'Approved',
+                'status' => $orderStatus,
                 'last_payment_date' => now(),
             ]);
 

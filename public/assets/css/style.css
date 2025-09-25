@@ -1250,7 +1250,19 @@ label.form-check-label {
     color:#b5d3b5 !important;
     background-color:#008080 !important; /* Teal */
     font-weight: bold;
+}   
+.bg-partial_approved_order_by_admin{
+    color:#020c08 !important;
+    background-color:#f7f7f4 !important;
+    font-weight: bold;
 }
+
+.bg-fully_approved_order_by_admin{
+    color:#e95cd1 !important;
+    background-color:#020a02 !important;
+    font-weight: bold;
+}
+
 
 
 .gradient-style-first{

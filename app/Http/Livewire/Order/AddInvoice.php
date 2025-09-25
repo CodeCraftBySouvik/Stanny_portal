@@ -310,7 +310,7 @@ class AddInvoice extends Component
                 'paid_amount' => $this->amount,
                 'due_amount' => $this->due_amount - $this->amount,
                 'invoice_type' => 'manual',
-                'status' => ($this->amount >= $this->due_amount) ? 'Approved' : 'Approval Pending',
+                'status' => ($this->amount >= $this->due_amount) ? 'Fully Approved By Admin' : 'Approval Pending',
             ]);
 
             // Create Order Items
@@ -359,7 +359,7 @@ class AddInvoice extends Component
             $order->update([
                 'customer_id' => $order->customer_id,
                 'created_by' => $order->created_by,
-                'status' => "Approved",
+                'status' => "Fully Approved By Admin",
             ]);
         }
     }

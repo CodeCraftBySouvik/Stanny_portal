@@ -43,7 +43,7 @@ class OrderEdit extends Component
     public $errorClass = [];
     public $collections = [];
     public $errorMessage = [];
-    public $activeTab = 2;
+    public $activeTab = 1;
     public $items = [];
 
     public $FetchProduct = 1;
@@ -188,6 +188,7 @@ class OrderEdit extends Component
                     'priority' => $item->priority_level,
                     'status'  =>  $item->status,
                     'tl_status' => $item->tl_status,
+                    'admin_status' => $item->admin_status,
                     'shoulder_type' => $item->shoulder_type,
                     'vents' => $item->vents,
                     'vents_required' => $item->vents_required,
@@ -691,7 +692,7 @@ class OrderEdit extends Component
                                                             ->orderBy('position','ASC')
                                                             ->get()
                                                             ->toArray();
-
+        
         $this->items[$index]['fabrics'] = Fabric::join('product_fabrics', 'fabrics.id', '=', 'product_fabrics.fabric_id')
                                             ->where('product_fabrics.product_id', $id)
                                             ->where('fabrics.status', 1)
@@ -1202,7 +1203,7 @@ class OrderEdit extends Component
                                     $orderItem->tl_status    = 'Pending';
                                     $orderItem->admin_status = 'Pending';
                                 }
-                                $order->status = 'Approved'; //enable mark as received
+                                $order->status = 'Approval Pending'; //enable mark as received
                             }
 
                         // ── 2. Item is leaving Process (Process → Hold or other) ──────
@@ -1218,7 +1219,7 @@ class OrderEdit extends Component
                             $newStatus === 'Process' &&
                             in_array($loggedInAdmin->designation, [1, 12])
                         ) {
-                            $order->status = 'Approved'; // enable mark as received
+                            $order->status = 'Fully Approved By Admin'; // enable mark as received
                             $order->save();
                         }
                     // ------------------------------------------------------------------
@@ -1277,6 +1278,35 @@ class OrderEdit extends Component
                     }
 
                     $orderItem->save();
+
+                   // After the foreach ($this->items as $key => $item) loop
+                    $items = $order->items();
+
+                    // Count Process items with TL approved
+                    $processApprovedCount = $items->where('status', 'Process')
+                                                ->where('tl_status', 'Approved')
+                                                ->count();
+
+                    // Count total Process items
+                    $totalProcessCount = $items->where('status', 'Process')->count();
+                    // Count Hold items
+                    $holdCount = $items->where('status', 'Hold')->count();
+                    // Determine order status based on TL designation
+                    $loggedInAdmin = auth()->guard('admin')->user();
+                    if ($loggedInAdmin->designation == 4) { // TL
+                        if ($holdCount > 0 && $processApprovedCount > 0) {
+                            $order->status = 'Partial Approved By TL';
+                        } elseif ($processApprovedCount == $totalProcessCount) {
+                            $order->status = 'Fully Approved By TL';
+                        } elseif ($holdCount == $totalProcessCount) {
+                            $order->status = 'Approval Pending';
+                        }
+                    }
+
+                    // Save the updated order status
+                    $order->save();
+
+
 
                     if ($orderItem) {
                         if (!empty($this->imageUploads[$key])) {
