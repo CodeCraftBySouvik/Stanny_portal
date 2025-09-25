@@ -1578,10 +1578,7 @@ class OrderNew extends Component
                 if (!filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
                     $this->errorMessage['email'] = 'Please enter a valid email address.';
                     $this->errorClass['email'] = 'is-invalid';
-                } elseif (!preg_match('/@gmail\.com$/', $this->email)) {
-                    $this->errorMessage['email'] = 'Email must be a valid @gmail.com address.';
-                    $this->errorClass['email'] = 'is-invalid';
-                } else {
+                }  else {
                     $this->errorClass['email'] = null;
                     $this->errorMessage['email'] = null;
                 }

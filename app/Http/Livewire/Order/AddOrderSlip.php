@@ -403,7 +403,7 @@ class AddOrderSlip extends Component
 
         $order = Order::find($this->order->id);
         $userDesignationId = auth()->guard('admin')->user()->designation;
-
+        $status = null;
         if ($order) {
             if ($userDesignationId == 4) {
                 // Count all process items
