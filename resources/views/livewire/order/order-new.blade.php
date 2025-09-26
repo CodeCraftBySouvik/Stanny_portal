@@ -1180,7 +1180,6 @@
                                                                 <option value="" hidden>Select Count</option>
                                                                 <option value="1">1</option>
                                                                 <option value="2">2</option>
-                                                                <option value="3">3</option>
                                                             </select>
                                                             @error("items.$index.back_pocket_count")
                                                             <div class="text-danger">{{ $message }}</div>

@@ -87,10 +87,7 @@
                         <tr>
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Order #
                             </th>
-                            {{-- <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Customer
-                                Details</th> --}}
-                            {{-- <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Order
-                                Amount</th> --}}
+                           
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Placed By
                             </th>
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Status</th>
@@ -108,18 +105,7 @@
                                 <p class="small text-muted mb-1 badge bg-warning">{{ $order->created_at->format('Y-m-d
                                     H:i') }}</p>
                             </td>
-                            {{-- <td>
-                                <p class="small text-muted mb-1">
-                                    <span>Name: <strong>{{ucwords($order->prefix ." ". $order->customer_name)}}</strong>
-                                    </span>
-                                    <br>
-                                    <span>Mobile : <strong>{{$order->customer? $order->customer->country_code_phone.'
-                                            '.$order->customer->phone:""}}</strong> </span> <br>
-                                </p>
-                            </td> --}}
-                            {{-- <td>
-                                <p class="text-xs font-weight-bold mb-0">{{ $order->total_amount }}</p>
-                            </td> --}}
+                            
                             <td>
                                 <p class="small text-muted mb-1 text-uppercase">
                                     {{$order->createdBy?strtoupper($order->createdBy->name .'
@@ -131,7 +117,7 @@
                                 </span>
                             </td>
                             <td class="text-center">
-                                @if ($order->status == 'Fully Approved By Admin')
+                                @if ($order->status == 'Fully Approved By Admin' || $order->status == 'Partial Approved By Admin')
                                     <button wire:click="confirmMarkAsReceived({{ $order->id }})"
                                        class="btn btn-outline-success select-md btn_outline" @click.stop>Mark As
                                         Received
@@ -145,7 +131,7 @@
                                        <button class="btn btn-outline-success select-md btn_action btn_outline" disabled>Delivered</button> 
                                     @endif
                                 @endif
-                                 @if ($order->status !== 'Approved')
+                                 @if ($order->status !== 'Fully Approved By Admin' && $order->status !== 'Partial Approved By Admin')
                                     <a href="{{route('production.order.details',$order->id)}}" class="btn btn-outline-success select-md btn_action btn_outline">Details</a>
                                 @endif
                                 <a href="{{route('production.order.download_pdf',$order->id)}}" target="_blank" class="btn btn-outline-primary select-md btn_outline">

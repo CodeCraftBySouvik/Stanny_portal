@@ -42,7 +42,7 @@ class ProductionOrderIndex extends Component
      public function markReceivedConfirmed($orderId)
     {
         $order = Order::find($orderId);
-        if ($order && $order->status == 'Fully Approved By Admin') {
+        if ($order && in_array($order->status, ['Fully Approved By Admin','Partial Approved By Admin'])) {
             $order->status = 'Received at Production';
             $order->save();
 
@@ -157,7 +157,7 @@ class ProductionOrderIndex extends Component
        
         $this->usersWithOrders = $wonOrders;
         $orders = Order::query()
-        ->whereIn('status',['Fully Approved By Admin','Received at Production','Partial Delivered By Production','Fully Delivered By Production','Partial Delivered to Customer','Delivered to Customer'])
+        ->whereIn('status',['Partial Approved By Admin','Fully Approved By Admin','Received at Production','Partial Delivered By Production','Fully Delivered By Production','Partial Delivered to Customer','Delivered to Customer'])
         ->when(!$auth->is_super_admin , function ($query) {
              $query->whereHas('items', function ($q) {
                 $q->where('assigned_team', 'production');

@@ -275,7 +275,7 @@
                                 <a href="{{route('admin.order.view',$order->id)}}"
                                     class="btn btn-outline-success select-md btn_action btn_outline">Details</a>
                                 @endif
-                                @if (!$order->skip_order_reason)
+                                @if ($userDesignationId != 2 && !$order->skip_order_reason)
                                 <a href="{{route('admin.order.log',$order->id)}}">
                                     <button class="btn btn-outline-info select-md btn_action btn_outline">Logs
                                     </button>

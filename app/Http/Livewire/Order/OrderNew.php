@@ -451,7 +451,7 @@ class OrderNew extends Component
             'items.*.back_pocket_count.required_if'   => 'Please specify how many back pockets for the trouser.',
             'items.*.adjustable_belt.required'        => 'Please specify if an adjustable belt is required.',
             'items.*.suspender_button.required'       => 'Please specify if suspender buttons are required.',
-            'items.*.trouser_position.required'       => 'Please select the trouser position.',
+            'items.*.trouser_position.required'       => 'Please select the trocopyMeasurementsosition.',
 
             'items.*.sleeves.required'      => 'Please select sleeves (L/S or H/S).',
             'items.*.collar.required'       => 'Please select a collar option.',
