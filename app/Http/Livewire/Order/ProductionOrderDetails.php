@@ -388,11 +388,11 @@ public function revertBackStock($index, $inputName, $entryId)
                 'priority' => $item->priority_level,
 
                 // Extra fields packed here
-            'extra_type'               => $extra,
-            'shoulder_type'            => $item->shoulder_type,
-            'vents'                    => $item->vents,
-            'vents_required'           => $item->vents_required,
-            'vents_count'              => $item->vents_count,
+                'extra_type'               => $extra,
+                'shoulder_type'            => $item->shoulder_type,
+                'vents'                    => $item->vents,
+                'vents_required'           => $item->vents_required,
+                'vents_count'              => $item->vents_count,
                 'fold_cuff_required'   => $item->fold_cuff_required,
                 'fold_cuff_size'       => $item->fold_cuff_size,
                 'pleats_required'      => $item->pleats_required,
@@ -402,6 +402,8 @@ public function revertBackStock($index, $inputName, $entryId)
                 'adjustable_belt'      => $item->adjustable_belt,
                 'suspender_button'     => $item->suspender_button,
                 'trouser_position'     => $item->trouser_position,   
+                'client_name_required'     => $item->client_name_required,   
+                'client_name_place'     => $item->client_name_place,  
             ];
         });
 }

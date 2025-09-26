@@ -509,7 +509,7 @@ class AddOrderSlip extends Component
     public function updateOrderItems()
     {
             $subtotal = 0;
-            foreach ($this->order_item as $item) {
+            foreach ($this->order_item as $key=> $item) {
                 $piecePrice = (float)$item['piece_price'];
                 $quantity = (int)$item['quantity'];
                 $totalPrice = $piecePrice * $quantity;
@@ -518,7 +518,7 @@ class AddOrderSlip extends Component
                     'total_price' => $totalPrice,
                     'quantity' => $quantity,
                     'piece_price' => $piecePrice,
-
+                    'priority_level'  => $item['priority_level'] ?? null
                 ]);
 
                 $subtotal += $totalPrice;

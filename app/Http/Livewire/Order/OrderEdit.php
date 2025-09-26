@@ -262,12 +262,16 @@ class OrderEdit extends Component
 
         foreach ($this->items as $index => $item) {
             $this->extra_measurement[$index] = Helper::ExtraRequiredMeasurement(trim($item['searchproduct']));
+
             if(!empty($item['page_item'])){
                 $this->catalogue_page_item[$index] = $item['page_item'];
-            }
+            }   
+
+             
+
             $this->existingImages[$index] = OrderItemCatalogueImage::where('order_item_id', $item['order_item_id'])->pluck('image_path')->toArray();
             $this->existingVideos[$index] = OrderItemVoiceMessage::where('order_item_id', $item['order_item_id'])->pluck('voices_path')->toArray();
-            $this->imageUploads[$index] = [];
+
             $this->items[$index]['copy_previous_measurements'] = false; // Ensure checkbox is not selected
 
              // Load categories for the selected collection
@@ -634,7 +638,7 @@ class OrderEdit extends Component
         $this->maxPages[$index] = []; // Reset max page number
 
         // Fetch max page number from database
-        $maxPage = Catalogue::where('catalogue_title_id', $catalogueId)->value('page_number');
+        $maxPage = Catalogue::where('id', $catalogueId)->value('page_number');
 
         if ($maxPage) {
             $this->maxPages[$index][$catalogueId] = $maxPage;
@@ -652,14 +656,21 @@ class OrderEdit extends Component
 
         // Fetch page items dynamically
          $this->items[$index]['pageItems'] = CataloguePageItem::join('pages', 'catalogue_page_items.page_id', '=', 'pages.id')
-                                                            ->where('catalogue_page_items.catalogue_id', $selectedCatalogue)
-                                                            ->where('pages.page_number', $pageNumber)
-                                                            ->pluck('catalogue_page_items.catalog_item')
-                                                            ->toArray();
-                                                            // If no items found, reset selected page item
-        if(count($this->items[$index]['pageItems'])>0){
+                                        ->where('catalogue_page_items.catalogue_id', $selectedCatalogue)
+                                        ->where('pages.page_number', $pageNumber)
+                                        ->pluck('catalogue_page_items.catalog_item')
+                                        ->toArray();
+
+        if(count($this->items[$index]['pageItems']) >0 ){
+             // Keep the current selection only if it exists in new list
+            if (!in_array($this->items[$index]['page_item'] ?? null, $this->items[$index]['pageItems'])) {
+                $this->items[$index]['page_item'] = null;
+            }
             $this->catalogue_page_item[$index]=  $value;
         }else{
+            // Reset if no items exist
+             $this->items[$index]['pageItems'] = [];
+            $this->items[$index]['page_item'] = null;
             $this->catalogue_page_item[$index] = "";
         }
 
@@ -733,7 +744,7 @@ class OrderEdit extends Component
         $category = $this->items[$index]['selected_category'];
 
         if (empty($collection)) {
-            session()->flash('errorProduct.' . $index, 'ðŸš¨ Please select a collection before searching for a product.');
+            session()->flash('errorProduct.' . $index, 'Please select a collection before searching for a product.');
             return;
         }
 
@@ -894,34 +905,34 @@ class OrderEdit extends Component
 
 
 
-    public function copyMeasurements($index) {
-        if ($index > 0) {
-            $currentProductId = $this->items[$index]['product_id'] ?? null;
-            $previousProductId = $this->items[$index - 1]['product_id'] ?? null;
+    // public function copyMeasurements($index) {
+    //     if ($index > 0) {
+    //         $currentProductId = $this->items[$index]['product_id'] ?? null;
+    //         $previousProductId = $this->items[$index - 1]['product_id'] ?? null;
 
-            if (!empty($this->items[$index]['copy_previous_measurements'])) {
-                if ($currentProductId === $previousProductId && !empty($this->items[$index - 1]['measurements'])) {
-                    // Copy measurements if the product is the same
-                    $this->items[$index]['measurements'] = $this->items[$index - 1]['measurements']->toArray();
-                } else {
-                    // Keep structure but clear measurement values
-                    if (!empty($this->items[$index]['measurements'])) {
-                        foreach ($this->items[$index]['measurements'] as $key => $measurement) {
-                            $this->items[$index]['measurements'][$key]['value'] = ''; // Clear only values
-                        }
-                    }
-                    session()->flash('measurements_error.' . $index, 'Measurements cannot be copied as products are different.');
-                }
-            } else {
-                // Clear only values if checkbox is unchecked
-                if (!empty($this->items[$index]['measurements'])) {
-                    foreach ($this->items[$index]['measurements'] as $key => $measurement) {
-                        $this->items[$index]['measurements'][$key]['value'] = '';
-                    }
-                }
-            }
-        }
-    }
+    //         if (!empty($this->items[$index]['copy_previous_measurements'])) {
+    //             if ($currentProductId === $previousProductId && !empty($this->items[$index - 1]['measurements'])) {
+    //                 // Copy measurements if the product is the same
+    //                 $this->items[$index]['measurements'] = $this->items[$index - 1]['measurements']->toArray();
+    //             } else {
+    //                 // Keep structure but clear measurement values
+    //                 if (!empty($this->items[$index]['measurements'])) {
+    //                     foreach ($this->items[$index]['measurements'] as $key => $measurement) {
+    //                         $this->items[$index]['measurements'][$key]['value'] = ''; // Clear only values
+    //                     }
+    //                 }
+    //                 session()->flash('measurements_error.' . $index, 'Measurements cannot be copied as products are different.');
+    //             }
+    //         } else {
+    //             // Clear only values if checkbox is unchecked
+    //             if (!empty($this->items[$index]['measurements'])) {
+    //                 foreach ($this->items[$index]['measurements'] as $key => $measurement) {
+    //                     $this->items[$index]['measurements'][$key]['value'] = '';
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
     public function updatedNewUploads($value, $index)
     {
@@ -1175,7 +1186,7 @@ class OrderEdit extends Component
                     if ($statusChanged) {
 
                         // ── 1. Item is (now) Process ──────────────────────────────────
-                        if ($newStatus === 'Process') {
+                        if ($newStatus === 'Process') { 
 
                             // 1A. Brand‑new row (previousStatus == null)
                             if (is_null($previousStatus)) {

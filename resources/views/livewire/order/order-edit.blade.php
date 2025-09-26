@@ -292,7 +292,6 @@
                             <h6 class="badge bg-danger custom_danger_badge">Product Information</h6>
                         </div>
                     </div>
-
                     <!-- Loop through items -->
                     @foreach($items as $index => $item)
                     @php
@@ -607,6 +606,7 @@
                                     </div>
                                 </div>
                             </div>
+                            
                             <!-- Catalogue -->
                             @if(isset($item['selected_collection']) && $item['selected_collection'] == 1)
                             <div class="col-12 col-md-6">
@@ -620,7 +620,7 @@
                                             @if($isDisabled) disabled @endif>
                                             <option value="" selected hidden>Select Catalogue</option>
                                             @foreach($item['catalogues'] ?? [] as $cat_log)
-                                            <option value="{{ $cat_log['catalogue_title_id'] }}">
+                                            <option value="{{ $cat_log['id'] }}">
                                                 {{ $cat_log['catalogue_title']['title'] ?? 'No Title' }} (1 - {{
                                                 $cat_log['page_number'] }})
                                             </option>
@@ -647,20 +647,21 @@
                                     </div>
                                     {{-- Page item --}}
                                     <div class="mb-3 col-md-5">
-                                        @if(isset($catalogue_page_item) && !empty($catalogue_page_item[$index]))
+                                        {{-- @if(isset($catalogue_page_item) && !empty($catalogue_page_item[$index])) --}}
+                                        @if(!empty($items[$index]['pageItems']))
                                         <label class="form-label"><strong>Page Item</strong></label>
                                         <select wire:model="items.{{$index}}.page_item"
                                             class="form-control form-control-sm border border-2 @error('items.'.$index.'.page_item') border-danger @enderror"
                                             @if($isDisabled) disabled @endif>
                                             <option value="" selected hidden>Select Page Item</option>
-                                            @if(!empty($items[$index]['pageItems']))
-                                            @foreach($items[$index]['pageItems'] ?? [] as $pageItems)
+                                            {{-- @if(!empty($items[$index]['pageItems'])) --}}
+                                            @foreach($items[$index]['pageItems'] as $pageItems)
                                             <option value="{{ $pageItems }}" {{$items[$index]['pageItems']==$pageItems
                                                 ? 'selected' : '' }}>
                                                 {{ $pageItems }}
                                             </option>
                                             @endforeach
-                                            @endif
+                                            {{-- @endif --}}
                                         </select>
                                         @error("items.".$index.".page_item")
                                         <div class="text-danger">{{ $message }}</div>
@@ -1197,14 +1198,14 @@
                                             {{-- Show newly uploaded temporary images --}}
                                             @if (!empty($imageUploads[$index]))
                                             <div class="d-flex flex-row flex-wrap gap-2">
-                                                @foreach ($imageUploads[$index] as $imgIndex => $img)
+                                                @foreach ($imageUploads[$index] as $img)
                                                 <div style="position: relative; width: 70px">
                                                     <img src="{{ $img->temporaryUrl() }}" class="img-thumbnail"
                                                         style="width: 100%; height: 100%; object-fit: cover;" />
                                                     <button type="button" @if($isDisabled) disabled @endif
                                                         class="btn btn-sm rounded-circle p-1 btn-danger position-absolute top-0 end-0"
                                                         style="width: 22px; height: 22px; font-size: 12px; display: flex; align-items: center; justify-content: center;"
-                                                        wire:click="removeUploadedImage({{ $index }}, {{ $imgIndex }})">
+                                                        wire:click="removeUploadedImage({{ $index }}, {{$loop->index }})">
                                                         &times;
                                                     </button>
                                                 </div>

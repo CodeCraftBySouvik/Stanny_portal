@@ -583,13 +583,13 @@ class OrderNew extends Component
                 }                       
             }
             if ($value == 1) {
-                $catalogues = Catalogue::with('catalogueTitle')->where('status',1)->get();
-                $this->catalogues[$index] = $catalogues->pluck('catalogueTitle.title', 'catalogue_title_id');
-       
+                $catalogues = Catalogue::where('status',1)->get();
+                $this->catalogues[$index] = $catalogues->pluck('catalogueTitle.title', 'id');
+                
                 // Fetch max page numbers per catalogue
                 $this->maxPages[$index] = [];
                 foreach ($catalogues as $catalogue) {
-                    $this->maxPages[$index][$catalogue->catalogue_title_id] = $catalogue->page_number;
+                    $this->maxPages[$index][$catalogue->id] = $catalogue->page_number;
                 }
             } else {
                 $this->catalogues[$index] = [];
@@ -603,7 +603,7 @@ class OrderNew extends Component
         $this->maxPages[$index] = []; // Reset max page number
 
         // Fetch max page number from database
-        $maxPage = Catalogue::where('catalogue_title_id', $catalogueId)->value('page_number');
+        $maxPage = Catalogue::where('id', $catalogueId)->value('page_number');
         if ($maxPage) {
             $this->maxPages[$index][$catalogueId] = $maxPage;
         }
@@ -621,7 +621,7 @@ class OrderNew extends Component
         $selectedCatalogue = $this->items[$index]['selectedCatalogue'];  //this is actually catalogue title id
         // dd($pageNumber,$selectedCatalogue);
         // Get all catalogues under the selected catalogue title
-         $catalogueIds = Catalogue::where('catalogue_title_id', $selectedCatalogue)->pluck('id');
+         $catalogueIds = Catalogue::where('id', $selectedCatalogue)->pluck('id');
          // Fetch the page ID first
             $page = Page::where('catalogue_id', $catalogueIds)
             ->where('page_number', $pageNumber)
@@ -637,7 +637,11 @@ class OrderNew extends Component
             // Store fetched items in a property for dropdown use
             if(count($pageItems)>0){
                 $this->catalogue_page_item[$index]=  $value;
-
+                  // 🔑 Reset selection if current value is not in the new list
+                $validItems = $pageItems->pluck('catalog_item')->toArray() ?? [];
+                if (!in_array($this->items[$index]['page_item'] ?? null, $validItems)) {
+                    $this->items[$index]['page_item'] = null;
+                }
             }else{
                 $this->catalogue_page_item[$index] = "";
             }
@@ -1172,7 +1176,14 @@ class OrderNew extends Component
                 $orderItem->order_id = $order->id;
                 $orderItem->catalogue_id = $item['selectedCatalogue'] ?? null;
                 $orderItem->cat_page_number = $item['page_number'] ?? null;
-                $orderItem->cat_page_item = $item['page_item'] ?? null;
+                // Only save page_item if valid 
+                $validItems = $this->pageItems[$k] ?? collect();
+                $allowedPageItems = $validItems->pluck('catalog_item')->toArray();
+             if (in_array($item['page_item'] ?? null, $allowedPageItems)) {
+                $orderItem->cat_page_item = $item['page_item'] ;
+             }else{
+                $orderItem->cat_page_item = null;
+             }
                 $orderItem->product_id = $item['product_id'];
                 $orderItem->collection = $collection_data ? $collection_data->id : "";
                 $orderItem->category = $category_data ? $category_data->id : "";
@@ -1286,31 +1297,27 @@ class OrderNew extends Component
                      $order->save();
                 }
                  // upload multiple catalogue images
-                if(!empty($this->imageUploads)){
-                    foreach ($this->imageUploads as $images) {
-                        foreach($images as $image){
-                            $path = $image->store('uploads/order_item_catalogue_images', 'public');
-                            OrderItemCatalogueImage::create([
-                                'order_item_id' => $orderItem->id,
-                                'image_path' => $path,
-                                'created_at' => now(),
-                                'updated_at' => now()
-                            ]);
-                        }
+                if(!empty($this->imageUploads[$k])){
+                    foreach ($this->imageUploads[$k] as $images) {
+                        $path = $images->store('uploads/order_item_catalogue_images', 'public');
+                        OrderItemCatalogueImage::create([
+                            'order_item_id' => $orderItem->id,
+                            'image_path' => $path,
+                            'created_at' => now(),
+                            'updated_at' => now()
+                        ]);
                     }
                 }
 
-                if(!empty($this->voiceUploads)){
-                    foreach ($this->voiceUploads as $voice) {
-                        foreach($voice as $audio){
-                            $audioPath = $audio->store('uploads/order_item_voice_messages', 'public');
-                            OrderItemVoiceMessage::create([
-                                'order_item_id' => $orderItem->id,
-                                'voices_path' => $audioPath,
-                                'created_at' => now(),
-                                'updated_at' => now()
-                            ]);
-                        }
+                if(!empty($this->voiceUploads[$k])){
+                    foreach ($this->voiceUploads[$k] as $voice) {
+                        $audioPath = $voice->store('uploads/order_item_voice_messages', 'public');
+                        OrderItemVoiceMessage::create([
+                            'order_item_id' => $orderItem->id,
+                            'voices_path' => $audioPath,
+                            'created_at' => now(),
+                            'updated_at' => now()
+                        ]);
                     }
                 }
 

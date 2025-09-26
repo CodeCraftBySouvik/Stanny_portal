@@ -44,11 +44,11 @@ class OrderView extends Component
     {
          // Fetch the order and its related items
          $order = Order::with([
+            'items.catalogue',
             'items.deliveries' => fn($q) => $q->with('user:id,name'),
             'items.voice_remark','items.catlogue_image'
          ])->findOrFail($this->orderId);
          $orderItems = $order->items->map(function ($item) use($order) {
-            
             $product = Product::find($item->product_id);
             $delivery = $item->deliveries->first();
              // Decide extra measurement type
@@ -71,7 +71,7 @@ class OrderView extends Component
                 'collection_id' => $item->collection,
                 'collection_title' => $item->collectionType ?  $item->collectionType->title : "",
                 'fabrics' => $item->fabric,
-                'catalogue' => $item->catalogue_id?$item->catalogue:"",
+                'catalogue' => optional(optional($item->catalogue)->catalogueTitle)->title ?? "",
                 'catalogue_id' => $item->catalogue_id,
                 'cat_page_number' => $item->cat_page_number,
                 'price' => $item->piece_price,
@@ -112,6 +112,8 @@ class OrderView extends Component
                 'adjustable_belt'      => $item->adjustable_belt,
                 'suspender_button'     => $item->suspender_button,
                 'trouser_position'     => $item->trouser_position,   
+                'client_name_required'     => $item->client_name_required,   
+                'client_name_place'     => $item->client_name_place,   
             ];
         });
 
