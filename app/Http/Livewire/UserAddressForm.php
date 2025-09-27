@@ -35,8 +35,6 @@ class UserAddressForm extends Component
     public $tempImageUrl;
     public $country_code;
     public $country_id;
-    // public $filteredCountries = [];
-    public $countries = [];
     public $selectedCountryPhone,$selectedCountryWhatsapp,$selectedCountryAlt1,$selectedCountryAlt2;
     public $mobileLengthPhone,$mobileLengthWhatsapp,$mobileLengthAlt1,$mobileLengthAlt2;
     public $badge_type = 'general';

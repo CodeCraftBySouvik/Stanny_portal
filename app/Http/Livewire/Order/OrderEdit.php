@@ -1500,12 +1500,6 @@ class OrderEdit extends Component
             'mobile_length' => $mobile_length
         ]);
 
-        // Dispatch for setting code + number
-        $this->dispatch('update_input_code_number', [
-            'id' => $selector,
-            'dialCode' => $Code,
-            'number' => $number
-        ]);
         $this->mobileLengthPhone = $mobile_length;
     }
 
