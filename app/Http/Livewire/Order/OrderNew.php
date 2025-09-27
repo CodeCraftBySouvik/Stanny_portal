@@ -361,14 +361,17 @@ class OrderNew extends Component
         //  Add dynamic rules based on extra measurement per index
         foreach ($this->items as $index => $item) {
             $extra = $this->extra_measurement[$index] ?? null;
-
+            
             if ($extra === 'mens_jacket_suit') {
                 $rules["items.$index.vents"] = 'required';
+                $rules["items.$index.shoulder_type"] = 'required';
             }
 
             if ($extra === 'ladies_jacket_suit') {
                 $rules["items.$index.vents_required"] = 'required';
                 $rules["items.$index.vents_count"]    = 'required_if:items.'.$index.'.vents_required,Yes|nullable|integer|min:1';
+                $rules["items.$index.shoulder_type"] = 'required';
+
             }
 
             if ($extra === 'trouser') {
@@ -436,6 +439,7 @@ class OrderNew extends Component
              'items.*.get_measurements.*.value.required' => 'Each measurement value is required.',
 
              //  Extra measurement messages
+            'items.*.shoulder_type.required'          => 'Please select shoulder type',
             'items.*.vents.required'                  => 'Please select vents option for mens suit/jacket.',
             'items.*.vents_required.required'         => 'Please specify if vents are required for ladies suit/jacket.',
             'items.*.vents_count.required_if'         => 'Please specify how many vents for ladies suit/jacket.',
@@ -447,7 +451,7 @@ class OrderNew extends Component
             'items.*.back_pocket_count.required_if'   => 'Please specify how many back pockets for the trouser.',
             'items.*.adjustable_belt.required'        => 'Please specify if an adjustable belt is required.',
             'items.*.suspender_button.required'       => 'Please specify if suspender buttons are required.',
-            'items.*.trouser_position.required'       => 'Please select the trouser position.',
+            'items.*.trouser_position.required'       => 'Please select the trocopyMeasurementsosition.',
 
             'items.*.sleeves.required'      => 'Please select sleeves (L/S or H/S).',
             'items.*.collar.required'       => 'Please select a collar option.',
@@ -579,13 +583,13 @@ class OrderNew extends Component
                 }                       
             }
             if ($value == 1) {
-                $catalogues = Catalogue::with('catalogueTitle')->where('status',1)->get();
-                $this->catalogues[$index] = $catalogues->pluck('catalogueTitle.title', 'catalogue_title_id');
-       
+                $catalogues = Catalogue::where('status',1)->get();
+                $this->catalogues[$index] = $catalogues->pluck('catalogueTitle.title', 'id');
+                
                 // Fetch max page numbers per catalogue
                 $this->maxPages[$index] = [];
                 foreach ($catalogues as $catalogue) {
-                    $this->maxPages[$index][$catalogue->catalogue_title_id] = $catalogue->page_number;
+                    $this->maxPages[$index][$catalogue->id] = $catalogue->page_number;
                 }
             } else {
                 $this->catalogues[$index] = [];
@@ -599,7 +603,7 @@ class OrderNew extends Component
         $this->maxPages[$index] = []; // Reset max page number
 
         // Fetch max page number from database
-        $maxPage = Catalogue::where('catalogue_title_id', $catalogueId)->value('page_number');
+        $maxPage = Catalogue::where('id', $catalogueId)->value('page_number');
         if ($maxPage) {
             $this->maxPages[$index][$catalogueId] = $maxPage;
         }
@@ -617,7 +621,7 @@ class OrderNew extends Component
         $selectedCatalogue = $this->items[$index]['selectedCatalogue'];  //this is actually catalogue title id
         // dd($pageNumber,$selectedCatalogue);
         // Get all catalogues under the selected catalogue title
-         $catalogueIds = Catalogue::where('catalogue_title_id', $selectedCatalogue)->pluck('id');
+         $catalogueIds = Catalogue::where('id', $selectedCatalogue)->pluck('id');
          // Fetch the page ID first
             $page = Page::where('catalogue_id', $catalogueIds)
             ->where('page_number', $pageNumber)
@@ -633,7 +637,11 @@ class OrderNew extends Component
             // Store fetched items in a property for dropdown use
             if(count($pageItems)>0){
                 $this->catalogue_page_item[$index]=  $value;
-
+                  // 🔑 Reset selection if current value is not in the new list
+                $validItems = $pageItems->pluck('catalog_item')->toArray() ?? [];
+                if (!in_array($this->items[$index]['page_item'] ?? null, $validItems)) {
+                    $this->items[$index]['page_item'] = null;
+                }
             }else{
                 $this->catalogue_page_item[$index] = "";
             }
@@ -661,41 +669,43 @@ class OrderNew extends Component
 
 
 
-    public function validateMeasurement($itemIndex, $measurementId)
-    {
-        $measurement = $this->items[$itemIndex]['get_measurements'][$measurementId] ?? null;
+    // public function validateMeasurement($itemIndex, $measurementId)
+    // {
+    //     $measurement = $this->items[$itemIndex]['get_measurements'][$measurementId] ?? null;
 
-        if ($measurement) {
-            $value = trim($measurement['value'] ?? '');
+    //     if ($measurement) {
+    //         $value = trim($measurement['value'] ?? '');
 
-            if ($value === '') {
-                $this->addError("items.$itemIndex.get_measurements.$measurementId.value", 'Measurement value is required.');
-            } elseif (!is_numeric($value) || floatval($value) < 1) {
-                $this->addError("items.$itemIndex.get_measurements.$measurementId.value", 'Measurement must be a number greater than 0.');
-            } else {
-                $this->resetErrorBag("items.$itemIndex.get_measurements.$measurementId.value");
-            }
+    //         if ($value === '') {
+    //             $this->addError("items.$itemIndex.get_measurements.$measurementId.value", 'Measurement value is required.');
+    //         } elseif (!is_numeric($value) || floatval($value) < 1) {
+    //             $this->addError("items.$itemIndex.get_measurements.$measurementId.value", 'Measurement must be a number greater than 0.');
+    //         } else {
+    //             $this->resetErrorBag("items.$itemIndex.get_measurements.$measurementId.value");
+    //         }
 
-            // Check if all required measurements for the product are present
-            $productId = $this->items[$itemIndex]['product_id'] ?? null;
+    //         // Check if all required measurements for the product are present
+    //         $productId = $this->items[$itemIndex]['product_id'] ?? null;
 
-            if ($productId) {
-                $expectedMeasurementIds = Measurement::where('product_id', $productId)->pluck('id')->toArray();
+    //         if ($productId) {
+    //             $expectedMeasurementIds = Measurement::where('product_id', $productId)->pluck('id')->toArray();
 
-                $enteredMeasurementIds = array_keys(array_filter($this->items[$itemIndex]['get_measurements'] ?? [], function ($m) {
-                    return isset($m['value']) && is_numeric($m['value']) && floatval($m['value']) > 0;
-                }));
+    //             $enteredMeasurementIds = array_keys(array_filter($this->items[$itemIndex]['get_measurements'] ?? [], function ($m) {
+    //                 return isset($m['value']) && is_numeric($m['value']) && floatval($m['value']) > 0;
+    //             }));
 
-                $missing = array_diff($expectedMeasurementIds, $enteredMeasurementIds);
+    //             $missing = array_diff($expectedMeasurementIds, $enteredMeasurementIds);
 
-                if (!empty($missing)) {
-                    session()->flash("measurements_error.$itemIndex", '🚨 Oops! All measurement data should be mandatory.');
-                } else {
-                    session()->forget("measurements_error.$itemIndex");
-                }
-            }
-        }
-    }
+    //             if (!empty($missing)) {
+    //                 session()->flash("measurements_error.$itemIndex", '🚨 Oops! All measurement data should be mandatory.');
+    //             } else {
+    //                 session()->forget("measurements_error.$itemIndex");
+    //             }
+    //         }
+    //     }
+    // }
+
+    
 
 
 
@@ -983,10 +993,7 @@ class OrderNew extends Component
 
             $airMail = floatval($this->air_mail);
             $total_amount += $airMail;
-            // if ($this->paid_amount > $total_amount) {
-            //     session()->flash('error', '🚨 The paid amount cannot exceed the total billing amount.');
-            //     return;
-            // }
+          
             $this->remaining_amount = $total_amount - $this->paid_amount;
 
             // Retrieve user details
@@ -1004,9 +1011,7 @@ class OrderNew extends Component
                     'country_id' => $this->country_id,
                     'country_code_phone' => $this->phone_code,
                     'phone' => $this->phone,
-                    // 'country_code_whatsapp' => $this->selectedCountryWhatsapp,
-                    // 'whatsapp_no' => $this->whatsapp_no,
-                    // 'country_code' => $this->country_code,
+                   
                     'country_code_alt_1'  => $this->alt_phone_code_1,
                     'alternative_phone_number_1' => $this->alternative_phone_number_1,
                     'country_code_alt_2'  => $this->alt_phone_code_2,
@@ -1044,8 +1049,7 @@ class OrderNew extends Component
                     'country_id' => $this->country_id,
                     'country_code_phone' => $this->phone_code,
                     'phone' => $this->phone,
-                    // 'country_code_whatsapp' => $this->selectedCountryWhatsapp,
-                    // 'whatsapp_no' => $this->whatsapp_no,
+                    
                     'country_code_alt_1'  => $this->alt_phone_code_1,
                     'alternative_phone_number_1' => $this->alternative_phone_number_1,
                     'country_code_alt_2'  => $this->alt_phone_code_2,
@@ -1119,26 +1123,28 @@ class OrderNew extends Component
             // for team-lead id
             $loggedInAdmin = auth()->guard('admin')->user();
             $order->team_lead_id = $loggedInAdmin->parent_id ?? null;
-            if ($loggedInAdmin->designation == 4) { // TL
-            // Count pending items: Hold items OR Process items not TL approved
-            $pendingItemsCount = $order->items()
-                ->where(function ($q) {
-                    $q->where('status', 'Hold')
-                    ->orWhere(function ($q2) {
-                        $q2->where('status', 'Process')
-                            ->where(function ($q3) {
-                                $q3->whereNull('tl_status')
-                                    ->orWhere('tl_status', '!=', 'Approved');
-                            });
-                    });
-                })
-                ->count();
+            // if ($loggedInAdmin->designation == 4) { // TL
+            // // Count pending items: Hold items OR Process items not TL approved
+            // $pendingItemsCount = $order->items()
+            //     ->where(function ($q) {
+            //         $q->where('status', 'Hold')
+            //         ->orWhere(function ($q2) {
+            //             $q2->where('status', 'Process')
+            //                 ->where(function ($q3) {
+            //                     $q3->whereNull('tl_status')
+            //                         ->orWhere('tl_status', '!=', 'Approved');
+            //                 });
+            //         });
+            //     })
+            //     ->count();
 
-            $status = $pendingItemsCount == 0 ? 'Fully Approved By TL' : 'Partial Approved By TL';
-            $order->status = $status; 
-            }else {
-                $order->status = 'Approval Pending'; // default if not TL or Admin
-            }
+            // $status = $pendingItemsCount == 0 ? 'Fully Approved By TL' : 'Partial Approved By TL';
+            // $order->status = $status; 
+            // }else {
+            //     $order->status = 'Approval Pending'; // default if not TL or Admin
+            // }
+           
+
             // dd($order);
             $order->save();
             
@@ -1170,7 +1176,14 @@ class OrderNew extends Component
                 $orderItem->order_id = $order->id;
                 $orderItem->catalogue_id = $item['selectedCatalogue'] ?? null;
                 $orderItem->cat_page_number = $item['page_number'] ?? null;
-                $orderItem->cat_page_item = $item['page_item'] ?? null;
+                // Only save page_item if valid 
+                $validItems = $this->pageItems[$k] ?? collect();
+                $allowedPageItems = $validItems->pluck('catalog_item')->toArray();
+             if (in_array($item['page_item'] ?? null, $allowedPageItems)) {
+                $orderItem->cat_page_item = $item['page_item'] ;
+             }else{
+                $orderItem->cat_page_item = null;
+             }
                 $orderItem->product_id = $item['product_id'];
                 $orderItem->collection = $collection_data ? $collection_data->id : "";
                 $orderItem->category = $category_data ? $category_data->id : "";
@@ -1219,7 +1232,9 @@ class OrderNew extends Component
 
                     if ($extra == 'mens_jacket_suit') {
                         $orderItem->vents = $item['vents'] ?? null;
+                        $orderItem->shoulder_type = $item['shoulder_type'] ?? null;
                     } elseif ($extra == 'ladies_jacket_suit') {
+                        $orderItem->shoulder_type = $item['shoulder_type'] ?? null;
                         $orderItem->vents_required = $item['vents_required'] ?? null;
                         if ($orderItem->vents_required) {
                             $orderItem->vents_count = $item['vents_count'] ?? null;
@@ -1264,33 +1279,45 @@ class OrderNew extends Component
                     }
                 }
                 $orderItem->save();
+                // When Tl Logged in and create the order 
+                    if ($loggedInAdmin->designation == 4) {
+                        $totalItems = count($this->items);
+                        $approvedItems = $order->items()
+                        ->where('status', 'Process')
+                        ->where('tl_status', 'Approved')
+                         ->count();
 
+                    if ($approvedItems == $totalItems) {
+                        $order->status = 'Fully Approved By TL';
+                    } elseif ($approvedItems > 0) {
+                        $order->status = 'Partial Approved By TL';
+                    } else {
+                        $order->status = 'Approval Pending';
+                    }
+                     $order->save();
+                }
                  // upload multiple catalogue images
-                if(!empty($this->imageUploads)){
-                    foreach ($this->imageUploads as $images) {
-                        foreach($images as $image){
-                            $path = $image->store('uploads/order_item_catalogue_images', 'public');
-                            OrderItemCatalogueImage::create([
-                                'order_item_id' => $orderItem->id,
-                                'image_path' => $path,
-                                'created_at' => now(),
-                                'updated_at' => now()
-                            ]);
-                        }
+                if(!empty($this->imageUploads[$k])){
+                    foreach ($this->imageUploads[$k] as $images) {
+                        $path = $images->store('uploads/order_item_catalogue_images', 'public');
+                        OrderItemCatalogueImage::create([
+                            'order_item_id' => $orderItem->id,
+                            'image_path' => $path,
+                            'created_at' => now(),
+                            'updated_at' => now()
+                        ]);
                     }
                 }
 
-                if(!empty($this->voiceUploads)){
-                    foreach ($this->voiceUploads as $voice) {
-                        foreach($voice as $audio){
-                            $audioPath = $audio->store('uploads/order_item_voice_messages', 'public');
-                            OrderItemVoiceMessage::create([
-                                'order_item_id' => $orderItem->id,
-                                'voices_path' => $audioPath,
-                                'created_at' => now(),
-                                'updated_at' => now()
-                            ]);
-                        }
+                if(!empty($this->voiceUploads[$k])){
+                    foreach ($this->voiceUploads[$k] as $voice) {
+                        $audioPath = $voice->store('uploads/order_item_voice_messages', 'public');
+                        OrderItemVoiceMessage::create([
+                            'order_item_id' => $orderItem->id,
+                            'voices_path' => $audioPath,
+                            'created_at' => now(),
+                            'updated_at' => now()
+                        ]);
                     }
                 }
 
@@ -1308,12 +1335,12 @@ class OrderNew extends Component
 
                         $value = trim($measurement['value']);
 
-                        if ($value === '' || !is_numeric($value) || floatval($value) < 1) {
-                            $measurement_data = Measurement::find($mindex);
-                            $title = $measurement_data->title ?? 'Unknown';
-                            session()->flash('measurements_error.' . $k, '🚨 Oops! Measurement "' . $title . '" must be numeric and greater than 0.');
-                            return;
-                        }
+                        // if ($value === '' || !is_numeric($value) || floatval($value) < 1) {
+                        //     $measurement_data = Measurement::find($mindex);
+                        //     $title = $measurement_data->title ?? 'Unknown';
+                        //     session()->flash('measurements_error.' . $k, '🚨 Oops! Measurement "' . $title . '" must be numeric and greater than 0.');
+                        //     return;
+                        // }
 
                         // Now store only validated value
                         $measurement_data = Measurement::find($mindex);
@@ -1417,7 +1444,6 @@ class OrderNew extends Component
             'email',
             'dob',
             'phone',
-            // 'whatsapp_no',
 
         ]);
     }
@@ -1559,10 +1585,7 @@ class OrderNew extends Component
                 if (!filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
                     $this->errorMessage['email'] = 'Please enter a valid email address.';
                     $this->errorClass['email'] = 'is-invalid';
-                } elseif (!preg_match('/@gmail\.com$/', $this->email)) {
-                    $this->errorMessage['email'] = 'Email must be a valid @gmail.com address.';
-                    $this->errorClass['email'] = 'is-invalid';
-                } else {
+                }  else {
                     $this->errorClass['email'] = null;
                     $this->errorMessage['email'] = null;
                 }

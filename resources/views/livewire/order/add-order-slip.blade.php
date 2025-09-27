@@ -289,40 +289,6 @@
                                 </div>
                             </div>
 
-                            {{-- <div class="accordion-item">
-                                <h2 class="accordion-header" id="headingTwo">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo"
-                                        id="textButton">
-                                        Show ALL
-                                    </button>
-                                </h2>
-                                <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo"
-                                    data-bs-parent="#accordionExample" id="toggleButton">
-                                    <div class="accordion-body">
-                                        <table class="table table-sm table-hover">
-                                            <thead>
-                                                <tr>
-                                                    <x-table-th>Date & Time</x-table-th>
-                                                    <x-table-th>Invoice No</x-table-th>
-                                                    <x-table-th>Order No</x-table-th>
-                                                    <x-table-th>Customer</x-table-th>
-                                                    <x-table-th>Amount</x-table-th>
-                                                    <x-table-th>Due Amount</x-table-th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-
-
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div> --}}
-
-
-
-
                         </div>
                     </div>
 
@@ -464,6 +430,22 @@
                                 @endif
                                 @endif
                             </div>
+                            {{--  Priority dropdown (only for TL) --}}
+                            @if ($user->designation == 4)
+                            <div class="col-sm-2">
+                                <div class="form-group mb-3">
+                                    @if ($key == 0)
+                                    <label>Priority</label>
+                                    @endif
+                                    <select wire:model="order_item.{{ $key }}.priority_level"
+                                        class="form-control form-control-sm">
+                                        <option value="" selected hidden>Select Priority</option>
+                                        <option value="Priority">Priority</option>
+                                        <option value="Non Priority">Non Priority</option>
+                                    </select>
+                                </div>
+                            </div>
+                            @endif
                             {{-- Team Dropdown start --}}
                             {{-- Only Admin Can select the team --}}
                             @if ($user->designation == 1 && $order_item->status == 'Process')
@@ -489,10 +471,7 @@
                             @if ($order_item->collection == 1 && !empty($order_item->measurements))
                             <div class="row mt-4 mb-4">
                                 <div class="col-md-12">
-                                    {{-- <div class="section-title badge"
-                                        style="background: black; color: white; padding: 5px 10px; border-radius: 5px; display: inline-block; margin-bottom: 10px;">
-                                        Measurements
-                                    </div> --}}
+
                                     <h6 class="badge bg-danger custom_success_badge">Measurements</h6>
                                 </div>
                                 <div class="col-sm-6">
@@ -526,16 +505,7 @@
                                                         <input type="text"
                                                             class="form-control form-control-sm border border-1 customer_input text-center measurement_input"
                                                             readonly value=" {{ $value }}">
-                                                        {{-- <div style="
-                                                        border: 1px solid #ccc;
-                                                        padding: 6px;
-                                                        background: #fff;
-                                                        font-size: 12px;
-                                                        border-radius: 4px;
-                                                        min-height: 25px;
-                                                        text-align: center;">
-                                                            {{ $value }}
-                                                        </div> --}}
+
 
                                                     </div>
                                                     @endforeach
@@ -550,7 +520,7 @@
                                     </table> --}}
                                 </div>
                                 {{-- @dd($order_item) --}}
-                                <div class="col-sm-6">
+                                <div class="col-sm-3">
                                     <p><strong>Fabric:</strong> {{ $order_item['fabric']->title ?? 'N/A' }}</p>
                                     <p><strong>Catalogue:</strong>
                                         {{ optional(optional($order_item['catalogue'])->catalogueTitle)->title ?? 'N/A'
@@ -579,8 +549,8 @@
                                     @endif
                                     {{-- @dd($item['voice_remarks']) --}}
                                     @if(!empty($order_item['voice_remark']))
-                                     <p><i class="fas fa-microphone"></i> Voice Remarks</p>
-                                         <div class="d-flex flex-column gap-2">
+                                    <p><i class="fas fa-microphone"></i> Voice Remarks</p>
+                                    <div class="d-flex flex-column gap-2">
                                         @foreach ($order_item['voice_remark'] as $voice)
                                         {{-- @dd($voice) --}}
                                         <audio controls>
@@ -589,6 +559,52 @@
                                         </audio>
                                         @endforeach
                                     </div>
+                                    @endif
+                                </div>
+                                @php
+                                $extra = \App\Helpers\Helper::ExtraRequiredMeasurement($order_item->product_name);
+                                @endphp
+                                <div class="col-sm-3">
+                                    @if($extra === 'mens_jacket_suit')
+                                    <p><strong>Shoulder Type:</strong> {{ $order_item->shoulder_type ?? 'N/A' }}</p>
+                                    <p><strong>Vents:</strong> {{ $order_item['vents'] ?? 'N/A' }}</p>
+                                    @endif
+
+                                    @if($extra === 'ladies_jacket_suit')
+                                    <p><strong>Shoulder Type:</strong> {{ $order_item->shoulder_type ?? 'N/A'
+                                        }}</p>
+                                    <p><strong>Vents Required:</strong> {{ $order_item->vents_required ?? 'N/A'
+                                        }}</p>
+                                    <p><strong>Vents Count:</strong> {{ $order_item->vents_count ?? 'N/A' }}</p>
+                                    @endif
+
+                                    @if($extra === 'trouser')
+                                    <p><strong>Fold Cuff Required:</strong> {{ $order_item->fold_cuff_required
+                                        ?? 'N/A' }}</p>
+                                    <p><strong>Fold Cuff Size:</strong> {{ $order_item->fold_cuff_size ?
+                                        $order_item->fold_cuff_size . ' cm' : 'N/A'
+                                        }}</p>
+                                    <p><strong>Pleats Required:</strong> {{ $order_item->pleats_required ??
+                                        'N/A' }}</p>
+                                    <p><strong>Pleats Count:</strong> {{ $order_item->pleats_count ?? 'N/A' }}
+                                    </p>
+                                    <p><strong>Back Pocket Required:</strong> {{
+                                        $order_item->back_pocket_required ?? 'N/A' }}</p>
+                                    <p><strong>Back Pocket Count:</strong> {{ $order_item->back_pocket_count ??
+                                        'N/A' }}</p>
+                                    <p><strong>Adjustable Belt:</strong> {{ $order_item->adjustable_belt ??
+                                        'N/A' }}</p>
+                                    <p><strong>Suspender Button:</strong> {{ $order_item->suspender_button ??
+                                        'N/A' }}</p>
+                                    <p><strong>Trouser Position:</strong> {{ $order_item->trouser_position ??
+                                        'N/A' }}</p>
+                                    @endif
+                                    @if($extra === 'ladies_jacket_suit' || $extra === 'shirt'
+                                    || $extra === 'mens_jacket_suit')
+                                    <p><strong>Client Name Required:</strong> {{ $order_item->client_name_required ??
+                                        'N/A' }}</p>
+                                    <p><strong>Client Name Place:</strong> {{ $order_item->client_name_place ??
+                                        'N/A' }}</p>
                                     @endif
                                 </div>
                             </div>
@@ -605,10 +621,7 @@
                                 <table>
                                     <tr>
                                         <td>
-                                            {{-- <span class="text-sm badge bg-primary "> --}}
-                                                {{-- {{ $order->items->count()
-                                                + 1 }} --}}
-                                                {{-- </span> --}}
+
                                         </td>
                                         <td class="w-100">
                                             <div class="form-group mb-3">
@@ -624,12 +637,7 @@
                                 </table>
                             </div>
 
-                            {{-- <div class="col-sm-3">
-                                <div class="form-group mb-3">
-                                    <label>Quantity</label>
-                                    <input type="text" class="form-control form-control-sm" value="1" readonly>
-                                </div>
-                            </div> --}}
+
 
                             <div class="col-sm-6">
                                 <div class="form-group mb-3">
@@ -659,116 +667,7 @@
             </div>
         </div>
 
-        {{-- <div class="card mt-2">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-sm-4">
-                        <div class="form-group mb-3">
-                            <label for="" id="">Customer <span class="text-danger">*</span></label>
-                            <div class="position-relative">
-                                <input type="text" wire:model="customer"
-                                    class="form-control form-control-sm border border-1 customer_input"
-                                    placeholder="Search customer by name, mobile, order ID" {{$readonly}}>
-                                <input type="hidden" wire:model="customer_id" value="">
-                                <input type="hidden" wire:model="staff_id" value="">
-                                @if (isset($errorMessage['customer_id']))
-                                <div class="text-danger">{{ $errorMessage['customer_id'] }}</div>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-4">
-                        <div class="form-group mb-3">
-                            <label for="">Voucher No</label>
-                            <input type="text" wire:model="voucher_no" class="form-control form-control-sm" disabled
-                                {{$readonly}}>
-                            @if (isset($errorMessage['voucher_no']))
-                            <div class="text-danger">{{ $errorMessage['voucher_no'] }}</div>
-                            @endif
-                        </div>
-                    </div>
-                    <div class="col-sm-4">
-                        <div class="form-group mb-3">
-                            <label for="">Date <span class="text-danger">*</span></label>
-                            <input type="date" wire:model="payment_date" id="payment_date" max="{{date('Y-m-d')}}"
-                                class="form-control form-control-sm" value="{{date('Y-m-d')}}">
-                            @if (isset($errorMessage['payment_date']))
-                            <div class="text-danger">{{ $errorMessage['payment_date'] }}</div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-                <div class="row justify-content-{{$activePayementMode==" cash"?"end":"start"}}">
-                    <div class="col-sm-4">
-                        <div class="form-group mb-3">
-                            <label for="">Mode of Payment <span class="text-danger">*</span></label>
-                            <select wire:model="payment_mode" class="form-control form-control-sm" id="payment_mode"
-                                wire:change="ChangePaymentMode($event.target.value)">
-                                <option value="" selected hidden>Select One</option>
-                                <option value="cheque">Cheque</option>
-                                <option value="neft">NEFT</option>
-                                <option value="cash">Cash</option>
-                            </select>
-                            @if (isset($errorMessage['payment_mode']))
-                            <div class="text-danger">{{ $errorMessage['payment_mode'] }}</div>
-                            @endif
-                        </div>
-                    </div>
-                    @if ($activePayementMode !== 'cash')
-                    <div class="col-sm-4">
-                        <div class="form-group mb-3">
-                            <label for="">Cheque No / UTR No </label>
-                            <input type="text" value="" wire:model="chq_utr_no" class="form-control form-control-sm"
-                                maxlength="100">
-                            @if (isset($errorMessage['chq_utr_no']))
-                            <div class="text-danger">{{ $errorMessage['chq_utr_no'] }}</div>
-                            @endif
-                        </div>
-                    </div>
-                    <div class="col-sm-4">
-                        <div class="form-group mb-3">
-                            <label for="">Bank Name </label>
-                            <div id="bank_search">
-                                <input type="text" id="" placeholder="Search Bank" wire:model="bank_name" value=""
-                                    class="form-control bank_name form-control-sm" maxlength="200">
-                                @if (isset($errorMessage['bank_name']))
-                                <div class="text-danger">{{ $errorMessage['bank_name'] }}</div>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-                </div>
-                <div class="row justify-content-end">
-                    <div class="col-sm-2">
-                        <div class="form-group mb-3">
-                            <label for="">Actual Amount <span class="text-danger">*</span></label>
-                            <input type="text" value="" maxlength="20" wire:model="actual_amount"
-                                class="form-control form-control-sm" {{$readonly}}>
-                            @if (isset($errorMessage['actual_amount']))
-                            <div class="text-danger">{{ $errorMessage['actual_amount'] }}</div>
-                            @endif
-                        </div>
-                    </div>
-                    <div class="col-sm-2">
-                        <div class="form-group mb-3">
-                            <label for="">Paid Amount<span class="text-danger">*</span></label>
-                            <input type="text" value="" maxlength="20" wire:model="amount"
-                                class="form-control form-control-sm">
-                            @if (isset($errorMessage['amount']))
-                            <div class="text-danger">{{ $errorMessage['amount'] }}</div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="form-group text-end">
-                        <button type="submit" id="submit_btn" class="btn btn-sm btn-success"><i
-                                class="material-icons text-white" style="font-size: 15px;">add</i>Save</button>
-                    </div>
-                </div>
-            </div>
-        </div> --}}
+
     </form>
 </div>
 @push('js')

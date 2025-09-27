@@ -789,10 +789,11 @@
                                                 <input type="hidden"
                                                     wire:model="items.{{ $index }}.get_measurements.{{ $measurement['id'] }}.title"
                                                     value="{{ $measurement['title'] }}">
-                                                <input type="number" required step="any"
+                                                <input type="text" required 
                                                     class="form-control form-control-sm border border-1 customer_input measurement_input"
                                                     wire:model="items.{{ $index }}.get_measurements.{{ $measurement['id'] }}.value"
-                                                    wire:keyup="validateMeasurement({{ $index }}, {{ $measurement['id'] }})">
+                                                    {{-- wire:keyup="validateMeasurement({{ $index }}, {{ $measurement['id'] }})" --}}
+                                                    wire:keydown.enter.prevent>
                                                 @error('items.' . $index . '.get_measurements.'
                                                 .$measurement['id'].'.value')
                                                 <div class="text-danger error-message">{{ $message }}</div>
@@ -972,7 +973,7 @@
                                                         <div class="text-danger">{{ $message }}</div>
                                                         @enderror
                                                     </div>
-
+                                                   
                                                     @if(!empty($items[$index]['client_name_required']) &&
                                                     $items[$index]['client_name_required'] == 'Yes')
                                                         <div class="col-md-3">
@@ -988,7 +989,38 @@
                                                             @enderror
                                                         </div>
                                                     @endif
+                                                     <div class="col-md-3">
+                                                        <label><strong>Shoulder Type</strong></label>
+                                                        <select class="form-control form-control-sm"
+                                                            wire:model="items.{{ $index }}.shoulder_type"
+                                                            wire:change="validateSingle('items.{{ $index }}.shoulder_type')">
+                                                            <option value="" hidden>Select</option>
+                                                            <option value="Straight">Straight</option>
+                                                            <option value="Normal">Normal</option>
+                                                            <option value="Little Down">Little Down</option>
+                                                            <option value="Down">Down</option>
+                                                        </select>
+                                                        @error("items.$index.shoulder_type")
+                                                        <div class="text-danger">{{ $message }}</div>
+                                                        @enderror
+                                                    </div>
+
                                                 @elseif($extra_measurement[$index] == 'ladies_jacket_suit')
+                                                    <div class="col-md-3">
+                                                        <label><strong>Shoulder Type</strong></label>
+                                                        <select class="form-control form-control-sm"
+                                                            wire:model="items.{{ $index }}.shoulder_type"
+                                                            wire:change="validateSingle('items.{{ $index }}.shoulder_type')">
+                                                            <option value="" hidden>Select</option>
+                                                            <option value="Straight">Straight</option>
+                                                            <option value="Normal">Normal</option>
+                                                            <option value="Little Down">Little Down</option>
+                                                            <option value="Down">Down</option>
+                                                        </select>
+                                                        @error("items.$index.shoulder_type")
+                                                        <div class="text-danger">{{ $message }}</div>
+                                                        @enderror
+                                                    </div>
                                                     <!-- Vents Required -->
                                                     <div class="col-md-3 tooltip-wrapper">
                                                         <label class="form-label"><strong>Vents Required?</strong></label>
@@ -1002,9 +1034,7 @@
                                                         @error("items.$index.vents_required")
                                                         <div class="text-danger">{{ $message }}</div>
                                                         @enderror
-                                                        {{-- <span class="tooltip-text">
-                                                                                Specify whether vents are required for the {{strtoupper($items[$index]['searchproduct'])}}.
-                                                        </span> --}}
+                                                      
                                                     </div>
 
                                                     <!-- Number of Vents (only if required) -->
@@ -1022,9 +1052,7 @@
                                                             @error("items.$index.vents_count")
                                                             <div class="text-danger">{{ $message }}</div>
                                                             @enderror
-                                                            {{-- <span class="tooltip-text">
-                                                                                            Choose how many vents if required.
-                                                                                        </span> --}}
+                                                            
                                                         </div>
                                                     @endif
                                                     <div class="col-md-3">
@@ -1152,7 +1180,6 @@
                                                                 <option value="" hidden>Select Count</option>
                                                                 <option value="1">1</option>
                                                                 <option value="2">2</option>
-                                                                <option value="3">3</option>
                                                             </select>
                                                             @error("items.$index.back_pocket_count")
                                                             <div class="text-danger">{{ $message }}</div>

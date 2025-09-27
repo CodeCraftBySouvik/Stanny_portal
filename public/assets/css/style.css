@@ -1251,6 +1251,18 @@ label.form-check-label {
     background-color:#008080 !important; /* Teal */
     font-weight: bold;
 }
+.bg-partial_approved_order_by_admin{
+    color:#020c08 !important;
+    background-color:#f7f7f4 !important;
+    font-weight: bold;
+}
+
+.bg-fully_approved_order_by_admin{
+color: #ffffff !important;
+    background-color: #00ae00 !important;
+    font-weight: bold;
+}
+
 
 
 .gradient-style-first{
@@ -1383,7 +1395,7 @@ label.form-check-label {
     }
 }
 .tel-code-input{
-    width: 286px;
+    width: 100% !important;
     font-size: 0.75rem;
     height: 28px;
 }
@@ -1419,4 +1431,8 @@ label.form-check-label {
 .tooltip-wrapper:hover .tooltip-text {
   visibility: visible;
   opacity: 1;
+}
+
+.intl-tel-input .country-list {
+    max-width: 235px !important;
 }

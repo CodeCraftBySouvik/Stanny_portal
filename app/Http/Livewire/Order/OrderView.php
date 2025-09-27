@@ -7,6 +7,7 @@ use App\Models\OrderItem;
 use \App\Models\Product;
 use \App\Models\Invoice;
 use App\Models\Delivery;
+use App\Models\Measurement;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Component;
@@ -43,23 +44,34 @@ class OrderView extends Component
     {
          // Fetch the order and its related items
          $order = Order::with([
+            'items.catalogue',
             'items.deliveries' => fn($q) => $q->with('user:id,name'),
             'items.voice_remark','items.catlogue_image'
-        ])->findOrFail($this->orderId);
-        //echo "<pre>";print_r($order->toArray());exit;
+         ])->findOrFail($this->orderId);
          $orderItems = $order->items->map(function ($item) use($order) {
-            // dd($item);
             $product = Product::find($item->product_id);
             $delivery = $item->deliveries->first();
              // Decide extra measurement type
              $extra = \App\Helpers\Helper::ExtraRequiredMeasurement($item->product_name);
+              //  Build item-specific measurements
+            $measurements = Measurement::where('product_id', $item->product_id)
+                ->orderBy('position','ASC')
+                ->get()
+                ->map(function ($measurement) use ($item) {
+                    $selected = $item->measurements->firstWhere('measurement_name', $measurement->title);
+                    return [
+                        'measurement_name'          => $measurement->title,
+                        'measurement_title_prefix'  => $measurement->short_code,
+                        'measurement_value'         => $selected ? $selected->measurement_value : '',
+                    ];
+                });
             return [
                 'product_name' => $item->product_name ?? $product->name,
+                'measurements' => $measurements,
                 'collection_id' => $item->collection,
                 'collection_title' => $item->collectionType ?  $item->collectionType->title : "",
                 'fabrics' => $item->fabric,
-                'measurements' => $item->measurements,
-                'catalogue' => $item->catalogue_id?$item->catalogue:"",
+                'catalogue' => optional(optional($item->catalogue)->catalogueTitle)->title ?? "",
                 'catalogue_id' => $item->catalogue_id,
                 'cat_page_number' => $item->cat_page_number,
                 'price' => $item->piece_price,
@@ -86,10 +98,11 @@ class OrderView extends Component
                 'priority' => $item->priority_level,
 
                 // Extra fields packed here
-                'extra_type'     => $extra,
-                'vents'          => $item->vents,
-                'vents_required' => $item->vents_required,
-                'vents_count'    => $item->vents_count,
+                'extra_type'           => $extra,
+                'shoulder_type'        => $item->shoulder_type,
+                'vents'                => $item->vents,
+                'vents_required'       => $item->vents_required,
+                'vents_count'          => $item->vents_count,
                 'fold_cuff_required'   => $item->fold_cuff_required,
                 'fold_cuff_size'       => $item->fold_cuff_size,
                 'pleats_required'      => $item->pleats_required,
@@ -99,13 +112,15 @@ class OrderView extends Component
                 'adjustable_belt'      => $item->adjustable_belt,
                 'suspender_button'     => $item->suspender_button,
                 'trouser_position'     => $item->trouser_position,   
+                'client_name_required'     => $item->client_name_required,   
+                'client_name_place'     => $item->client_name_place,   
             ];
         });
 
         return view('livewire.order.order-view',[
             'order' => $order,
             'orderItems' => $orderItems,
-            'latestOrders'=>$this->latestOrders
+            'latestOrders'=>$this->latestOrders,
         ]);
     }
 
@@ -151,112 +166,7 @@ class OrderView extends Component
     }
 
    
-    // public function deliveredToCustomerPartial()
-    // {
-    //     $this->validate();
-
-    //     if (!$this->Id) {
-    //         throw new \Exception("Order ID is required but received null.");
-    //     }
-
-    //     // Update the current delivery
-    //     Delivery::where('id', $this->Id)->update([
-    //         'status' => $this->status,
-    //         'remarks' => $this->remarks,
-    //         'customer_delivered_by' => auth()->guard('admin')->user()->id,
-    //     ]);
-
-    //     // Flags for collection-wise delivery
-    //     $collection1Delivered = false;
-    //     $collection2Delivered = false;
-
-    //     // Get all order items
-    //     $orderItems = OrderItem::where('order_id', $this->orderId)->get();
-
-    //     foreach ($orderItems as $item) {
-    //         $delivered = Delivery::where('order_item_id', $item->id)
-    //             ->where('status', 'Delivered')
-    //             ->exists();
-
-    //         if ($delivered) {
-    //             if ($item->collection == 1) {
-    //                 $collection1Delivered = true;
-    //             } elseif ($item->collection == 2) {
-    //                 $collection2Delivered = true;
-    //             }
-    //         }
-    //     }
-        
-    //     // Decide final order status
-    //     if ($collection1Delivered && $collection2Delivered) {
-    //         $newStatus = 'Delivered to Customer';
-    //     } elseif ($collection1Delivered || $collection2Delivered) {
-    //         $newStatus = 'Partial Delivered to Customer';
-    //     } else {
-    //         $newStatus = 'Pending'; // optional fallback
-    //     }
-
-    //     Order::where('id', $this->orderId)->update(['status' => $newStatus]);
-
-    //     session()->flash('success', 'Order delivery updated successfully!');
-    //     $this->dispatch('close-delivery-modal');
-    // }
-
-    // public function deliveredToCustomerPartial()
-    // {
-    //     $this->validate();
-
-    //     if (!$this->Id) {
-    //         throw new \Exception("Order ID is required but received null.");
-    //     }
-
-    //     // Update the current delivery
-    //     Delivery::where('id', $this->Id)->update([
-    //         'status' => $this->status,
-    //         'remarks' => $this->remarks,
-    //         'customer_delivered_by' => auth()->guard('admin')->user()->id,
-    //     ]);
-
-    //     // Get all order items
-    //     $orderItems = OrderItem::where('order_id', $this->orderId)->get();
-
-    //     $totalQuantity = 0;
-    //     $totalDelivery = 0;
-
-    //     foreach ($orderItems as $item) {
-    //         $totalQuantity += $item->quantity;
-
-    //         // For this item, get all Delivered deliveries
-    //         // $deliveries = Delivery::where('order_item_id', $item->id)
-    //         //     ->where('status', 'Delivered')
-    //         //     ->get();
-
-    //         $deliveries = Delivery::where('order_item_id', $item->id)
-    //             ->where('status', 'Delivered')
-    //             ->orderBy('id', 'asc') 
-    //             ->first();
-
-    //         foreach ($deliveries as $delivery) {
-    //             if ($item->collection == 1) {
-    //                 $totalDelivery += (int)$delivery->fabric_quantity;
-    //             } else {
-    //                 $totalDelivery += (int)$delivery->delivered_quantity;
-    //             }
-    //         }
-    //     }
-
-    //     dd($totalQuantity, $totalDelivery);
-
-    //     // Update order status
-    //     if ($totalQuantity == $totalDelivery) {
-    //         Order::where('id', $this->orderId)->update(['status' => 'Delivered to Customer']);
-    //     } elseif ($this->status == 'Delivered') {
-    //         Order::where('id', $this->orderId)->update(['status' => 'Partial Delivered to Customer']);
-    //     }
-
-    //     session()->flash('success', 'Order delivery updated successfully!');
-    //     $this->dispatch('close-delivery-modal');
-    // }
+   
 
     public function openDeliveryModal($Id=null,$orderId=null)
     {

@@ -347,10 +347,12 @@
                                         </div>
                                         <div class="col-md-3">
                                             @if($item['extra_type'] === 'mens_jacket_suit')
+                                            <p><strong>Shoulder Type:</strong> {{ $item['shoulder_type'] ?? 'N/A' }}</p>
                                             <p><strong>Vents:</strong> {{ $item['vents'] ?? 'N/A' }}</p>
                                             @endif
 
-                                            @if($item['extra_type'] === 'ladies')
+                                            @if($item['extra_type'] === 'ladies_jacket_suit')
+                                            <p><strong>Shoulder Type:</strong> {{ $item['shoulder_type'] ?? 'N/A' }}</p>
                                             <p><strong>Vents Required:</strong> {{ $item['vents_required'] ?? 'N/A'
                                                 }}</p>
                                             <p><strong>Vents Count:</strong> {{ $item['vents_count'] ?? 'N/A' }}</p>
@@ -359,7 +361,8 @@
                                             @if($item['extra_type'] === 'trouser')
                                             <p><strong>Fold Cuff Required:</strong> {{ $item['fold_cuff_required']
                                                 ?? 'N/A' }}</p>
-                                            <p><strong>Fold Cuff Size:</strong> {{ $item['fold_cuff_size'] ?? 'N/A'
+                                            <p><strong>Fold Cuff Size:</strong> {{ $item['fold_cuff_size'] ?
+                                                $item['fold_cuff_size'] . ' cm' : 'N/A'
                                                 }}</p>
                                             <p><strong>Pleats Required:</strong> {{ $item['pleats_required'] ??
                                                 'N/A' }}</p>
@@ -374,6 +377,14 @@
                                             <p><strong>Suspender Button:</strong> {{ $item['suspender_button'] ??
                                                 'N/A' }}</p>
                                             <p><strong>Trouser Position:</strong> {{ $item['trouser_position'] ??
+                                                'N/A' }}</p>
+                                            @endif
+                                            @if($item['extra_type'] === 'ladies_jacket_suit' || $item['extra_type'] ===
+                                            'shirt' || $item['extra_type'] === 'mens_jacket_suit')
+                                            <p><strong>Client Name Required:</strong> {{ $item['client_name_required']
+                                                ??
+                                                'N/A' }}</p>
+                                            <p><strong>Client Name Place:</strong> {{ $item['client_name_place'] ??
                                                 'N/A' }}</p>
                                             @endif
                                         </div>

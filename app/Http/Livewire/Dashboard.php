@@ -30,16 +30,32 @@ class Dashboard extends Component
     public function mount(){
         $this->user = Auth::guard('admin')->user();
          // Get IDs of self + team (only if not super admin)
-        $userIds = [$this->user->id];
+    //     $userIds = [$this->user->id];
 
-       if (!$this->user->is_super_admin) {
-        $isTeamLead = User::where('parent_id', $this->user->id)->exists();
+    //    if (!$this->user->is_super_admin) {
+    //     $isTeamLead = User::where('parent_id', $this->user->id)->exists();
 
-        if ($isTeamLead) {
-            $teamIds = User::where('parent_id', $this->user->id)->pluck('id')->toArray();
-            $userIds = array_merge($userIds, $teamIds); // self + child users
-        }
-    }
+    //     if ($isTeamLead) {
+    //         $teamIds = User::where('parent_id', $this->user->id)->pluck('id')->toArray();
+    //         $userIds = array_merge($userIds, $teamIds); // self + child users
+    //     }
+    // }
+
+          $userIds = [];
+
+      if ($this->user->is_super_admin) {
+          // super admin can see everything → no userIds restriction
+          $userIds = User::pluck('id')->toArray();
+      } else {
+          $userIds = [$this->user->id];
+          $isTeamLead = User::where('parent_id', $this->user->id)->exists();
+
+          if ($isTeamLead) {
+              $teamIds = User::where('parent_id', $this->user->id)->pluck('id')->toArray();
+              $userIds = array_merge($userIds, $teamIds); // self + child users
+          }
+      }
+
 
         $this->total_suppliers = Supplier::count();
 
@@ -76,7 +92,7 @@ class Dashboard extends Component
                                       ]);
                                   })->count();
                                  
-           $this->total_pending = Order::where('status','Approved')
+           $this->total_pending = Order::where('status','Fully Approved By Admin')
                                     ->whereHas('items', function($query){
                                       $query->where([
                                         'status' => 'Process',

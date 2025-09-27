@@ -364,7 +364,7 @@
                                                 <h6 class="badge bg-danger custom_success_badge">Measurements</h6>
                                                 <div class="row">
 
-                                                    @foreach ($item['measurements'] as $index => $measurement)
+                                                    {{-- @foreach ($item['measurements'] as $index => $measurement)
                                                     <div class="col-md-3 mb-2">
                                                         <label>
                                                             {{$measurement['measurement_name']}}
@@ -374,6 +374,18 @@
                                                         <input type="text"
                                                             class="form-control form-control-sm border border-1 customer_input text-center measurement_input"
                                                             readonly value="{{ $measurement['measurement_value'] }}">
+                                                    </div>
+                                                    @endforeach --}}
+                                                    @foreach ($item['measurements'] as $m)
+                                                    <div class="col-md-3 mb-2">
+                                                        <label>
+                                                            {{ $m['measurement_name'] }}
+                                                            <strong style="display:block;">[{{
+                                                                $m['measurement_title_prefix'] }}]</strong>
+                                                        </label>
+                                                        <input type="text"
+                                                            class="form-control form-control-sm border border-1 text-center"
+                                                            readonly value="{{ $m['measurement_value'] }}">
                                                     </div>
                                                     @endforeach
                                                 </div>
@@ -389,8 +401,9 @@
                                             </div>
                                             <div class="col-lg-3">
                                                 <p>FABRIC : <strong>{{$item['fabrics']->title ?? 'N/A'}}</strong></p>
+                                                
                                                 <p>CATLOGUE : <strong>{{
-                                                        optional(optional($item['catalogue'])->catalogueTitle)->title
+                                                       $item['catalogue'] ?? 'N/A'
                                                         }}</strong>
                                                     (PAGE:
                                                     <strong>{{$item['cat_page_number'] ?? 'N/A'}}</strong>)
@@ -399,7 +412,6 @@
                                                         'N/A'}}</strong></p>
                                                 <p>Fittings : <strong>{{$item['fittings'] ?? 'N/A'}}</strong></p>
                                                 <p>Priority Level : <strong>{{$item['priority'] ?? 'N/A'}}</strong></p>
-
                                                 @if(!empty($item['catlogue_images']))
                                                 <div class="catelog-wrap">
                                                     <p>CATALOGUE IMAGES :</p>
@@ -431,10 +443,14 @@
                                             </div>
                                             <div class="col-lg-3">
                                                 @if($item['extra_type'] === 'mens_jacket_suit')
+                                                <p><strong>Shoulder Type:</strong> {{ $item['shoulder_type'] ?? 'N/A' }}
+                                                </p>
                                                 <p><strong>Vents:</strong> {{ $item['vents'] ?? 'N/A' }}</p>
                                                 @endif
 
-                                                @if($item['extra_type'] === 'ladies')
+                                                @if($item['extra_type'] === 'ladies_jacket_suit')
+                                                <p><strong>Shoulder Type:</strong> {{ $item['shoulder_type'] ?? 'N/A'
+                                                    }}</p>
                                                 <p><strong>Vents Required:</strong> {{ $item['vents_required'] ?? 'N/A'
                                                     }}</p>
                                                 <p><strong>Vents Count:</strong> {{ $item['vents_count'] ?? 'N/A' }}</p>
@@ -443,7 +459,7 @@
                                                 @if($item['extra_type'] === 'trouser')
                                                 <p><strong>Fold Cuff Required:</strong> {{ $item['fold_cuff_required']
                                                     ?? 'N/A' }}</p>
-                                                <p><strong>Fold Cuff Size:</strong> {{ $item['fold_cuff_size'] ?? 'N/A'
+                                                <p><strong>Fold Cuff Size:</strong> {{ !empty($item['fold_cuff_size']) ? $item['fold_cuff_size']. ' cm' : 'N/A'
                                                     }}</p>
                                                 <p><strong>Pleats Required:</strong> {{ $item['pleats_required'] ??
                                                     'N/A' }}</p>
@@ -458,6 +474,12 @@
                                                 <p><strong>Suspender Button:</strong> {{ $item['suspender_button'] ??
                                                     'N/A' }}</p>
                                                 <p><strong>Trouser Position:</strong> {{ $item['trouser_position'] ??
+                                                    'N/A' }}</p>
+                                                @endif
+                                                @if($item['extra_type'] === 'ladies_jacket_suit' || $item['extra_type'] === 'shirt' || $item['extra_type'] === 'mens_jacket_suit')
+                                                    <p><strong>Client Name Required:</strong> {{ $item['client_name_required'] ??
+                                                    'N/A' }}</p>
+                                                    <p><strong>Client Name Place:</strong> {{ $item['client_name_place'] ??
                                                     'N/A' }}</p>
                                                 @endif
                                             </div>

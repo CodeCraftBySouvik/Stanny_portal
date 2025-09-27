@@ -134,7 +134,7 @@ class AddOrderSlip extends Component
             ->doesntExist();
 
         if ($allApproved) {
-            Order::where('id', $this->order->id)->update(['status' => 'Approved']);
+            Order::where('id', $this->order->id)->update(['status' => 'Fully Approved By Admin']);
         }
 
         // Call the final submit function
@@ -403,7 +403,7 @@ class AddOrderSlip extends Component
 
         $order = Order::find($this->order->id);
         $userDesignationId = auth()->guard('admin')->user()->designation;
-
+        $status = null;
         if ($order) {
             if ($userDesignationId == 4) {
                 // Count all process items
@@ -428,8 +428,38 @@ class AddOrderSlip extends Component
                 } else {
                     $status = "Partial Approved By TL";
                 }
-            } else {
-                $status = "Approved";
+            }
+            elseif ($userDesignationId == 1) { // Admin
+                // Total items that are either Process or Hold
+                $allRelevantItems = $order->items()
+                    ->whereIn('status', ['Process', 'Hold'])
+                    ->get();
+
+                $totalItems = $allRelevantItems->count();
+
+                // Count of items Admin approved and TL approved
+                $adminApprovedCount = $allRelevantItems
+                    ->where('tl_status', 'Approved')
+                    ->where('admin_status', 'Approved')
+                    ->count();
+
+                // Check if any remaining Hold or TL-approved but not Admin-approved
+                $hasPending = $allRelevantItems->where(function($item){
+                    return $item->status == 'Hold' || ($item->tl_status == 'Approved' && $item->admin_status != 'Approved');
+                })->count();
+
+                if ($adminApprovedCount == 0) {
+                    $status = "Approval Pending";
+                } elseif ($hasPending > 0) {
+                    $status = "Partial Approved By Admin";
+                } elseif ($adminApprovedCount == $totalItems) {
+                    $status = "Fully Approved By Admin";
+                }
+            }
+
+
+            else {
+                $status = "Approval Pending";
             }
 
             $order->update([
@@ -479,7 +509,7 @@ class AddOrderSlip extends Component
     public function updateOrderItems()
     {
             $subtotal = 0;
-            foreach ($this->order_item as $item) {
+            foreach ($this->order_item as $key=> $item) {
                 $piecePrice = (float)$item['piece_price'];
                 $quantity = (int)$item['quantity'];
                 $totalPrice = $piecePrice * $quantity;
@@ -488,7 +518,7 @@ class AddOrderSlip extends Component
                     'total_price' => $totalPrice,
                     'quantity' => $quantity,
                     'piece_price' => $piecePrice,
-
+                    'priority_level'  => $item['priority_level'] ?? null
                 ]);
 
                 $subtotal += $totalPrice;
@@ -635,8 +665,8 @@ class AddOrderSlip extends Component
         ])->findOrFail($this->orderId);
         //echo "<pre>";print_r($order->toArray());exit;
          $orderItems = $order->items->map(function ($item) use($order) {
+         $product = \App\Models\Product::find($item->product_id);
 
-            $product = \App\Models\Product::find($item->product_id);
             return [
                 'product_name' => $item->product_name ?? $product->name,
                 'collection_id' => $item->collection,
@@ -672,6 +702,8 @@ class AddOrderSlip extends Component
                 'expected_delivery_date' => $item->expected_delivery_date,
                 'fittings' => $item->fittings,
                 'priority' => $item->priority_level,
+
+                
             ];
         });
 

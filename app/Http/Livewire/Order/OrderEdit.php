@@ -43,7 +43,7 @@ class OrderEdit extends Component
     public $errorClass = [];
     public $collections = [];
     public $errorMessage = [];
-    public $activeTab = 2;
+    public $activeTab = 1;
     public $items = [];
 
     public $FetchProduct = 1;
@@ -188,6 +188,8 @@ class OrderEdit extends Component
                     'priority' => $item->priority_level,
                     'status'  =>  $item->status,
                     'tl_status' => $item->tl_status,
+                    'admin_status' => $item->admin_status,
+                    'shoulder_type' => $item->shoulder_type,
                     'vents' => $item->vents,
                     'vents_required' => $item->vents_required,
                     'vents_count' => $item->vents_count,
@@ -260,12 +262,16 @@ class OrderEdit extends Component
 
         foreach ($this->items as $index => $item) {
             $this->extra_measurement[$index] = Helper::ExtraRequiredMeasurement(trim($item['searchproduct']));
+
             if(!empty($item['page_item'])){
                 $this->catalogue_page_item[$index] = $item['page_item'];
-            }
+            }   
+
+             
+
             $this->existingImages[$index] = OrderItemCatalogueImage::where('order_item_id', $item['order_item_id'])->pluck('image_path')->toArray();
             $this->existingVideos[$index] = OrderItemVoiceMessage::where('order_item_id', $item['order_item_id'])->pluck('voices_path')->toArray();
-            $this->imageUploads[$index] = [];
+
             $this->items[$index]['copy_previous_measurements'] = false; // Ensure checkbox is not selected
 
              // Load categories for the selected collection
@@ -421,9 +427,11 @@ class OrderEdit extends Component
 
             if ($extra === 'mens_jacket_suit') {
                 $rules["items.$index.vents"] = 'required';
+                $rules["items.$index.shoulder_type"] = 'required';
             }
 
             if ($extra === 'ladies_jacket_suit') {
+                $rules["items.$index.shoulder_type"] = 'required';
                 $rules["items.$index.vents_required"] = 'required';
                 $rules["items.$index.vents_count"]    = 'required_if:items.'.$index.'.vents_required,Yes|nullable|integer|min:1';
             }
@@ -475,6 +483,7 @@ class OrderEdit extends Component
             'items.*.item_status.required'            => 'Please select a status for the item.',
 
             //  Extra measurement messages
+            'items.*.shoulder_type.required'          => 'Please select shoulder type.',
             'items.*.vents.required'                  => 'Please select vents option for mens suit/jacket.',
             'items.*.vents_required.required'         => 'Please specify if vents are required for ladies suit/jacket.',
             'items.*.vents_count.required_if'         => 'Please specify how many vents for ladies suit/jacket.',
@@ -629,7 +638,7 @@ class OrderEdit extends Component
         $this->maxPages[$index] = []; // Reset max page number
 
         // Fetch max page number from database
-        $maxPage = Catalogue::where('catalogue_title_id', $catalogueId)->value('page_number');
+        $maxPage = Catalogue::where('id', $catalogueId)->value('page_number');
 
         if ($maxPage) {
             $this->maxPages[$index][$catalogueId] = $maxPage;
@@ -647,14 +656,21 @@ class OrderEdit extends Component
 
         // Fetch page items dynamically
          $this->items[$index]['pageItems'] = CataloguePageItem::join('pages', 'catalogue_page_items.page_id', '=', 'pages.id')
-                                                            ->where('catalogue_page_items.catalogue_id', $selectedCatalogue)
-                                                            ->where('pages.page_number', $pageNumber)
-                                                            ->pluck('catalogue_page_items.catalog_item')
-                                                            ->toArray();
-                                                            // If no items found, reset selected page item
-        if(count($this->items[$index]['pageItems'])>0){
+                                        ->where('catalogue_page_items.catalogue_id', $selectedCatalogue)
+                                        ->where('pages.page_number', $pageNumber)
+                                        ->pluck('catalogue_page_items.catalog_item')
+                                        ->toArray();
+
+        if(count($this->items[$index]['pageItems']) >0 ){
+             // Keep the current selection only if it exists in new list
+            if (!in_array($this->items[$index]['page_item'] ?? null, $this->items[$index]['pageItems'])) {
+                $this->items[$index]['page_item'] = null;
+            }
             $this->catalogue_page_item[$index]=  $value;
         }else{
+            // Reset if no items exist
+             $this->items[$index]['pageItems'] = [];
+            $this->items[$index]['page_item'] = null;
             $this->catalogue_page_item[$index] = "";
         }
 
@@ -687,7 +703,7 @@ class OrderEdit extends Component
                                                             ->orderBy('position','ASC')
                                                             ->get()
                                                             ->toArray();
-
+        
         $this->items[$index]['fabrics'] = Fabric::join('product_fabrics', 'fabrics.id', '=', 'product_fabrics.fabric_id')
                                             ->where('product_fabrics.product_id', $id)
                                             ->where('fabrics.status', 1)
@@ -703,7 +719,7 @@ class OrderEdit extends Component
 
         session()->forget('measurements_error.' . $index);
         if (count($this->items[$index]['measurements']) == 0) {
-            session()->flash('measurements_error.' . $index, 'ðŸš¨ Oops! Measurement data not added for this product.');
+            session()->flash('measurements_error.' . $index, 'Oops! Measurement data not added for this product.');
             return;
         }
     }
@@ -728,7 +744,7 @@ class OrderEdit extends Component
         $category = $this->items[$index]['selected_category'];
 
         if (empty($collection)) {
-            session()->flash('errorProduct.' . $index, 'ðŸš¨ Please select a collection before searching for a product.');
+            session()->flash('errorProduct.' . $index, 'Please select a collection before searching for a product.');
             return;
         }
 
@@ -889,34 +905,34 @@ class OrderEdit extends Component
 
 
 
-    public function copyMeasurements($index) {
-        if ($index > 0) {
-            $currentProductId = $this->items[$index]['product_id'] ?? null;
-            $previousProductId = $this->items[$index - 1]['product_id'] ?? null;
+    // public function copyMeasurements($index) {
+    //     if ($index > 0) {
+    //         $currentProductId = $this->items[$index]['product_id'] ?? null;
+    //         $previousProductId = $this->items[$index - 1]['product_id'] ?? null;
 
-            if (!empty($this->items[$index]['copy_previous_measurements'])) {
-                if ($currentProductId === $previousProductId && !empty($this->items[$index - 1]['measurements'])) {
-                    // Copy measurements if the product is the same
-                    $this->items[$index]['measurements'] = $this->items[$index - 1]['measurements']->toArray();
-                } else {
-                    // Keep structure but clear measurement values
-                    if (!empty($this->items[$index]['measurements'])) {
-                        foreach ($this->items[$index]['measurements'] as $key => $measurement) {
-                            $this->items[$index]['measurements'][$key]['value'] = ''; // Clear only values
-                        }
-                    }
-                    session()->flash('measurements_error.' . $index, 'Measurements cannot be copied as products are different.');
-                }
-            } else {
-                // Clear only values if checkbox is unchecked
-                if (!empty($this->items[$index]['measurements'])) {
-                    foreach ($this->items[$index]['measurements'] as $key => $measurement) {
-                        $this->items[$index]['measurements'][$key]['value'] = '';
-                    }
-                }
-            }
-        }
-    }
+    //         if (!empty($this->items[$index]['copy_previous_measurements'])) {
+    //             if ($currentProductId === $previousProductId && !empty($this->items[$index - 1]['measurements'])) {
+    //                 // Copy measurements if the product is the same
+    //                 $this->items[$index]['measurements'] = $this->items[$index - 1]['measurements']->toArray();
+    //             } else {
+    //                 // Keep structure but clear measurement values
+    //                 if (!empty($this->items[$index]['measurements'])) {
+    //                     foreach ($this->items[$index]['measurements'] as $key => $measurement) {
+    //                         $this->items[$index]['measurements'][$key]['value'] = ''; // Clear only values
+    //                     }
+    //                 }
+    //                 session()->flash('measurements_error.' . $index, 'Measurements cannot be copied as products are different.');
+    //             }
+    //         } else {
+    //             // Clear only values if checkbox is unchecked
+    //             if (!empty($this->items[$index]['measurements'])) {
+    //                 foreach ($this->items[$index]['measurements'] as $key => $measurement) {
+    //                     $this->items[$index]['measurements'][$key]['value'] = '';
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
     public function updatedNewUploads($value, $index)
     {
@@ -991,22 +1007,22 @@ class OrderEdit extends Component
         $this->voiceUploads[$index] = array_values($this->voiceUploads[$index]);
     }
 
-    public function validateMeasurement($itemIndex, $measurementKey)
-    {
-        $value = trim($this->items[$itemIndex]['measurements'][$measurementKey]['value'] ?? '');
+    // public function validateMeasurement($itemIndex, $measurementKey)
+    // {
+    //     $value = trim($this->items[$itemIndex]['measurements'][$measurementKey]['value'] ?? '');
 
-        $errorKey = "items.$itemIndex.measurements.$measurementKey.value";
+    //     $errorKey = "items.$itemIndex.measurements.$measurementKey.value";
 
-        if ($value === '') {
-            $this->addError($errorKey, 'Measurement value is required.');
-        } elseif (!is_numeric($value)) {
-            $this->addError($errorKey, 'Measurement must be numeric.');
-        } elseif (floatval($value) < 1) {
-            $this->addError($errorKey, 'Measurement must be a number greater than 0.');
-        } else {
-             $this->resetValidation([$errorKey]);   // clears the error when it becomes valid
-        }
-    }
+    //     if ($value === '') {
+    //         $this->addError($errorKey, 'Measurement value is required.');
+    //     } elseif (!is_numeric($value)) {
+    //         $this->addError($errorKey, 'Measurement must be numeric.');
+    //     } elseif (floatval($value) < 1) {
+    //         $this->addError($errorKey, 'Measurement must be a number greater than 0.');
+    //     } else {
+    //          $this->resetValidation([$errorKey]);   // clears the error when it becomes valid
+    //     }
+    // }
 
 
     public function update(OrderRepository $orderRepo)
@@ -1149,7 +1165,7 @@ class OrderEdit extends Component
                     $orderItem->category = $item['selected_category'];
                     $orderItem->fabrics = $item['selected_fabric'];
                     $orderItem->catalogue_id = !empty($item['selectedCatalogue'])
-                                                ? $item['selectedCatalogue']
+                                                 ? $item['selectedCatalogue']
                                                 : null;
                     $orderItem->quantity = ($item['selected_collection'] == 1) ? 1 : $item['quantity'];
                     $orderItem->fittings  = ($item['selected_collection'] == 1) ? $item['fitting'] : null;
@@ -1158,48 +1174,7 @@ class OrderEdit extends Component
                     $orderItem->cat_page_number  = $item['page_number'] ?? null;
                     $orderItem->cat_page_item  = $item['page_item'] ?? null;
                     $loggedInAdmin = auth()->guard('admin')->user();
-                    //   old working for sales person 
-                    //   $originalStatus = $orderItem->status;
-                    // if ($orderItem->status === 'Process' && $originalStatus != 'Process') {
-                    //     if ($loggedInAdmin->designation == 1) {
-                    //         // Admin is creating the order
-                    //         $orderItem->tl_status = 'Approved';
-                    //         $orderItem->admin_status = 'Approved';
-                    //     } elseif ($loggedInAdmin->designation == 4) {
-                    //         // Team Lead is creating the order
-                    //         $orderItem->tl_status = 'Approved';
-                    //         $orderItem->admin_status = 'Pending';
-                    //     } else {
-                    //         // For others
-                    //         $orderItem->tl_status = 'Pending';
-                    //         $orderItem->admin_status = 'Pending';
-                    //     }
-                    // } elseif ($orderItem->status !== 'Process' && $originalStatus === 'Process') {
-                    //     // Going back to Hold, reset approvals
-                    //     $orderItem->tl_status = 'Pending';
-                    //     $orderItem->admin_status = 'Pending';
-                    // }
                     
-                    // new working while admin
-                    // if ($orderItem->status === 'Process') {
-                    //     if (in_array($loggedInAdmin->designation,[1,12])) {
-                    //         // Admin is creating the order
-                    //         $orderItem->tl_status = 'Approved';
-                    //         $orderItem->admin_status = 'Approved';
-                    //     } elseif ($loggedInAdmin->designation == 4) {
-                    //         // Team Lead is creating the order
-                    //         $orderItem->tl_status = 'Approved';
-                    //         $orderItem->admin_status = 'Pending';
-                    //     } else {
-                    //         // For others
-                    //         $orderItem->tl_status = 'Pending';
-                    //         $orderItem->admin_status = 'Pending';
-                    //     }
-                    // } else {
-                    //     // If status is not Process
-                    //     $orderItem->tl_status = 'Pending';
-                    //     $orderItem->admin_status = 'Pending';
-                    // }
 
                     // ------------------------------------------------------------------
                     $previousStatus = $orderItem->getOriginal('status');   // null if new row
@@ -1211,7 +1186,7 @@ class OrderEdit extends Component
                     if ($statusChanged) {
 
                         // ── 1. Item is (now) Process ──────────────────────────────────
-                        if ($newStatus === 'Process') {
+                        if ($newStatus === 'Process') { 
 
                             // 1A. Brand‑new row (previousStatus == null)
                             if (is_null($previousStatus)) {
@@ -1239,7 +1214,7 @@ class OrderEdit extends Component
                                     $orderItem->tl_status    = 'Pending';
                                     $orderItem->admin_status = 'Pending';
                                 }
-                                $order->status = 'Approved'; //enable mark as received
+                                $order->status = 'Approval Pending'; //enable mark as received
                             }
 
                         // ── 2. Item is leaving Process (Process → Hold or other) ──────
@@ -1249,13 +1224,13 @@ class OrderEdit extends Component
                         }
                     }
 
-                    // ✅ If Admin updated any item from Hold → Process, approve order again
+                    //  If Admin updated any item from Hold → Process, approve order again
                         if (
                             $previousStatus !== 'Process' &&
                             $newStatus === 'Process' &&
                             in_array($loggedInAdmin->designation, [1, 12])
                         ) {
-                            $order->status = 'Approved'; // enable mark as received
+                            $order->status = 'Fully Approved By Admin'; // enable mark as received
                             $order->save();
                         }
                     // ------------------------------------------------------------------
@@ -1265,8 +1240,10 @@ class OrderEdit extends Component
                         $extra = $this->extra_measurement[$key] ?? null;
 
                         if ($extra == 'mens_jacket_suit') {
+                            $orderItem->shoulder_type = $item['shoulder_type'] ?? null;
                             $orderItem->vents = $item['vents'] ?? null;
                         } elseif ($extra == 'ladies_jacket_suit') {
+                            $orderItem->shoulder_type = $item['shoulder_type'] ?? null;
                             $orderItem->vents_required = $item['vents_required'] ?? null;
                             if ($orderItem->vents_required) {
                                 $orderItem->vents_count = $item['vents_count'] ?? null;
@@ -1313,6 +1290,35 @@ class OrderEdit extends Component
 
                     $orderItem->save();
 
+                   // After the foreach ($this->items as $key => $item) loop
+                    $items = $order->items();
+
+                    // Count Process items with TL approved
+                    $processApprovedCount = $items->where('status', 'Process')
+                                                ->where('tl_status', 'Approved')
+                                                ->count();
+
+                    // Count total Process items
+                    $totalProcessCount = $items->where('status', 'Process')->count();
+                    // Count Hold items
+                    $holdCount = $items->where('status', 'Hold')->count();
+                    // Determine order status based on TL designation
+                    $loggedInAdmin = auth()->guard('admin')->user();
+                    if ($loggedInAdmin->designation == 4) { // TL
+                        if ($holdCount > 0 && $processApprovedCount > 0) {
+                            $order->status = 'Partial Approved By TL';
+                        } elseif ($processApprovedCount == $totalProcessCount) {
+                            $order->status = 'Fully Approved By TL';
+                        } elseif ($holdCount == $totalProcessCount) {
+                            $order->status = 'Approval Pending';
+                        }
+                    }
+
+                    // Save the updated order status
+                    $order->save();
+
+
+
                     if ($orderItem) {
                         if (!empty($this->imageUploads[$key])) {
                             foreach ($this->imageUploads[$key] as $uploadedImage) {
@@ -1346,13 +1352,14 @@ class OrderEdit extends Component
                         if (!isset($measurement['value']) || $measurement['value'] === '' ) {
                             session()->flash('measurements_error.' . $key, "🚨 Oops! All measurement data should be mandatory.");
                             return;
-                        }elseif (!is_numeric($measurement['value'])) {
-                            session()->flash('measurements_error.' . $key, "🚨 Oops! Measurement must be numeric.");
-                            return;
-                        } elseif (floatval($measurement['value']) < 1) {
-                            session()->flash('measurements_error.' . $key, "🚨 Oops! Measurement must be greater than 0.");
-                            return;
                         }
+                        // elseif (!is_numeric($measurement['value'])) {
+                        //     session()->flash('measurements_error.' . $key, "🚨 Oops! Measurement must be numeric.");
+                        //     return;
+                        // } elseif (floatval($measurement['value']) < 1) {
+                        //     session()->flash('measurements_error.' . $key, "🚨 Oops! Measurement must be greater than 0.");
+                        //     return;
+                        // }
 
                         $measurementValue = $measurement['value'] ?? null;
                         $measurementName = $measurement['title'] ?? null;
