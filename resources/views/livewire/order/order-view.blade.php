@@ -406,7 +406,11 @@
                                                        $item['catalogue'] ?? 'N/A'
                                                         }}</strong>
                                                     (PAGE:
-                                                    <strong>{{$item['cat_page_number'] ?? 'N/A'}}</strong>)
+                                                    <strong>{{$item['cat_page_number'] ?? 'N/A'}}</strong>
+                                                    @if (!empty($item['cat_page_item']))
+                                                       (<strong>{{$item['cat_page_item'] ?? 'N/A'}}</strong>)     
+                                                    @endif
+                                                    )
                                                 </p>
                                                 <p>Expected Delivery Date : <strong>{{$item['expected_delivery_date'] ??
                                                         'N/A'}}</strong></p>

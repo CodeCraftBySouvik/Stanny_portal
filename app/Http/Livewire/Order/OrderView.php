@@ -74,6 +74,7 @@ class OrderView extends Component
                 'catalogue' => optional(optional($item->catalogue)->catalogueTitle)->title ?? "",
                 'catalogue_id' => $item->catalogue_id,
                 'cat_page_number' => $item->cat_page_number,
+                'cat_page_item' => $item->cat_page_item,
                 'price' => $item->piece_price,
                
                 'deliveries' => $delivery ? [

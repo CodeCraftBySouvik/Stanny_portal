@@ -431,7 +431,7 @@
                                 @endif
                             </div>
                             {{--  Priority dropdown (only for TL) --}}
-                            @if ($user->designation == 4)
+                            @if ( in_array($user->designation,[4,1]) )
                             <div class="col-sm-2">
                                 <div class="form-group mb-3">
                                     @if ($key == 0)

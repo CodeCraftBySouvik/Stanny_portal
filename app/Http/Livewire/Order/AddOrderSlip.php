@@ -71,6 +71,7 @@ class AddOrderSlip extends Component
                 'remarks' => $order_item->remarks,
                 'catlogue_image' => $order_item->catlogue_image,
                 'voice_remark' => $order_item->voice_remark,
+                'priority_level' => $order_item->priority_level,
              ];
                 
             }
@@ -303,19 +304,6 @@ class AddOrderSlip extends Component
         }else{
             try {
                 $userDesignationId = auth()->guard('admin')->user()->designation;
-                if($userDesignationId == 4){
-                    $hasProcessItem = OrderItem::where('order_id', $this->order->id)
-                       ->where('status', 'Process')
-                       ->where('tl_status', 'Approved')
-                       ->exists();
-
-                   if (!$hasProcessItem) {
-                       session()->flash('error', 'Cannot approve order. No items are approved by Team Leader.');
-                       return redirect()->route('admin.order.add_order_slip', $this->order->id);
-                   }
-                }
-               
-
                 // new
                 if ($userDesignationId == 1) {
 
@@ -347,7 +335,19 @@ class AddOrderSlip extends Component
                 $this->updateOrder();
 
                 $this->updateOrderItems();
+                
+                if($userDesignationId == 4){
+                    $hasProcessItem = OrderItem::where('order_id', $this->order->id)
+                       ->where('status', 'Process')
+                       ->where('tl_status', 'Approved')
+                       ->whereNotNull('priority_level')
+                       ->exists();
 
+                   if (!$hasProcessItem) {
+                       session()->flash('error', 'Cannot approve order. No items are approved by Team Leader.');
+                       return redirect()->route('admin.order.add_order_slip', $this->order->id);
+                   }
+                }
                  // Only create packing slip, invoice, ledger if admin approves
                 // $userDesignationId = auth()->guard('admin')->user()->designation;
                 // if($userDesignationId == 1){
@@ -676,6 +676,7 @@ class AddOrderSlip extends Component
                 'catalogue' => $item->catalogue_id?$item->catalogue:"",
                 'catalogue_id' => $item->catalogue_id,
                 'cat_page_number' => $item->cat_page_number,
+                'cat_page_item' => $item->cat_page_item,
                 'price' => $item->piece_price,
                 // 'deliveries' => !empty($item->deliveries)?
                 //     $item->deliveries:"",

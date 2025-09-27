@@ -10,7 +10,7 @@
         </section>
         @if(!in_array($user->designation, [2,12]))
         <div class="row">
-            @if (in_array($user->designation,[1,2,4,12]))
+            @if (in_array($user->designation,[1,2,12]))
             <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
                 <div class="card data-card  gradient-style-first">
                     <a href="{{route('suppliers.index')}}">
@@ -71,7 +71,7 @@
                 </div>
             </div>
             @endif
-            @if (in_array($user->designation,[1,2,4,12,13]))
+            @if (in_array($user->designation,[1,2,12,13]))
             <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
                 <div class="card data-card gradient-style-third">
                     @if($user->designation == 13)
@@ -198,7 +198,7 @@
             </div>
             @endif
             @endif
-            @if (in_array($user->designation,[1,2,4,12]))
+            @if (in_array($user->designation,[1,2,12]))
             <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
                 <div class="card data-card gradient-style-fourth">
                     <a href="{{route('admin.order.invoice.index')}}">
@@ -233,7 +233,7 @@
                 </div>
             </div>
             @endif
-            @if (!in_array($user->designation,[13]))
+            @if (!in_array($user->designation,[13,4]))
             {{-- Add Payment --}}
             <div class="col-xl-3 col-sm-6 mt-2">
                 <div class="card data-card">
@@ -317,7 +317,7 @@
         </div>
         @endif
 
-        @if(in_array($user->designation, [2,12]))
+        @if(in_array($user->designation, [2,12,4]))
 
         <div class="row">
             <!-- Monthly Collection -->
