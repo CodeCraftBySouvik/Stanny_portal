@@ -35,7 +35,7 @@
 
                         <div class="card-footer p-3 d-flex justify-content-between align-items-center"></div>
 
-                    </a>`
+                    </a>
                 </div>
             </div>
             <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
