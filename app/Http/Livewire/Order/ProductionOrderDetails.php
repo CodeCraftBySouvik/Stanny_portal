@@ -357,7 +357,17 @@ public function revertBackStock($index, $inputName, $entryId)
             $totalUsed = $initialStock - $totalStock;
 
             $extra = \App\Helpers\Helper::ExtraRequiredMeasurement($item->product_name);
-
+            $measurements = Measurement::where('product_id', $item->product_id)
+                ->orderBy('position','ASC')
+                ->get()
+                ->map(function ($measurement) use ($item) {
+                    $selected = $item->measurements->firstWhere('measurement_name', $measurement->title);
+                    return [
+                        'measurement_name'          => $measurement->title,
+                        'measurement_title_prefix'  => $measurement->short_code,
+                        'measurement_value'         => $selected ? $selected->measurement_value : '',
+                    ];
+                });
             return [
                 'id' => $item->id,
                 'product_name' => $item->product_name ?? $product?->name,
@@ -365,7 +375,7 @@ public function revertBackStock($index, $inputName, $entryId)
                 'collection_title' => $item->collectionType?->title ?? "",
                 'fabrics' => $item->fabric,
                 'product' => $item->product,
-                'measurements' => $item->measurements,
+                'measurements' => $measurements,
                 'catalogue' => $item->catalogue_id ? $item->catalogue : "",
                 'catalogue_id' => $item->catalogue_id,
                 'cat_page_number' => $item->cat_page_number,
