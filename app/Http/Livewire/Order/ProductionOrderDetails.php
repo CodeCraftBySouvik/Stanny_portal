@@ -811,7 +811,8 @@ public function revertBackStock($index, $inputName, $entryId)
 
         public function openDeliveryModal($index)
     {
-        $item = $this->orderItems[$index];
+       $orderItems = $this->orderItems->values()->all();
+        $item =  $orderItems[$index];
 
         $plannedUsage = 0;
         $unit = '';

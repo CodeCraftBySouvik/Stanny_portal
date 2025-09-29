@@ -802,7 +802,8 @@ class OrderEdit extends Component
          if (empty($this->phone)) {
             $this->errorClass['phone'] = 'border-danger';
             $this->errorMessage['phone'] = 'Please enter customer phone number';
-        } elseif (!preg_match('/^\d{'. $this->mobileLengthPhone .'}$/', $this->phone)) {
+        // } elseif (!preg_match('/^\d{'. $this->mobileLengthPhone .'}$/', $this->phone)) {
+        } elseif (!empty($this->mobileLengthPhone) && strlen($this->phone) != $this->mobileLengthPhone) {
             $this->errorClass['phone'] = 'border-danger';
             $this->errorMessage['phone'] = "Phone number must be exactly ".$this->mobileLengthPhone." digits";
         } else {
