@@ -152,8 +152,8 @@
                                     @if ($loop->first)
                                         <button type="button" class="btn btn-success btn-sm mb-0" wire:click="addRow"><i class="fa fa-plus"></i></button>
                                     @else  
-                                    <button type="button" class="btn btn-success btn-sm mb-0" wire:click="addRow"><i class="fa fa-plus"></i></button>
-                                        <button type="button" class="btn btn-danger btn-sm mb-0" wire:click="removeRow({{ $index }})"><i class="fa fa-times"></i></button>
+                                    <button type="button" class="btn btn-success btn-sm mb-0" wire:click="addRow" style="overflow: visible !important;"><i class="fa fa-plus"></i></button>
+                                        <button type="button" class="btn btn-danger btn-sm mb-0" wire:click="removeRow({{ $index }})" style="overflow: visible !important;"><i class="fa fa-times"></i></button>
                                     @endif
                                 </div>
                             </div>
