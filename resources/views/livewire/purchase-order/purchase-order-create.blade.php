@@ -82,9 +82,9 @@
                                         @enderror
                                     </div>
                                     @if (!empty($row['fabrics']))
-                                        <div class="col-md-3">
+                                        <div class="col-md-3" wire:ignore>
                                             <label for="fabric_{{$index}}" class="form-label"><strong>Fabric</strong> <span class="text-danger">*</span></label>
-                                            <select wire:model="rows.{{$index}}.fabric" id="fabric_{{$index}}" class="form-control form-control-sm border border-1 p-2">
+                                            <select wire:model="rows.{{$index}}.fabric" id="fabric_{{$index}}" class="form-control form-control-sm border border-1 p-2 chosen-select">
                                                 <option value="" selected hidden>Select Fabric</option>
                                                 @foreach ($row['fabrics'] as $fabric)
                                                     <option value="{{ $fabric['id'] }}">
@@ -97,9 +97,9 @@
                                             @enderror
                                         </div>
                                     @elseif(!empty($row['products']))
-                                        <div class="col-md-3">
+                                        <div class="col-md-3" wire:ignore>
                                             <label for="product_{{$index}}" class="form-label"><strong>Product</strong> <span class="text-danger">*</span></label>
-                                            <select type="text" wire:model="rows.{{$index}}.product" id="product_{{$index}}" class="form-control form-control-sm border border-1 p-2" placeholder="Search product by name">
+                                            <select type="text" wire:model="rows.{{$index}}.product" id="product_{{$index}}" class="form-control form-control-sm border border-1 p-2 chosen-select" placeholder="Search product by name">
                                                 <option value="" selected hidden>Select Product</option>
                                                 @if (!empty($row['products']) && count($row['products'])>0)
                                                     @foreach ($row['products'] as $product_item)
@@ -183,3 +183,38 @@
         </div>
     </div>
 </div>
+@push('js')
+<!-- Chosen CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.min.css"/>
+
+<!-- jQuery + Chosen JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js"></script>
+
+    <script>
+    function initChosen() {
+        $('.chosen-select').chosen({
+            width: '100%',
+            no_results_text: "No result found"
+        }).off('change').on('change', function (e) {
+            let model = $(this).attr('wire:model');
+            if (model) {
+                @this.set(model, $(this).val());
+            }
+        });
+    }
+
+    document.addEventListener("livewire:navigated", () => {
+        initChosen();
+    });
+
+    Livewire.hook('morph.updated', ({ el, component }) => {
+        initChosen();
+    });
+
+    $(document).ready(function () {
+        initChosen();
+    });
+</script>
+
+@endpush
