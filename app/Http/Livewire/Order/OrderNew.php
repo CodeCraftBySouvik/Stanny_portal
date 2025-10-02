@@ -114,7 +114,7 @@ class OrderNew extends Component
     {
         $this->logedin_user = auth()->guard('admin')->user();
         $user_id = request()->query('user_id');
-
+        
         if ($user_id) {
             $customer = User::with(['billingAddress', 'shippingAddress'])
                 ->where([
@@ -123,7 +123,7 @@ class OrderNew extends Component
                     ['status', 1]
                 ])
                 ->first();
-
+            $this->customerType = 'existing';        
             if ($customer) {
                 $this->customer_id = $customer->id;
                 $this->prefix = $customer->prefix;
