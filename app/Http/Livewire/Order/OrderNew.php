@@ -879,7 +879,8 @@ class OrderNew extends Component
                                                         ->orderBy('position', 'ASC')
                                                         ->get()
                                                         ->toArray();
-
+         // Initialize get_measurements array for the current item
+        $this->initializeMeasurements($index);
         // Get previous measurements if user ordered this product before
         $this->populatePreviousOrderMeasurements($index, $id);
         // dd($this->populatePreviousOrderMeasurements($index, $id));
@@ -890,7 +891,25 @@ class OrderNew extends Component
         if (empty($this->items[$index]['measurements'])) {
             session()->flash('measurements_error.' . $index, '🚨 Oops! Measurement data not added for this product.');
         }
+
+        
+        // ✅ If "Use previous measurements" checkbox is ticked, copy measurements now
+        if (!empty($this->items[$index]['copy_previous_measurements'])) {
+            $this->copyMeasurements($index);
+        }
     }
+
+    protected function initializeMeasurements($index)
+{
+    $this->items[$index]['get_measurements'] = [];
+    foreach ($this->items[$index]['measurements'] as $measurement) {
+        $this->items[$index]['get_measurements'][$measurement['id']] = [
+            'title' => $measurement['title'],
+            'short_code' => $measurement['short_code'] ?? '',
+            'value' => null,
+        ];
+    }
+}
 
 
 
@@ -939,17 +958,110 @@ class OrderNew extends Component
             $this->items[$index]['existing_measurements'] = [];
         }
     }
-    public function copyMeasurements($index){
-        if ($index > 0) {
-            if (!empty($this->items[$index]['copy_previous_measurements'])) {
-                if (!empty($this->items[$index - 1]['get_measurements'])) {
-                    $this->items[$index]['get_measurements'] = $this->items[$index - 1]['get_measurements'];
-                }
-            } else {
-                $this->items[$index]['get_measurements'] = [];
+    // public function copyMeasurements($index){
+    //     if ($index > 0) {
+    //         if (!empty($this->items[$index]['copy_previous_measurements'])) {
+    //             if (!empty($this->items[$index - 1]['get_measurements'])) {
+    //                 $this->items[$index]['get_measurements'] = $this->items[$index - 1]['get_measurements'];
+    //             }
+    //         } else {
+    //             $this->items[$index]['get_measurements'] = [];
+    //         }
+    //     }
+    // }
+    public function copyMeasurements($index)
+{
+    if (empty($this->items[$index]['copy_previous_measurements'])) {
+        // Checkbox unchecked → reset values
+        foreach ($this->items[$index]['get_measurements'] as &$m) {
+            $m['value'] = null;
+        }
+        return;
+    }
+
+    $currentProductId = $this->items[$index]['product_id'] ?? null;
+
+    // 1️⃣ First, check for the same product in previous items
+    for ($i = $index - 1; $i >= 0; $i--) {
+        if (($this->items[$i]['product_id'] ?? null) === $currentProductId) {
+            if (!isset($this->items[$i]['get_measurements'])) {
+                $this->initializeMeasurements($i);
+            }
+            // Copy all measurements from the same product
+            $this->items[$index]['get_measurements'] = $this->items[$i]['get_measurements'];
+            return;
+        }
+    }
+
+    // 2️ If not found, search forwards for same product
+    for ($i = $index + 1; $i < count($this->items); $i++) {
+        if (($this->items[$i]['product_id'] ?? null) === $currentProductId) {
+            if (!isset($this->items[$i]['get_measurements'])) {
+                $this->initializeMeasurements($i);
+            }
+            $this->items[$index]['get_measurements'] = $this->items[$i]['get_measurements'];
+            return;
+        }
+    }
+
+    // 3️⃣ If no same product found, fallback: copy matching measurements from nearest item
+    $found = false;
+
+    // Backward search
+    for ($i = $index - 1; $i >= 0; $i--) {
+        if (!empty($this->items[$i]['get_measurements'])) {
+            $this->fillMatchingMeasurements($index, $i);
+            $found = true;
+            break;
+        }
+    }
+
+    // Forward search if nothing found
+    if (!$found) {
+        for ($i = $index + 1; $i < count($this->items); $i++) {
+            if (!empty($this->items[$i]['get_measurements'])) {
+                $this->fillMatchingMeasurements($index, $i);
+                break;
             }
         }
     }
+}
+
+
+
+/**
+ * Fill only matching measurements (by title or short_code) from a source item.
+ */
+protected function fillMatchingMeasurements($currentIndex, $sourceIndex)
+{
+    foreach ($this->items[$currentIndex]['measurements'] as $measurement) {
+        $measurementId = $measurement['id'];
+        $measurementTitle = strtolower(trim($measurement['title'] ?? ''));
+        $measurementShortCode = $measurement['short_code'] ?? '';
+
+        // Ensure get_measurements slot exists
+        if (!isset($this->items[$currentIndex]['get_measurements'][$measurementId])) {
+            $this->items[$currentIndex]['get_measurements'][$measurementId] = [
+                'title' => $measurement['title'],
+                'short_code' => $measurementShortCode,
+                'value' => null,
+            ];
+        }
+
+        // Compare with source item measurements
+        foreach ($this->items[$sourceIndex]['get_measurements'] as $prev) {
+            $prevTitle = strtolower(trim($prev['title'] ?? ''));
+            $prevShortCode = $prev['short_code'] ?? '';
+            $prevValue = $prev['value'] ?? null;
+
+            if ($measurementTitle === $prevTitle || $measurementShortCode === $prevShortCode) {
+                $this->items[$currentIndex]['get_measurements'][$measurementId]['value'] = $prevValue;
+            }
+        }
+    }
+}
+
+
 
     public function updatedNewUploads($value, $index)
     {
