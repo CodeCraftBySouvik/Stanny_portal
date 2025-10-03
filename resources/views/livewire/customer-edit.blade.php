@@ -122,109 +122,61 @@
                             @enderror
                         </div>
 
-                        <div class="mb-3 col-md-3">
-                            <label for="phone" class="form-label">Phone <span class="text-danger">*</span></label>
-                            <div class="extention-group">
-                                <select wire:model="selectedCountryPhone"
-                                    wire:change="GetCountryDetails($event.target.selectedOptions[0].getAttribute('data-length'), 'phone')"
-                                    class="form-control form-control-sm">
-                                    <option value="" selected hidden>Select Country</option>
-                                    @foreach($countries as $country)
-                                    <option value="{{ $country->country_code }}"
-                                        data-length="{{$country->mobile_length}}">{{
-                                        $country->title }} ({{ $country->country_code
-                                        }})</option>
-                                    @endforeach
-                                </select>
-                                <input type="text" wire:model="phone" id="phone"
-                                    class="form-control form-control-sm border border-1 p-2"
-                                    placeholder="Enter Phone Number" maxLength={{$mobileLengthPhone}}>
+                        <!-- Phone Number -->
+                        <div class="mb-2 col-md-3">
+                            <label for="mobile" class="form-label">Phone Number</label>
+                            <div class="input-group input-group-sm" id="parent_mobile" wire:ignore>
+                                <input id="mobile" type="tel" class="form-control tel-code-input"
+                                    style="width:286px;" maxlength="{{$mobileLengthPhone}}">
+                                <!-- hidden Livewire bindings -->
+                                <input type="hidden" wire:model="phone_code" id="phone_code">
+                                <input type="hidden" wire:model="phone" id="phone">
+
                             </div>
+
                             @error('phone')
-                            <div class="text-danger">{{ $message }}</div>
+                            <div class="text-danger error-message">{{ $message }}</div>
                             @enderror
                             <div class="form-check-label-group">
-                                <input type="checkbox" id="is_whatsapp1" wire:model="isWhatsappPhone" @if ($isWhatsappPhone)
-                                    checked
-                                @endif>
+                                <input type="checkbox" id="is_whatsapp1" wire:model="isWhatsappPhone">
                                 <label for="is_whatsapp1" class="form-check-label ms-1">Is Whatsapp</label>
                             </div>
                         </div>
 
-                        {{-- <div class="mb-3 col-md-3">
-                            <label for="whatsapp_no" class="form-label">WhatsApp Number <span
-                                    class="text-danger">*</span></label>
-                            <div class="extention-group">
-                                <select wire:model="selectedCountryWhatsapp"
-                                    wire:change="GetCountryDetails($event.target.selectedOptions[0].getAttribute('data-length'), 'whatsapp')"
-                                    class="form-control form-control-sm">
-                                    <option value="" selected hidden>Select Country</option>
-                                    @foreach($countries as $country)
-                                    <option value="{{ $country->country_code }}" data-length="{{$country->mobile_length}}">{{
-                                        $country->title }} ({{ $country->country_code }})</option>
-                                    @endforeach
-                                </select>
-                                <input type="text" wire:model="whatsapp_no" id="whatsapp_no"
-                                    class="form-control form-control-sm border border-1 p-2"  placeholder="Enter Whatsapp Number" maxLength={{$mobileLengthWhatsapp}}>
-                            </div>
-                           
-                            @error('whatsapp_no')
-                            <div class="text-danger">{{ $message }}</div>
-                            @enderror
-                        </div> --}}
-
-                        <div class="mb-3 col-md-3">
-                            <label for="mobile" class="form-label">alternative phone number 1 </label>
-                            <div class="extention-group">
-                                <select wire:model="selectedCountryAlt1"
-                                    wire:change="GetCountryDetails($event.target.selectedOptions[0].getAttribute('data-length'), 'alt_phone_1')"
-                                    class="form-control form-control-sm">
-                                    <option value="" selected hidden>Select Country</option>
-                                    @foreach($countries as $country)
-                                    <option value="{{ $country->country_code }}" data-length="{{$country->mobile_length}}">{{
-                                        $country->title }} ({{ $country->country_code
-                                        }})</option>
-                                    @endforeach
-                                </select>
-                                <input type="text" wire:model="alternative_phone_number_1"
-                                    class="form-control form-control-sm border border-1 p-2"
-                                    placeholder="Alternative Phone No" maxLength={{$mobileLengthAlt1}}>
+                        <!-- Alternative Phone Number 1 -->
+                        <div class="mb-2 col-md-3">
+                            <label for="alt_phone_1" class="form-label">Alternative Phone 1</label>
+                            <div class="input-group input-group-sm" id="parent_alt_phone_code_1" wire:ignore>
+                                <input id="alt_phone_1" type="tel" class="form-control tel-code-input"
+                                    style="width:269px;" maxlength="{{$mobileLengthAlt1}}">
+                                <input type="hidden" wire:model="alt_phone_code_1" id="alt_phone_code_1">
+                                <input type="hidden" wire:model="alternative_phone_number_1"
+                                    id="alt_phone_hidden_1">
                             </div>
                             @error('alternative_phone_number_1')
-                            <div class="text-danger">{{ $message }}</div>
+                            <div class="text-danger error-message">{{ $message }}</div>
                             @enderror
                             <div class="form-check-label-group">
-                                <input type="checkbox" id="is_whatsapp2" wire:model="isWhatsappAlt1" @if ($isWhatsappAlt1)
-                                    checked
-                                @endif>
+                                <input type="checkbox" id="is_whatsapp2" wire:model="isWhatsappAlt1">
                                 <label for="is_whatsapp2" class="form-check-label ms-1">Is Whatsapp</label>
                             </div>
                         </div>
 
-                        <div class="mb-3 col-md-3">
-                            <label for="mobile" class="form-label">alternative phone number 2 </label>
-                            <div class="extention-group">
-                                <select wire:model="selectedCountryAlt2"
-                                wire:change="GetCountryDetails($event.target.selectedOptions[0].getAttribute('data-length'), 'alt_phone_2')"
-                                class="form-control form-control-sm">
-                                <option value="" selected hidden>Select Country</option>
-                                @foreach($countries as $country)
-                                <option value="{{ $country->country_code }}" data-length="{{$country->mobile_length}}">{{
-                                    $country->title }} ({{ $country->country_code
-                                    }})</option>
-                                @endforeach
-                            </select>
-                                <input type="text" wire:model="alternative_phone_number_2"
-                                    class="form-control form-control-sm border border-1 p-2"
-                                    placeholder="Alternative Phone No" maxLength={{$mobileLengthAlt2}}>
+                        <!-- Alternative Phone Number 2 -->
+                        <div class="mb-2 col-md-3">
+                            <label for="alt_phone_2" class="form-label">Alternative Phone 2</label>
+                            <div class="input-group input-group-sm" id="parent_alt_phone_code_2" wire:ignore>
+                                <input id="alt_phone_2" type="tel" class="form-control tel-code-input"
+                                    style="width:269px;" maxlength="{{$mobileLengthAlt2}}">
+                                <input type="hidden" wire:model="alt_phone_code_2" id="alt_phone_code_2">
+                                <input type="hidden" wire:model="alternative_phone_number_2"
+                                    id="alt_phone_hidden_2">
                             </div>
                             @error('alternative_phone_number_2')
-                            <div class="text-danger">{{ $message }}</div>
+                                <div class="text-danger error-message">{{ $message }}</div>
                             @enderror
                             <div class="form-check-label-group">
-                                <input type="checkbox" id="is_whatsapp3" wire:model="isWhatsappAlt2" @if($isWhatsappAlt2)
-                                    checked
-                                @endif>
+                                <input type="checkbox" id="is_whatsapp3" wire:model="isWhatsappAlt2">
                                 <label for="is_whatsapp3" class="form-check-label ms-1">Is Whatsapp</label>
                             </div>
                         </div>
@@ -443,3 +395,64 @@
         </div>
     </div>
 </div>
+@push('js')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/12.1.6/js/intlTelInput.min.js"></script>
+<script>
+    let dialCodesCache = null;
+
+    // Load JSON once when page loads
+    $.getJSON("{{ asset('assets/js/dial-codes.json') }}", function (data) {
+        dialCodesCache = data;
+
+        // Once JSON is loaded, init inputs
+        initIntlTelInput("#mobile", "phone", "phone_code");
+        initIntlTelInput("#alt_phone_1", "alternative_phone_number_1", "alt_phone_code_1");
+        initIntlTelInput("#alt_phone_2", "alternative_phone_number_2", "alt_phone_code_2");
+    });
+
+    function loadDialCodes(dialNumber) {
+        if (!dialCodesCache) return "cf"; // fallback while JSON not loaded
+        return dialCodesCache[dialNumber] || "cf"; // default to cf
+    }
+
+    function initIntlTelInput(selector, phoneModel, codeModel) {
+        var input = $(selector);
+        var codeInput = $("#" + codeModel);
+        var phoneInput = $("#" + phoneModel);
+        var selected_dial_code = codeInput.val(); // only digits
+        var selected_phone_number = phoneInput.val(); // only digits
+        var defaultCountry = loadDialCodes(selected_dial_code);
+        input.intlTelInput({
+            initialCountry: defaultCountry,  // Central African Republic by default
+            preferredCountries: ["us", "gb", "in", "cf"],
+            separateDialCode: true
+        });
+        input.val(selected_phone_number);
+        // On input change (number typing)
+        input.on("input", function () {
+            let number = input.val().replace(/\D/g, ''); // only digits
+            @this.set(phoneModel, number);
+        });
+
+        // On country change
+        input.on("countrychange", function () {
+            let code = "+" + input.intlTelInput("getSelectedCountryData").dialCode;
+            @this.set(codeModel, code);
+            @this.call('CountryCodeSet', selector, code);
+        });
+
+        @this.set(codeModel, selected_dial_code);
+        @this.call('CountryCodeSet', selector, selected_dial_code);
+    }
+
+    // Already existing
+    window.addEventListener('update_input_max_length', function (event) {
+        let itemId = event.detail[0].id;
+        let mobile_length = event.detail[0].mobile_length;
+        if (itemId && mobile_length) {
+            document.querySelector(itemId).setAttribute("maxlength", mobile_length);
+        }
+    });
+</script>
+@endpush
