@@ -12,7 +12,7 @@ class SupplierEdit extends Component
 {
     use WithFileUploads;
 
-    public $supplier, $name, $email, $mobile, $is_wa_same, $whatsapp_no;
+    public $supplier, $name, $email, $phone, $is_wa_same, $whatsapp_no;
     public $billing_address, $billing_landmark, $billing_state, $billing_city, $billing_pin, $billing_country;
     public $gst_number, $gst_file, $credit_limit, $credit_days;
     public $mobileLength;
@@ -23,8 +23,8 @@ class SupplierEdit extends Component
     public $selectedCountryId;
     public $alternative_phone_number_1;
     public $alternative_phone_number_2;
-    public $selectedCountryPhone , $selectedCountryWhatsapp, $selectedCountryAlt1, $selectedCountryAlt2,
-           $mobileLengthPhone , $mobileLengthWhatsapp, $mobileLengthAlt1, $mobileLengthAlt2;
+    public $phone_code , $selectedCountryWhatsapp, $alt_phone_code_1, $alt_phone_code_2,
+           $mobileLengthPhone , $mobileLengthAlt1, $mobileLengthAlt2;
     public $isWhatsappPhone, $isWhatsappAlt1, $isWhatsappAlt2;
 
 
@@ -34,7 +34,7 @@ class SupplierEdit extends Component
         // $this->prefix = $this->supplier->prefix;
         $this->name = $this->supplier->name;
         $this->email = $this->supplier->email;
-        $this->mobile = $this->supplier->mobile;
+        $this->phone = $this->supplier->mobile;
         // $this->is_wa_same = ($this->supplier->mobile == $this->supplier->whatsapp_no) ? 1 : 0;
         $this->whatsapp_no = $this->supplier->whatsapp_no;
         $this->billing_address = $this->supplier->billing_address;
@@ -51,56 +51,31 @@ class SupplierEdit extends Component
         $this->alternative_phone_number_1 = $this->supplier->alternative_phone_number_1;
         $this->alternative_phone_number_2 = $this->supplier->alternative_phone_number_2;
 
-        $this->selectedCountryPhone = $this->supplier->country_code_mobile;
+        $this->phone_code = $this->supplier->country_code_mobile;
         $this->selectedCountryWhatsapp = $this->supplier->country_code_whatsapp;
-        $this->selectedCountryAlt1 = $this->supplier->country_code_alt_1;
-        $this->selectedCountryAlt2 = $this->supplier->country_code_alt_2;
+        $this->alt_phone_code_1 = $this->supplier->country_code_alt_1;
+        $this->alt_phone_code_2 = $this->supplier->country_code_alt_2;
 
-        $this->mobileLengthPhone = Country::where('country_code',$this->selectedCountryPhone)->value('mobile_length') ?? '';
-        $this->mobileLengthWhatsapp = Country::where('country_code',$this->selectedCountryWhatsapp)->value('mobile_length') ?? '';
-        $this->mobileLengthAlt1 = Country::where('country_code',$this->selectedCountryAlt1)->value('mobile_length') ?? '';
-        $this->mobileLengthAlt2 = Country::where('country_code',$this->selectedCountryAlt2)->value('mobile_length') ?? '';
+        $this->mobileLengthPhone = Country::where('country_code',$this->phone_code)->value('mobile_length') ?? '';
+        $this->mobileLengthAlt1 = Country::where('country_code',$this->alt_phone_code_1)->value('mobile_length') ?? '';
+        $this->mobileLengthAlt2 = Country::where('country_code',$this->alt_phone_code_2)->value('mobile_length') ?? '';
 
-        $this->isWhatsappPhone = UserWhatsapp::where('supplier_id',$this->supplier->id)->where('whatsapp_number',$this->mobile)->exists();
+        $this->isWhatsappPhone = UserWhatsapp::where('supplier_id',$this->supplier->id)->where('whatsapp_number',$this->phone)->exists();
         $this->isWhatsappAlt1 =  UserWhatsapp::where('supplier_id',$this->supplier->id)->where('whatsapp_number',$this->alternative_phone_number_1)->exists();
         $this->isWhatsappAlt2 =  UserWhatsapp::where('supplier_id',$this->supplier->id)->where('whatsapp_number',$this->alternative_phone_number_2)->exists();
 
-        // $this->searchTerm = Country::where('id',$this->supplier->country_id)->pluck('title');
-        // $this->selectedCountryId = $this->supplier->country_id;
-        // $country = Country::find($this->selectedCountryId);
-        // if($country){
-        //     $this->country_code = $country->country_code;
-        //     $this->mobileLength = $country->mobile_length;
-        // }
-
-        $this->countries = Country::where('status',1)->get();
     }
 
-    public function GetCountryDetails($mobileLength, $field){
-        switch($field){
-            case 'phone':
-                $this->mobileLengthPhone  = $mobileLength;
-                break;
+   public function CountryCodeSet($selector, $Code, $number = null)
+    {
+        $mobile_length = Country::where('country_code', $Code)->value('mobile_length') ?? '';
 
-            case 'whatsapp':
-                $this->mobileLengthWhatsapp = $mobileLength;
-                break;
-
-            case 'alt_phone_1':
-                $this->mobileLengthAlt1 = $mobileLength;
-                break;
-            
-            case 'alt_phone_2':
-                $this->mobileLengthAlt2 = $mobileLength;
-                break;
-            
-                
-        }
+        // Dispatch for maxlength
+        $this->dispatch('update_input_max_length', [
+            'id' => $selector,
+            'mobile_length' => $mobile_length
+        ]);
     }
-
-    
-
- 
     public function updateSupplier()
     {
         // dd($this->all());
@@ -109,14 +84,10 @@ class SupplierEdit extends Component
             // 'prefix' => 'required',
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|unique:suppliers,email,' . $this->supplier->id,
-            'mobile' => [
+            'phone' => [
                 'required',
                 'regex:/^\d{'. $this->mobileLengthPhone .'}$/',
             ],
-            // 'whatsapp_no' => [
-            //     'required',
-            //     'regex:/^\d{'. $this->mobileLengthWhatsapp .'}$/',
-            // ],
             'alternative_phone_number_1' => [
                 'nullable',
                 'regex:/^\d{'. $this->mobileLengthAlt1 .'}$/',
@@ -141,10 +112,8 @@ class SupplierEdit extends Component
             'email.required' => 'Email is required.',
             'email.email' => 'Enter a valid email address.',
             'email.unique' => 'This email is already registered.',
-            'mobile.required' => 'Mobile number is required.',
-            'mobile.regex' => 'Mobile number must be exactly ' . $this->mobileLengthPhone . ' digits.',
-            // 'whatsapp_no.required' => 'WhatsApp number is required.',
-            // 'whatsapp_no.regex' => 'WhatsApp number must be exactly ' . $this->mobileLengthWhatsapp . ' digits.',
+            'phone.required' => 'Mobile number is required.',
+            'phone.regex' => 'Mobile number must be exactly ' . $this->mobileLengthPhone . ' digits.',
             'alternative_phone_number_1.regex' => 'Alternative phone number 1 must be exactly ' . $this->mobileLengthAlt1 . ' digits.',
             'alternative_phone_number_2.regex' => 'Alternative phone number 2 must be exactly ' . $this->mobileLengthAlt2 . ' digits.',
             'billing_address.required' => 'Billing address is required.',
@@ -166,9 +135,8 @@ class SupplierEdit extends Component
             // 'prefix' => $this->prefix,
             'name' => $this->name,
             'email' => $this->email,
-            'country_code_mobile' => $this->selectedCountryPhone,
-            'mobile' => $this->mobile,
-            // 'country_code_whatsapp' => $this->selectedCountryWhatsapp,
+            'country_code_mobile' => $this->phone_code,
+            'mobile' => $this->phone,
             // 'whatsapp_no' => $this->whatsapp_no,
             'billing_address' => $this->billing_address,
             'billing_landmark' => $this->billing_landmark,
@@ -182,26 +150,26 @@ class SupplierEdit extends Component
             'credit_days' => $this->credit_days,
             'country_id' => $this->selectedCountryId,
             // 'country_code' => $this->country_code,
-            'country_code_alt_1'  => $this->selectedCountryAlt1,
+            'country_code_alt_1'  => $this->alt_phone_code_1,
             'alternative_phone_number_1' => $this->alternative_phone_number_1,
-            'country_code_alt_2'  => $this->selectedCountryAlt2,
+            'country_code_alt_2'  => $this->alt_phone_code_2,
             'alternative_phone_number_2' => $this->alternative_phone_number_2,
 
         ]);
 
         if ($this->isWhatsappPhone) {
-            $existingRecord = UserWhatsapp::where('whatsapp_number', $this->mobile)
+            $existingRecord = UserWhatsapp::where('whatsapp_number', $this->phone)
                                                 ->where('supplier_id','!=', $this->supplier->id)
                                                 ->exists();
         if(!$existingRecord){
             UserWhatsapp::updateOrCreate(
-                ['supplier_id' => $this->supplier->id, 'whatsapp_number' => $this->mobile],
-                ['country_code' => $this->selectedCountryPhone, 'updated_at' => now()]
+                ['supplier_id' => $this->supplier->id, 'whatsapp_number' => $this->phone],
+                ['country_code' => $this->phone_code, 'updated_at' => now()]
             ); 
           }
         }else {
-            if(!empty($this->mobile)){
-                UserWhatsapp::where('supplier_id', $this->supplier->id)->where('whatsapp_number', $this->mobile)->delete();
+            if(!empty($this->phone)){
+                UserWhatsapp::where('supplier_id', $this->supplier->id)->where('whatsapp_number', $this->phone)->delete();
             }
         }
 
@@ -214,7 +182,7 @@ class SupplierEdit extends Component
         if(!$existingRecord){
             UserWhatsapp::updateOrCreate(
                 ['supplier_id' =>  $this->supplier->id, 'whatsapp_number' => $this->alternative_phone_number_1],
-                ['country_code' => $this->selectedCountryAlt1, 'updated_at' => now()]
+                ['country_code' => $this->alt_phone_code_1, 'updated_at' => now()]
             );
         }
         }else {
@@ -231,7 +199,7 @@ class SupplierEdit extends Component
         if(!$existingRecord){
             UserWhatsapp::updateOrCreate(
                 ['supplier_id' =>  $this->supplier->id, 'whatsapp_number' => $this->alternative_phone_number_2],
-                ['country_code' => $this->selectedCountryAlt2, 'updated_at' => now()]
+                ['country_code' => $this->alt_phone_code_2, 'updated_at' => now()]
             );
         }
         }else {

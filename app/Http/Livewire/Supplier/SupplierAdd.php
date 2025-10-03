@@ -14,59 +14,40 @@ class SupplierAdd extends Component
 {
     use WithFileUploads;
 
-    public $name, $email, $mobile, $whatsapp_no ,$alternative_phone_number_1, $alternative_phone_number_2;
+    public $name, $email, $phone, $whatsapp_no ,$alternative_phone_number_1, $alternative_phone_number_2;
     public $billing_address, $billing_landmark, $billing_state, $billing_city, $billing_pin, $billing_country;
     public $gst_number, $gst_file, $credit_limit, $credit_days;
-    // public $searchTerm;
     protected $rules=[];
     public $countries = [];
     public $selectedCountryId;
     public $country_code;
     public $mobileLength;
-    public $selectedCountryPhone, $selectedCountryWhatsapp,$selectedCountryAlt1,$selectedCountryAlt2,
+    public $phone_code,$alt_phone_code_1,$alt_phone_code_2,
             $mobileLengthPhone,   $mobileLengthWhatsapp  ,  $mobileLengthAlt1, $mobileLengthAlt2;
     public $isWhatsappPhone, $isWhatsappAlt1,$isWhatsappAlt2;
     public $supplier;
 
-    public function mount(){
-        $this->selectedCountryId = null;
-        $this->country_code = '';
-        $this->countries = Country::where('status',1)->get();
+    public function CountryCodeSet($selector, $Code, $number = null)
+    {
+        $mobile_length = Country::where('country_code', $Code)->value('mobile_length') ?? '';
+
+        // Dispatch for maxlength
+        $this->dispatch('update_input_max_length', [
+            'id' => $selector,
+            'mobile_length' => $mobile_length
+        ]);
+
+        $this->mobileLengthPhone = $mobile_length;
     }
-
-    public function GetCountryDetails($mobileLength, $field){
-        switch($field){
-            case 'phone':
-                $this->mobileLengthPhone = $mobileLength;
-            break;
-
-            case 'whatsapp':
-                $this->mobileLengthWhatsapp = $mobileLength;
-            break;
-
-            case 'alt_phone_1':
-                $this->mobileLengthAlt1  = $mobileLength;
-            break;
-
-            case 'alt_phone_2':
-                $this->mobileLengthAlt2 = $mobileLength;
-            break;
-        }
-    }
-
-    
-
    public function rules(){
      return [
-            // 'searchTerm' => 'required',
-            // 'prefix' => 'required',
             'name' => 'required|string|max:255',
             'email' => [
                 'nullable',
                 'email',
                 Rule::unique('suppliers', 'email')->ignore(optional($this->supplier)->id),
             ],
-            'mobile' => [
+            'phone' => [
                 'required',
                'regex:/^\d{'. $this->mobileLengthPhone .'}$/',
             ],
@@ -101,8 +82,8 @@ class SupplierAdd extends Component
             // 'searchTerm.required' => 'Please select a country.',
             // 'name.required' => 'Supplier name is required.',
             'email.email' => 'Enter a valid email address.',
-            'mobile.required' => 'Mobile number is required.',
-            'mobile.regex' => 'Mobile number must be exactly ' . $this->mobileLengthPhone . ' digits.',
+            'phone.required' => 'Mobile number is required.',
+            'phone.regex' => 'Mobile number must be exactly ' . $this->mobileLengthPhone . ' digits.',
             // 'whatsapp_no.required' => 'WhatsApp number is required.',
             // 'whatsapp_no.regex' => 'WhatsApp number must be exactly ' . $this->mobileLengthWhatsapp . ' digits.',
             'alternative_phone_number_1.regex' => 'Alternative phone number 1 must be exactly ' . $this->mobileLengthAlt1 . ' digits.',
@@ -134,13 +115,13 @@ class SupplierAdd extends Component
                 'name' => $this->name,
                 'email' => $this->email,
                 // 'country_code'=> $this->country_code,
-                'country_code_alt_1' => $this->selectedCountryAlt1,
+                'country_code_alt_1' => $this->alt_phone_code_1,
                 'alternative_phone_number_1' => $this->alternative_phone_number_1,
-                'country_code_alt_2'  => $this->selectedCountryAlt2,
+                'country_code_alt_2'  => $this->alt_phone_code_2,
                 'alternative_phone_number_2' => $this->alternative_phone_number_2,
-                'country_code_mobile' => $this->selectedCountryPhone,
-                'mobile' => $this->mobile,
-                // 'country_code_whatsapp'=> $this->selectedCountryWhatsapp,
+                'country_code_mobile' => $this->phone_code,
+                'mobile' => $this->phone,
+                // 'country_code_whatsapp'=> $this->phone_code,
                 // 'whatsapp_no' => $this->whatsapp_no,
                 'billing_address' => $this->billing_address,
                 'billing_landmark' => $this->billing_landmark,
@@ -157,13 +138,13 @@ class SupplierAdd extends Component
        
 
         if ($this->isWhatsappPhone) {
-            $existingRecord = UserWhatsapp::where('whatsapp_number', $this->mobile)->first();
+            $existingRecord = UserWhatsapp::where('whatsapp_number', $this->phone)->first();
         
             if (!$existingRecord) {
                 UserWhatsapp::create([
                     'supplier_id' => $supplier->id,
-                    'whatsapp_number' => $this->mobile,
-                    'country_code' => $this->selectedCountryPhone,
+                    'whatsapp_number' => $this->phone,
+                    'country_code' => $this->phone_code,
                     'created_at' => now(),
                     'updated_at' => now()
                 ]);
@@ -171,7 +152,7 @@ class SupplierAdd extends Component
                 // Optionally update the record if the supplier ID is different
                 $existingRecord->update([
                     'supplier_id' => $supplier->id,
-                    'country_code' => $this->selectedCountryPhone,
+                    'country_code' => $this->phone_code,
                     'updated_at' => now()
                 ]);
             }
@@ -184,14 +165,14 @@ class SupplierAdd extends Component
                 UserWhatsapp::create([
                     'supplier_id' => $supplier->id,
                     'whatsapp_number' => $this->alternative_phone_number_1,
-                    'country_code' => $this->selectedCountryAlt1,
+                    'country_code' => $this->alt_phone_code_1,
                     'created_at' => now(),
                     'updated_at' => now()
                 ]);
             } elseif ($existingRecord->supplier_id != $supplier->id) {
                 $existingRecord->update([
                     'supplier_id' => $supplier->id,
-                    'country_code' => $this->selectedCountryAlt1,
+                    'country_code' => $this->alt_phone_code_1,
                     'updated_at' => now()
                 ]);
             }
@@ -204,14 +185,14 @@ class SupplierAdd extends Component
                 UserWhatsapp::create([
                     'supplier_id' => $supplier->id,
                     'whatsapp_number' => $this->alternative_phone_number_2,
-                    'country_code' => $this->selectedCountryAlt2,
+                    'country_code' => $this->alt_phone_code_2,
                     'created_at' => now(),
                     'updated_at' => now()
                 ]);
             } elseif ($existingRecord->supplier_id != $supplier->id) {
                 $existingRecord->update([
                     'supplier_id' => $supplier->id,
-                    'country_code' => $this->selectedCountryAlt2,
+                    'country_code' => $this->alt_phone_code_2,
                     'updated_at' => now()
                 ]);
             }

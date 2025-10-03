@@ -10,6 +10,7 @@ use App\Models\UserWhatsapp;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class UserAddressForm extends Component
 {
@@ -35,37 +36,27 @@ class UserAddressForm extends Component
     public $tempImageUrl;
     public $country_code;
     public $country_id;
-    public $selectedCountryPhone,$selectedCountryWhatsapp,$selectedCountryAlt1,$selectedCountryAlt2;
+    public $phone_code,$selectedCountryWhatsapp,$alt_phone_code_1,$alt_phone_code_2;
     public $mobileLengthPhone,$mobileLengthWhatsapp,$mobileLengthAlt1,$mobileLengthAlt2;
     public $badge_type = 'general';
 
 
     public function mount(){
-        $this->countries = Country::where('status',1)->get();
     }
+    public function CountryCodeSet($selector, $Code, $number = null)
+    {
+        $mobile_length = Country::where('country_code', $Code)->value('mobile_length') ?? '';
 
-    public function GetCountryDetails($mobileLength, $field){
-        switch($field){
-            case 'phone':
-                $this->mobileLengthPhone  = $mobileLength;
-                break;
+        // Dispatch for maxlength
+        $this->dispatch('update_input_max_length', [
+            'id' => $selector,
+            'mobile_length' => $mobile_length
+        ]);
 
-            // case 'whatsapp':
-            //     $this->mobileLengthWhatsapp = $mobileLength;
-            //     break;
-
-            case 'alt_phone_1':
-                $this->mobileLengthAlt1 = $mobileLength;
-                break;
-            
-            case 'alt_phone_2':
-                $this->mobileLengthAlt2 = $mobileLength;
-                break;
-        }
+        $this->mobileLengthPhone = $mobile_length;
     }
 
   
-    
     public function rules()
     {
         // Base rules
@@ -75,12 +66,17 @@ class UserAddressForm extends Component
             'employee_rank' => 'nullable|string',
             'image' => 'nullable|mimes:jpeg,png,jpg,gif',
             'company_name'=>'nullable|string|max:255',
-            'email' => 'nullable|email',
+            'email' => [
+                'nullable',
+                'email',
+                Rule::unique('users', 'email')->whereNull('deleted_at'),
+            ],
             'badge_type' => 'required|in:general,premium',
             'dob'=> 'nullable|date',
-             'phone' => [
+            'phone' => [
                 'required',
                 'regex:/^\d{'. $this->mobileLengthPhone .'}$/',
+                Rule::unique('users', 'phone')->whereNull('deleted_at'),
             ],
            
             'gst_number' => 'nullable|string|max:15',
@@ -108,29 +104,29 @@ class UserAddressForm extends Component
         return $rules;
     }
     public function messages()
-{
-    return [
-        'prefix.required' => 'The prefix field is required.',
-        'name.required' => 'Please enter your full name.',
-        'name.max' => 'The name cannot exceed 255 characters.',
-        'employee_rank.string' => 'Employee rank must be a valid text.',
-        'image.mimes' => 'The image must be a file of type: jpeg, png, jpg, gif.',
-        'company_name.string' => 'Company name must be a valid text.',
-        'company_name.max' => 'Company name cannot exceed 255 characters.',
-        'email.email' => 'Please enter a valid email address.',
-        'email.unique' => 'This email is already in use.',
-        'phone.required' => 'Phone number is required.',
-        'phone.regex' => 'Phone number must be exactly ' . $this->mobileLengthPhone . ' digits.',
-        'gst_number.max' => 'GST number cannot exceed 15 characters.',
-        'credit_limit.numeric' => 'Credit limit must be a valid number.',
-        'credit_days.integer' => 'Credit days must be a valid integer.',
-        'billing_address.required' => 'Address is required.',
-        'billing_city.required' => 'City is required.',
-        'billing_country.required' => 'Country is required.',
-        'alternative_phone_number_1.regex' => 'Alternative phone number 1 must be exactly ' . $this->mobileLengthAlt1 . ' digits.',
-        'alternative_phone_number_2.regex' => 'Alternative phone number 2 must be exactly ' . $this->mobileLengthAlt2 . ' digits.',
-    ];
-}
+    {
+        return [
+            'prefix.required' => 'The prefix field is required.',
+            'name.required' => 'Please enter your full name.',
+            'name.max' => 'The name cannot exceed 255 characters.',
+            'employee_rank.string' => 'Employee rank must be a valid text.',
+            'image.mimes' => 'The image must be a file of type: jpeg, png, jpg, gif.',
+            'company_name.string' => 'Company name must be a valid text.',
+            'company_name.max' => 'Company name cannot exceed 255 characters.',
+            'email.email' => 'Please enter a valid email address.',
+            'email.unique' => 'This email is already in use.',
+            'phone.required' => 'Phone number is required.',
+            'phone.regex' => 'Phone number must be exactly ' . $this->mobileLengthPhone . ' digits.',
+            'gst_number.max' => 'GST number cannot exceed 15 characters.',
+            'credit_limit.numeric' => 'Credit limit must be a valid number.',
+            'credit_days.integer' => 'Credit days must be a valid integer.',
+            'billing_address.required' => 'Address is required.',
+            'billing_city.required' => 'City is required.',
+            'billing_country.required' => 'Country is required.',
+            'alternative_phone_number_1.regex' => 'Alternative phone number 1 must be exactly ' . $this->mobileLengthAlt1 . ' digits.',
+            'alternative_phone_number_2.regex' => 'Alternative phone number 2 must be exactly ' . $this->mobileLengthAlt2 . ' digits.',
+        ];
+    }
 
     
     private function uploadImage()
@@ -196,7 +192,7 @@ class UserAddressForm extends Component
                 'employee_rank' => $this->employee_rank,
                 'email' => $this->email,
                 'dob'=>$this->dob,
-                'country_code_phone' => $this->selectedCountryPhone,
+                'country_code_phone' => $this->phone_code,
                 'phone' => $this->phone,
                 'country_code_whatsapp' => $this->selectedCountryWhatsapp,
                 'gst_number' => $this->gst_number,
@@ -204,9 +200,9 @@ class UserAddressForm extends Component
                 'credit_days' => $this->credit_days === '' ? 0 : $this->credit_days,
                 'gst_certificate_image' => $this->gst_certificate_image ? $this->uploadGSTCertificate() : null,
                 'country_id' => $this->country_id,// Handle file upload
-                'country_code_alt_1'  => $this->selectedCountryAlt1,
+                'country_code_alt_1'  => $this->alt_phone_code_1,
                 'alternative_phone_number_1'=> $this->alternative_phone_number_1,
-                'country_code_alt_2'  => $this->selectedCountryAlt2,
+                'country_code_alt_2'  => $this->alt_phone_code_2,
                 'alternative_phone_number_2' => $this->alternative_phone_number_2,
                 'created_by' => $auth->id
             ];
@@ -223,7 +219,7 @@ class UserAddressForm extends Component
                         ['user_id' => $user->id,
                         'whatsapp_number' => $this->phone,
                         ],
-                        ['country_code' => $this->selectedCountryPhone,
+                        ['country_code' => $this->phone_code,
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);
@@ -240,7 +236,7 @@ class UserAddressForm extends Component
                     'user_id' => $user->id,
                     'whatsapp_number' => $this->alternative_phone_number_1
                     ],
-                    ['country_code' => $this->selectedCountryAlt1,
+                    ['country_code' => $this->alt_phone_code_1,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
@@ -256,7 +252,7 @@ class UserAddressForm extends Component
                     'user_id' => $user->id,
                     'whatsapp_number' => $this->alternative_phone_number_2,
                     ],
-                    ['country_code' => $this->selectedCountryAlt2,
+                    ['country_code' => $this->alt_phone_code_2,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);

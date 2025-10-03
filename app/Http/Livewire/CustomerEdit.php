@@ -8,13 +8,14 @@ use App\Models\Country;
 use App\Models\UserAddress;
 use App\Models\UserWhatsapp;
 use Livewire\WithFileUploads;
+use Illuminate\Validation\Rule;
 
 class CustomerEdit extends Component
 {
     use WithFileUploads;
 
     public $id, $name,$dob, $company_name, $employee_rank,$email, $phone, $whatsapp_no, $gst_number, $credit_limit, $credit_days, $gst_certificate_image, $image, $verified_video ,$alternative_phone_number_1, $alternative_phone_number_2,
-    $selectedCountryPhone, $selectedCountryWhatsapp, $selectedCountryAlt1 , $selectedCountryAlt2 ,$mobileLengthPhone, $mobileLengthWhatsapp, $mobileLengthAlt1, $mobileLengthAlt2,
+    $phone_code, $alt_phone_code_1 , $alt_phone_code_2 ,$mobileLengthPhone, $mobileLengthAlt1, $mobileLengthAlt2,
     $countries,
      $isWhatsappPhone, $isWhatsappAlt1 , $isWhatsappAlt2;
     public $billing_address, $billing_landmark, $billing_city, $billing_state, $billing_country, $billing_pin;
@@ -31,6 +32,7 @@ class CustomerEdit extends Component
     public function mount($id)
     {
         if ($id) {
+            $this->id = $id;
             $user = User::find($id);
 
             $this->fillUserData($user);
@@ -45,23 +47,31 @@ class CustomerEdit extends Component
             $this->phone = $user->phone;
             $this->badge_type = $user->customer_badge;
             $this->countries = Country::where('status',1)->get();
-            $this->selectedCountryPhone = $user->country_code_phone;
-            $this->selectedCountryAlt1 = $user->country_code_alt_1;
-            $this->selectedCountryAlt2 = $user->country_code_alt_2;
+            $this->phone_code = $user->country_code_phone;
+            $this->alt_phone_code_1 = $user->country_code_alt_1;
+            $this->alt_phone_code_2 = $user->country_code_alt_2;
 
             // Set mobile lengths based on selected countries
-            $this->mobileLengthPhone = Country::where('country_code', $this->selectedCountryPhone)->value('mobile_length') ?? '';
-            $this->mobileLengthWhatsapp = Country::where('country_code', $this->selectedCountryWhatsapp)->value('mobile_length') ?? '';
-            $this->mobileLengthAlt1 = Country::where('country_code', $this->selectedCountryAlt1)->value('mobile_length') ?? '';
-            $this->mobileLengthAlt2 = Country::where('country_code', $this->selectedCountryAlt2)->value('mobile_length') ?? '';
+            $this->mobileLengthPhone = Country::where('country_code', $this->phone_code)->value('mobile_length') ?? '8';
+            $this->mobileLengthAlt1 = Country::where('country_code', $this->alt_phone_code_1)->value('mobile_length') ?? '8';
+            $this->mobileLengthAlt2 = Country::where('country_code', $this->alt_phone_code_2)->value('mobile_length') ?? '8';
             
             $this->isWhatsappPhone = UserWhatsapp::where('user_id',$user->id)->where('whatsapp_number',$this->phone)->exists();
 
             $this->isWhatsappAlt1 = UserWhatsapp::where('user_id',$user->id)->where('whatsapp_number',$this->alternative_phone_number_1)->exists();
 
             $this->isWhatsappAlt2 = UserWhatsapp::where('user_id',$user->id)->where('whatsapp_number',$this->alternative_phone_number_2)->exists();
-
         }
+    }
+     public function CountryCodeSet($selector, $Code, $number = null)
+    {
+        $mobile_length = Country::where('country_code', $Code)->value('mobile_length') ?? '8';
+
+        // Dispatch for maxlength
+        $this->dispatch('update_input_max_length', [
+            'id' => $selector,
+            'mobile_length' => $mobile_length
+        ]);
     }
 
     public function GetCountryDetails($mobileLength, $field){
@@ -115,18 +125,34 @@ class CustomerEdit extends Component
 
     public function rules()
     {
+        $id = $this->id ?? null; // assuming you set current user id in component/controller
+
         $rules = [
             'name' => 'required|string|max:255',
             'employee_rank'=>'nullable|string',
-            'image' => $this->image instanceof \Illuminate\Http\UploadedFile ? 'nullable|mimes:jpg,jpeg,png,gif' : 'nullable',
+            'image' => $this->image instanceof \Illuminate\Http\UploadedFile 
+                ? 'nullable|mimes:jpg,jpeg,png,gif' 
+                : 'nullable',
             'company_name' => 'nullable|string|max:255',
-            'email' => 'nullable',
+
+            'email' => [
+                'nullable',
+                'email',
+                Rule::unique('users', 'email')
+                    ->ignore($id) // ignore current record
+                    ->whereNull('deleted_at'),
+            ],
+
             'dob'=> 'nullable|date',
+
             'phone' => [
                 'required',
                 'regex:/^\d{'. $this->mobileLengthPhone .'}$/',
+                Rule::unique('users', 'phone')
+                    ->ignore($id) // ignore current record
+                    ->whereNull('deleted_at'),
             ],
-           
+
             'alternative_phone_number_1' => [
                 'nullable',
                 'regex:/^\d{'. $this->mobileLengthAlt1 .'}$/',
@@ -135,9 +161,11 @@ class CustomerEdit extends Component
                 'nullable',
                 'regex:/^\d{'. $this->mobileLengthAlt2 .'}$/',
             ],
+
             'gst_number' => 'nullable|string|max:15',
             'credit_limit' => 'nullable|numeric|min:0',
             'credit_days' => 'nullable|integer|min:0',
+
             'billing_address' => 'required|string',
             'billing_landmark' => 'nullable|string',
             'billing_city' => 'required|string',
@@ -181,7 +209,7 @@ class CustomerEdit extends Component
         if(!$existingRecord){
                 UserWhatsapp::updateOrCreate(
                     ['user_id' => $user->id, 'whatsapp_number' => $this->phone],
-                    ['country_code' => $this->selectedCountryPhone, 'updated_at' => now()]
+                    ['country_code' => $this->phone_code, 'updated_at' => now()]
                 ); 
             }
         }else {
@@ -198,7 +226,7 @@ class CustomerEdit extends Component
         if(!$existingRecord){
             UserWhatsapp::updateOrCreate(
                 ['user_id' => $user->id, 'whatsapp_number' => $this->alternative_phone_number_1],
-                ['country_code' => $this->selectedCountryAlt1, 'updated_at' => now()]
+                ['country_code' => $this->alt_phone_code_1, 'updated_at' => now()]
             );
         }
         }else {
@@ -215,7 +243,7 @@ class CustomerEdit extends Component
         if(!$existingRecord){
             UserWhatsapp::updateOrCreate(
                 ['user_id' => $user->id, 'whatsapp_number' => $this->alternative_phone_number_2],
-                ['country_code' => $this->selectedCountryAlt2, 'updated_at' => now()]
+                ['country_code' => $this->alt_phone_code_2, 'updated_at' => now()]
             );
         }
         }else {
@@ -261,18 +289,18 @@ class CustomerEdit extends Component
             'employee_rank' => $this->employee_rank,
             'email' => $this->email,
             'dob'=>$this->dob,
-            'country_code_phone' => $this->selectedCountryPhone,
+            'country_code_phone' => $this->phone_code,
             'phone' => $this->phone,
-            'country_code_whatsapp' => $this->selectedCountryWhatsapp,
+            'country_code_whatsapp' => $this->phone_code,
             // 'whatsapp_no' => $this->whatsapp_no,
             'gst_number' => $this->gst_number,
             'credit_limit' => $this->credit_limit === '' ? 0 : $this->credit_limit,
             'credit_days' => $this->credit_days === '' ? 0 : $this->credit_days,
             'country_id' => $this->country_id,
             'country_code' => $this->country_code,
-            'country_code_alt_1'  => $this->selectedCountryAlt1,
+            'country_code_alt_1'  => $this->alt_phone_code_1,
             'alternative_phone_number_1' => $this->alternative_phone_number_1,
-            'country_code_alt_2'  => $this->selectedCountryAlt2,
+            'country_code_alt_2'  => $this->alt_phone_code_2,
             'alternative_phone_number_2' => $this->alternative_phone_number_2
         ];
     }

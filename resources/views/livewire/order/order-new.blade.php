@@ -1664,26 +1664,35 @@ document.addEventListener("DOMContentLoaded", function() {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/12.1.6/js/intlTelInput.min.js"></script>
 <script>
-    $(function () {
-            // Main Phone
+        let dialCodesCache = null;
+
+        // Load JSON once when page loads
+        $.getJSON("{{ asset('assets/js/dial-codes.json') }}", function (data) {
+            dialCodesCache = data;
+
+            // Once JSON is loaded, init inputs
             initIntlTelInput("#mobile", "phone", "phone_code");
-
-            // Alternative Phone 1
             initIntlTelInput("#alt_phone_1", "alternative_phone_number_1", "alt_phone_code_1");
-
-            // Alternative Phone 2
             initIntlTelInput("#alt_phone_2", "alternative_phone_number_2", "alt_phone_code_2");
         });
+        function loadDialCodes(dialNumber) {
+            if (!dialCodesCache) return "cf"; // fallback while JSON not loaded
+            return dialCodesCache[dialNumber] || "cf"; // default to cf
+        }
 
         function initIntlTelInput(selector, phoneModel, codeModel, defaultCountry = "cf") {
             var input = $(selector);
-
+            var codeInput = $("#" + codeModel);
+            var phoneInput = $("#" + phoneModel);
+            var selected_dial_code = codeInput.val(); // only digits
+            var selected_phone_number = phoneInput.val(); // only digits
+            var defaultCountry = loadDialCodes(selected_dial_code);
             input.intlTelInput({
                 initialCountry: defaultCountry,  // Central African Republic by default
                 preferredCountries: ["us", "gb", "in", "cf"],
                 separateDialCode: true
             });
-
+             input.val(selected_phone_number);
             // On input change (number typing)
             input.on("input", function () {
                 let number = input.val().replace(/\D/g, ''); // only digits
@@ -1700,7 +1709,7 @@ document.addEventListener("DOMContentLoaded", function() {
             // Set default on load
             let defaultCode = "+" + input.intlTelInput("getSelectedCountryData").dialCode;
             @this.set(codeModel, defaultCode);
-            @this.call('CountryCodeSet', selector, defaultCode);
+            @this.call('CountryCodeSet', selector, defaultCode,selected_phone_number);
         }
        // Already existing
         window.addEventListener('update_input_max_length', function (event) {
@@ -1747,7 +1756,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 if (parentId) {
                     let countryCode = window.preferredMap[dialCode]; // e.g. "in"
-                        console.log("Updating:", countryCode, dialCode);
+                        // console.log("Updating:", countryCode, dialCode);
                     if (countryCode) {
                         // ✅ Update flag inside .selected-flag
                         $(`${parentId} .selected-flag .iti-flag`)
