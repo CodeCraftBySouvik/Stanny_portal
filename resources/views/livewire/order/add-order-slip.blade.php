@@ -478,7 +478,7 @@
 
 
                                     @php
-                                    $measurements = collect($order_item['measurements'])->mapWithKeys(
+                                    $measurements = collect($order_item['measurements'])->unique(fn($m) => $m['measurement_name'])->mapWithKeys(
                                     function ($m) {
                                     return [
                                     $m['measurement_name'] .

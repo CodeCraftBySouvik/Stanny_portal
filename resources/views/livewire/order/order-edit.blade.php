@@ -23,10 +23,10 @@
             </li>
         </ul>
     </section>
-    <div class="input-group input-group-sm" id="parent_mobile" wire:ignore>
+    {{-- <div class="input-group input-group-sm" id="parent_mobile" wire:ignore>
         <input type="tel" class="form-control tel-code-input"
             style="width:286px;">
-    </div>
+    </div> --}}
     <div class="card my-4">
         <div class="card-header pb-0">
             <div class="d-flex justify-content-between align-items-center mb-3">

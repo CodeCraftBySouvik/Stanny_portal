@@ -14,6 +14,7 @@ use App\Models\PaymentCollection;
 use App\Models\StockFabric;
 use App\Models\StockProduct;
 use App\Models\Delivery;
+use App\Models\Measurement;
 use App\Helpers\Helper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -666,13 +667,23 @@ class AddOrderSlip extends Component
         //echo "<pre>";print_r($order->toArray());exit;
          $orderItems = $order->items->map(function ($item) use($order) {
          $product = \App\Models\Product::find($item->product_id);
-
+            $measurements = Measurement::where('product_id', $item->product_id)
+                ->orderBy('position','ASC')
+                ->get()
+                ->map(function ($measurement) use ($item) {
+                    $selected = $item->measurements->firstWhere('measurement_name', $measurement->title);
+                    return [
+                        'measurement_name'          => $measurement->title,
+                        'measurement_title_prefix'  => $measurement->short_code,
+                        'measurement_value'         => $selected ? $selected->measurement_value : '',
+                    ];
+                });
             return [
                 'product_name' => $item->product_name ?? $product->name,
                 'collection_id' => $item->collection,
                 'collection_title' => $item->collectionType ?  $item->collectionType->title : "",
                 'fabrics' => $item->fabric,
-                'measurements' => $item->measurements,
+                'measurements' => $measurements,
                 'catalogue' => $item->catalogue_id?$item->catalogue:"",
                 'catalogue_id' => $item->catalogue_id,
                 'cat_page_number' => $item->cat_page_number,

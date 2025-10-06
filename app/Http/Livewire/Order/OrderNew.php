@@ -1235,29 +1235,7 @@ protected function fillMatchingMeasurements($currentIndex, $sourceIndex)
             // for team-lead id
             $loggedInAdmin = auth()->guard('admin')->user();
             $order->team_lead_id = $loggedInAdmin->parent_id ?? null;
-            // if ($loggedInAdmin->designation == 4) { // TL
-            // // Count pending items: Hold items OR Process items not TL approved
-            // $pendingItemsCount = $order->items()
-            //     ->where(function ($q) {
-            //         $q->where('status', 'Hold')
-            //         ->orWhere(function ($q2) {
-            //             $q2->where('status', 'Process')
-            //                 ->where(function ($q3) {
-            //                     $q3->whereNull('tl_status')
-            //                         ->orWhere('tl_status', '!=', 'Approved');
-            //                 });
-            //         });
-            //     })
-            //     ->count();
-
-            // $status = $pendingItemsCount == 0 ? 'Fully Approved By TL' : 'Partial Approved By TL';
-            // $order->status = $status; 
-            // }else {
-            //     $order->status = 'Approval Pending'; // default if not TL or Admin
-            // }
-           
-
-            // dd($order);
+            
             $order->save();
             
             $update_bill_book = SalesmanBilling::where('id',$this->bill_id)->first();

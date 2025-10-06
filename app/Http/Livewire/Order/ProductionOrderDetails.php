@@ -11,6 +11,7 @@ use \App\Models\ChangeLog;
 use \App\Models\Delivery;
 use \App\Models\OrderItem;
 use \App\Models\Fabric;
+use \App\Models\Measurement;
 use Livewire\Component;
 use App\Helpers\Helper;
 use Illuminate\Support\Facades\DB;

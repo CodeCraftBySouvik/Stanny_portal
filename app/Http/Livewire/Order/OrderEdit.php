@@ -146,6 +146,7 @@ class OrderEdit extends Component
                         ];
                 });
 
+
                 $pageItems = [];
                     if (!empty($item->catalogue_id) && !empty($item->cat_page_number)) {
                         $pageItems = CataloguePageItem::join('pages', 'catalogue_page_items.page_id', '=', 'pages.id')
@@ -185,7 +186,7 @@ class OrderEdit extends Component
                     'page_item' => $item->cat_page_item,
                     'expected_delivery_date' => $item->expected_delivery_date,
                     'fitting' => $item->collection == 1 ? $item->fittings : '',
-                    'priority' => $item->priority_level,
+                    'priority' => $item->priority_level ?? null,
                     'status'  =>  $item->status,
                     'tl_status' => $item->tl_status,
                     'admin_status' => $item->admin_status,
@@ -693,36 +694,107 @@ class OrderEdit extends Component
     }
 
     public function selectProduct($index, $name, $id)
-    {
-        $this->items[$index]['searchproduct'] = $name;
-        $this->items[$index]['product_id'] = $id;
-        $this->items[$index]['products'] = [];
-        $this->extra_measurement[$index] = Helper::ExtraRequiredMeasurement(trim($name));
-        $this->items[$index]['measurements'] = Measurement::where('product_id', $id)
-                                                            ->where('status', 1)
-                                                            ->orderBy('position','ASC')
-                                                            ->get()
-                                                            ->toArray();
-        
-        $this->items[$index]['fabrics'] = Fabric::join('product_fabrics', 'fabrics.id', '=', 'product_fabrics.fabric_id')
-                                            ->where('product_fabrics.product_id', $id)
-                                            ->where('fabrics.status', 1)
-                                            ->get(['fabrics.*']);
+{
+    $this->items[$index]['searchproduct'] = $name;
+    $this->items[$index]['product_id'] = $id;
+    $this->items[$index]['products'] = [];
 
-        $product = Product::find($id);
-        if (empty($this->items[$index]['selected_collection'])) {
-            $this->items[$index]['selected_collection'] = $product && $product->collection->isNotEmpty()
-                ? $product->collection->first()->id
-                : null;
-        }
-        $this->items[$index]['catalogues'] = $this->items[$index]['selected_collection'] == 1 ? $this->catalogues : [];
+    $this->extra_measurement[$index] = Helper::ExtraRequiredMeasurement(trim($name));
 
-        session()->forget('measurements_error.' . $index);
-        if (count($this->items[$index]['measurements']) == 0) {
-            session()->flash('measurements_error.' . $index, 'Oops! Measurement data not added for this product.');
-            return;
-        }
+    // Load raw measurements first
+    $measurements = Measurement::where('product_id', $id)
+        ->where('status', 1)
+        ->orderBy('position','ASC')
+        ->get();
+
+    // Try to fetch customer's previous order measurement values for this product
+    $previousValues = OrderMeasurement::whereHas('orderItem', function ($q) use ($id) {
+            $q->where('product_id', $id)
+              ->whereHas('order', function ($qq) {
+                  $qq->where('customer_id', $this->customer_id); // current order's customer
+              });
+        })
+        ->pluck('measurement_value', 'measurement_name')
+        ->toArray();
+
+    // Map with values (prefill automatically)
+    $this->items[$index]['measurements'] = $measurements->map(function ($m) use ($previousValues) {
+        return [
+            'id' => $m->id,
+            'title' => $m->title,
+            'short_code' => $m->short_code,
+            'value' => $previousValues[$m->title] ?? '' // prefill if exists
+        ];
+    })->toArray();
+
+    // Load fabrics for the product
+    $this->items[$index]['fabrics'] = Fabric::join('product_fabrics', 'fabrics.id', '=', 'product_fabrics.fabric_id')
+        ->where('product_fabrics.product_id', $id)
+        ->where('fabrics.status', 1)
+        ->get(['fabrics.*']);
+
+    // Auto-select collection if not already set
+    $product = Product::find($id);
+    if (empty($this->items[$index]['selected_collection'])) {
+        $this->items[$index]['selected_collection'] = $product && $product->collection->isNotEmpty()
+            ? $product->collection->first()->id
+            : null;
     }
+    $this->items[$index]['catalogues'] = $this->items[$index]['selected_collection'] == 1 ? $this->catalogues : [];
+
+    // Error handling
+    session()->forget('measurements_error.' . $index);
+    if (empty($this->items[$index]['measurements'])) {
+        session()->flash('measurements_error.' . $index, '🚨 Oops! Measurement data not added for this product.');
+        return;
+    }
+
+    //   ✅ If copy checkbox is already ticked → apply it immediately
+        if (!empty($this->items[$index]['copy_previous_measurements'])) {
+            $this->copyMeasurements($index);
+        }
+}
+
+
+    // public function selectProduct($index, $name, $id)
+    // {
+    //     $this->items[$index]['searchproduct'] = $name;
+    //     $this->items[$index]['product_id'] = $id;
+    //     $this->items[$index]['products'] = [];
+    //     $this->extra_measurement[$index] = Helper::ExtraRequiredMeasurement(trim($name));
+    //     $this->items[$index]['measurements'] = Measurement::where('product_id', $id)
+    //                                                         ->where('status', 1)
+    //                                                         ->orderBy('position','ASC')
+    //                                                         ->get()
+    //                                                         ->toArray();
+
+       
+        
+    //     $this->items[$index]['fabrics'] = Fabric::join('product_fabrics', 'fabrics.id', '=', 'product_fabrics.fabric_id')
+    //                                         ->where('product_fabrics.product_id', $id)
+    //                                         ->where('fabrics.status', 1)
+    //                                         ->get(['fabrics.*']);
+
+    //     $product = Product::find($id);
+    //     if (empty($this->items[$index]['selected_collection'])) {
+    //         $this->items[$index]['selected_collection'] = $product && $product->collection->isNotEmpty()
+    //             ? $product->collection->first()->id
+    //             : null;
+    //     }
+    //     $this->items[$index]['catalogues'] = $this->items[$index]['selected_collection'] == 1 ? $this->catalogues : [];
+
+    //     session()->forget('measurements_error.' . $index);
+    //     if (count($this->items[$index]['measurements']) == 0) {
+    //         session()->flash('measurements_error.' . $index, 'Oops! Measurement data not added for this product.');
+    //         return;
+    //     }
+        
+
+    //      // ✅ If copy checkbox is already ticked → apply it immediately
+    //     if (!empty($this->items[$index]['copy_previous_measurements'])) {
+    //         $this->copyMeasurements($index);
+    //     }
+    // }
 
     public function CategoryWiseProduct($categoryId, $index)
     {
@@ -768,6 +840,232 @@ class OrderEdit extends Component
         }
 
     }
+
+
+//        public function copyMeasurements($index)
+// {
+//     $currentProductId = $this->items[$index]['product_id'] ?? null;
+
+//     if (empty($this->items[$index]['copy_previous_measurements'])) {
+//         // Checkbox unchecked → revert to original/preloaded values
+//         if ($currentProductId) {
+//             // Reload measurements for this product
+//             $measurements = Measurement::where('product_id', $currentProductId)
+//                 ->where('status', 1)
+//                 ->orderBy('position', 'ASC')
+//                 ->get();
+
+//             // Fetch previous customer order values if exists
+//             $previousValues = OrderMeasurement::whereHas('orderItem', function ($q) use ($currentProductId) {
+//                     $q->where('product_id', $currentProductId)
+//                       ->whereHas('order', function ($qq) {
+//                           $qq->where('customer_id', $this->customer_id);
+//                       });
+//                 })
+//                 ->pluck('measurement_value', 'measurement_name')
+//                 ->toArray();
+
+//             $this->items[$index]['measurements'] = $measurements->map(function ($m) use ($previousValues) {
+//                 return [
+//                     'id' => $m->id,
+//                     'title' => $m->title,
+//                     'short_code' => $m->short_code,
+//                     'value' => $previousValues[$m->title] ?? ''
+//                 ];
+//             })->toArray();
+//         }
+//         return;
+//     }
+
+//     // Checkbox checked → copy previous measurements logic
+//     // 1️⃣ Look backward for the same product in previous items
+//     for ($i = $index - 1; $i >= 0; $i--) {
+//         if (($this->items[$i]['product_id'] ?? null) === $currentProductId) {
+//             if (!isset($this->items[$i]['measurements'])) {
+//                 $this->items[$i]['measurements'] = Measurement::where('product_id', $currentProductId)
+//                     ->where('status', 1)
+//                     ->orderBy('position', 'ASC')
+//                     ->get()
+//                     ->toArray();
+//             }
+//             $this->items[$index]['measurements'] = $this->items[$i]['measurements'];
+//             return;
+//         }
+//     }
+
+//     // 2️⃣ Forward search
+//     for ($i = $index + 1; $i < count($this->items); $i++) {
+//         if (($this->items[$i]['product_id'] ?? null) === $currentProductId) {
+//             if (!isset($this->items[$i]['measurements'])) {
+//                 $this->items[$i]['measurements'] = Measurement::where('product_id', $currentProductId)
+//                     ->where('status', 1)
+//                     ->orderBy('position', 'ASC')
+//                     ->get()
+//                     ->toArray();
+//             }
+//             $this->items[$index]['measurements'] = $this->items[$i]['measurements'];
+//             return;
+//         }
+//     }
+
+//     // 3️⃣ If no same product found, copy only matching measurements from nearest item
+//     $found = false;
+
+//     // Backward search
+//     for ($i = $index - 1; $i >= 0; $i--) {
+//         if (!empty($this->items[$i]['measurements'])) {
+//             $this->fillMatchingMeasurements($index, $i);
+//             $found = true;
+//             break;
+//         }
+//     }
+
+//     // Forward search
+//     if (!$found) {
+//         for ($i = $index + 1; $i < count($this->items); $i++) {
+//             if (!empty($this->items[$i]['measurements'])) {
+//                 $this->fillMatchingMeasurements($index, $i);
+//                 break;
+//             }
+//         }
+//     }
+// }
+
+
+//     /**
+//      * Fill only matching measurements (by title or short_code) from a source item.
+//      */
+//    protected function fillMatchingMeasurements($currentIndex, $sourceIndex)
+// {
+//     foreach ($this->items[$currentIndex]['measurements'] as $key => &$measurement) {
+//         $measurementTitle = strtolower(trim($measurement['title'] ?? ''));
+//         $measurementShortCode = strtolower(trim($measurement['short_code'] ?? ''));
+
+//         foreach ($this->items[$sourceIndex]['measurements'] as $prev) {
+//             $prevTitle = strtolower(trim($prev['title'] ?? ''));
+//             $prevShortCode = strtolower(trim($prev['short_code'] ?? ''));
+//             $prevValue = $prev['value'] ?? null;
+
+//             // Match by title OR short_code (even if product is different)
+//             if (
+//                 (!empty($measurementTitle) && $measurementTitle === $prevTitle) ||
+//                 (!empty($measurementShortCode) && $measurementShortCode === $prevShortCode)
+//             ) {
+//                 $measurement['value'] = $prevValue;
+//             }
+//         }
+//     }
+// }
+
+public function copyMeasurements($index)
+{
+    $currentProductId = $this->items[$index]['product_id'] ?? null;
+
+    if (empty($this->items[$index]['copy_previous_measurements'])) {
+        // Checkbox unchecked → reset to original/preloaded values
+        $this->resetMeasurements($index);
+        return;
+    }
+
+    // 1️⃣ Look backward for same product first (latest updated values)
+    for ($i = $index - 1; $i >= 0; $i--) {
+        if (($this->items[$i]['product_id'] ?? null) === $currentProductId) {
+            $this->items[$index]['measurements'] = $this->deepCopy($this->items[$i]['measurements']);
+            return;
+        }
+    }
+
+    // 2️⃣ Look forward for same product
+    for ($i = $index + 1; $i < count($this->items); $i++) {
+        if (($this->items[$i]['product_id'] ?? null) === $currentProductId) {
+            $this->items[$index]['measurements'] = $this->deepCopy($this->items[$i]['measurements']);
+            return;
+        }
+    }
+
+    // 3️⃣ No same product found → copy only matching measurements from nearest item
+    $found = false;
+
+    for ($i = $index - 1; $i >= 0; $i--) {
+        if (!empty($this->items[$i]['measurements'])) {
+            $this->fillMatchingMeasurements($index, $i);
+            $found = true;
+            break;
+        }
+    }
+
+    if (!$found) {
+        for ($i = $index + 1; $i < count($this->items); $i++) {
+            if (!empty($this->items[$i]['measurements'])) {
+                $this->fillMatchingMeasurements($index, $i);
+                break;
+            }
+        }
+    }
+}
+
+/**
+ * Fill only matching measurements (by title or short_code) from a source item.
+ */
+protected function fillMatchingMeasurements($currentIndex, $sourceIndex)
+{
+    foreach ($this->items[$currentIndex]['measurements'] as $key => &$measurement) {
+        $measurementTitle = strtolower(trim($measurement['title'] ?? ''));
+        $measurementShortCode = strtolower(trim($measurement['short_code'] ?? ''));
+
+        foreach ($this->items[$sourceIndex]['measurements'] as $prev) {
+            $prevTitle = strtolower(trim($prev['title'] ?? ''));
+            $prevShortCode = strtolower(trim($prev['short_code'] ?? ''));
+            $prevValue = $prev['value'] ?? null;
+
+            // Match by title OR short_code (even if product is different)
+            if (
+                (!empty($measurementTitle) && $measurementTitle === $prevTitle) ||
+                (!empty($measurementShortCode) && $measurementShortCode === $prevShortCode)
+            ) {
+                $measurement['value'] = $prevValue;
+            }
+        }
+    }
+}
+
+// Helper: deep copy array to prevent Livewire reference issues
+protected function deepCopy($array)
+{
+    return json_decode(json_encode($array), true);
+}
+
+// Reset measurements to original/preloaded values
+protected function resetMeasurements($index)
+{
+    $productId = $this->items[$index]['product_id'] ?? null;
+    if (!$productId) return;
+
+    $measurements = Measurement::where('product_id', $productId)
+        ->where('status', 1)
+        ->orderBy('position', 'ASC')
+        ->get();
+
+    $previousValues = OrderMeasurement::whereHas('orderItem', function ($q) use ($productId) {
+            $q->where('product_id', $productId)
+              ->whereHas('order', function ($qq) {
+                  $qq->where('customer_id', $this->customer_id);
+              });
+        })
+        ->pluck('measurement_value', 'measurement_name')
+        ->toArray();
+
+    $this->items[$index]['measurements'] = $measurements->map(function ($m) use ($previousValues) {
+        return [
+            'id' => $m->id,
+            'title' => $m->title,
+            'short_code' => $m->short_code,
+            'value' => $previousValues[$m->title] ?? ''
+        ];
+    })->toArray();
+}
+
+
 
 
     public function TabChange($value)
@@ -906,34 +1204,7 @@ class OrderEdit extends Component
 
 
 
-    // public function copyMeasurements($index) {
-    //     if ($index > 0) {
-    //         $currentProductId = $this->items[$index]['product_id'] ?? null;
-    //         $previousProductId = $this->items[$index - 1]['product_id'] ?? null;
-
-    //         if (!empty($this->items[$index]['copy_previous_measurements'])) {
-    //             if ($currentProductId === $previousProductId && !empty($this->items[$index - 1]['measurements'])) {
-    //                 // Copy measurements if the product is the same
-    //                 $this->items[$index]['measurements'] = $this->items[$index - 1]['measurements']->toArray();
-    //             } else {
-    //                 // Keep structure but clear measurement values
-    //                 if (!empty($this->items[$index]['measurements'])) {
-    //                     foreach ($this->items[$index]['measurements'] as $key => $measurement) {
-    //                         $this->items[$index]['measurements'][$key]['value'] = ''; // Clear only values
-    //                     }
-    //                 }
-    //                 session()->flash('measurements_error.' . $index, 'Measurements cannot be copied as products are different.');
-    //             }
-    //         } else {
-    //             // Clear only values if checkbox is unchecked
-    //             if (!empty($this->items[$index]['measurements'])) {
-    //                 foreach ($this->items[$index]['measurements'] as $key => $measurement) {
-    //                     $this->items[$index]['measurements'][$key]['value'] = '';
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
+    
 
     public function updatedNewUploads($value, $index)
     {
@@ -1170,11 +1441,13 @@ class OrderEdit extends Component
                                                 : null;
                     $orderItem->quantity = ($item['selected_collection'] == 1) ? 1 : $item['quantity'];
                     $orderItem->fittings  = ($item['selected_collection'] == 1) ? $item['fitting'] : null;
-                    $orderItem->priority_level  = $item['priority'];
                     $orderItem->expected_delivery_date  = $item['expected_delivery_date'];
                     $orderItem->cat_page_number  = $item['page_number'] ?? null;
                     $orderItem->cat_page_item  = $item['page_item'] ?? null;
                     $loggedInAdmin = auth()->guard('admin')->user();
+                    $orderItem->priority_level  = in_array($loggedInAdmin->designation, [1, 4]) 
+                    ? ($item['priority'] ?? null) 
+                    : null;
                     
 
                     // ------------------------------------------------------------------
