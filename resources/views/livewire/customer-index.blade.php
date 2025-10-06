@@ -59,17 +59,26 @@
                                         <div class="alert alert-danger error-container">
                                             <h6 class="text-danger"><i class="fas fa-times-circle"></i> Import Error:
                                             </h6>
-                                            <div class="error-content">
-                                                <ul class="mb-0">
-                                                    <li>
-                                                        <strong>Row Data:</strong> {{ json_encode($firstError['row']) }}
-                                                        <ul>
-                                                            <!-- Display only the first error message for the first row -->
-                                                            <li class="text-danger">{{ $firstError['errors'][0] }}</li>
-                                                        </ul>
-                                                    </li>
+                                           <div class="error-content">
+                                                <ul>
+                                                    @if(is_array($firstError['errors']))
+                                                        @foreach($firstError['errors'] as $fieldErrors)
+                                                            @if(is_array($fieldErrors))
+                                                                @foreach($fieldErrors as $errorMessage)
+                                                                    <li class="text-danger">{{ $errorMessage }}</li>
+                                                                @endforeach
+                                                            @else
+                                                                <li class="text-danger">{{ $fieldErrors }}</li>
+                                                            @endif
+                                                        @endforeach
+                                                    @else
+                                                        <li class="text-danger">{{ $firstError['errors'] }}</li>
+                                                    @endif
                                                 </ul>
                                             </div>
+
+
+
                                         </div>
                                         {{ session()->forget('import_errors') }} {{-- Clear errors after displaying --}}
                                         @endif
@@ -215,7 +224,7 @@
                                             title="Purchase History">
                                             Order History
                                         </a>
-                                        <a href="{{route('admin.accounting.add_payment_receipt')}}"
+                                        <a href="{{route('admin.accounting.add_payment_receipt',['customer_id'=>$user->id])}}"
                                             class="btn btn-outline-primary select-md btn_action btn_outline"
                                             data-toggle="tooltip" data-original-title="Add Payment"
                                             title="Add Payment">

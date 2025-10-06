@@ -76,7 +76,6 @@ class CustomerIndex extends Component
 
         // Store the uploaded file
         $path = $this->file->store('imports');
-
         // try {
             // Perform the import
             Excel::import(new UsersWithAddressesImport, storage_path('app/' . $path));
@@ -135,9 +134,13 @@ class CustomerIndex extends Component
             ->where('status', 1)
             ->where(function ($query) {
                 $query->where('name', 'like', '%' . $this->search . '%')
+                      ->orWhere('prefix', 'like', '%' . $this->search . '%')
                       ->orWhere('phone', 'like', '%' . $this->search . '%')
                       ->orWhere('whatsapp_no', 'like', '%' . $this->search . '%')
-                      ->orWhere('email', 'like', '%' . $this->search . '%');
+                      ->orWhere('email', 'like', '%' . $this->search . '%')
+                       ->orWhereRaw("CONCAT(prefix, ' ', name) LIKE ?", ['%' . $this->search . '%'])
+                       ->orWhereRaw("CONCAT(country_code_phone, ' ', phone) LIKE ?", ['%' . $this->search . '%'])
+                       ->orWhereRaw("CONCAT(country_code_phone, '', phone) LIKE ?", ['%' . $this->search . '%']);
             })
             ->when(!$auth->is_super_admin, fn($query) => $query->where('created_by', $auth->id)) // Restrict non-admins
             ->orderBy('created_at', 'desc') // Sort by latest

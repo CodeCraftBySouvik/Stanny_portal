@@ -121,6 +121,24 @@ class UsersWithAddressesImport implements ToModel, WithHeadingRow
             ]);
             return null;
         }
+         // Conditional customer_category
+        if (isset($row['user_type']) && $row['user_type'] === 'Customer') {
+
+            // If customer_category is missing or empty, you can default it
+            if (empty($row['customer_category'])) {
+                // You can decide default value: 'general' or 'premium'
+                $row['customer_category'] = 'general';
+            }
+
+            // Optional: validate value
+            if (!in_array($row['customer_category'], ['general', 'premium'])) {
+                session()->push('import_errors', [
+                    'row' => $row,
+                    'errors' => ['Customer category must be either general or premium.'],
+                ]);
+                return null;
+            }
+        }
 
         $country = Country::where('country_code', $row['country_code_phone'])->first();
         $mobileLength = $country->mobile_length ?? 10;
@@ -132,15 +150,20 @@ class UsersWithAddressesImport implements ToModel, WithHeadingRow
         $mobileLength2 = $countryCodeAlt2->mobile_length ?? 10;
 
         $validator = Validator::make($row, [
-            'phone' => "nullable|numeric|digits:$mobileLength",
+            'phone'              => "required|numeric|digits:$mobileLength",
             'alternet_phone_one' => "nullable|numeric|digits:$mobileLength1",
             'alternet_phone_two' => "nullable|numeric|digits:$mobileLength2",
-            'email' => ['nullable', 'email'],
+            'email'              => ['nullable', 'email'],
         ]);
 
         if ($validator->fails()) {
-            \Log::warning('Row validation failed', ['row' => $row, 'errors' => $validator->errors()->all()]);
-            session()->push('import_errors', ['row' => $row, 'errors' => $validator->errors()->all()]);
+            $errors = $validator->errors()->getMessages(); // get all messages per field
+
+           session()->push('import_errors', [
+                'row' => $row,
+                'errors' => $validator->errors()->getMessages(), // this is always an array
+            ]);
+
             return null;
         }
 
@@ -151,6 +174,7 @@ class UsersWithAddressesImport implements ToModel, WithHeadingRow
                 'name' => $row['customer_name'] ?? null,
                 'dob' => $dob ?? null,
                 'user_type' => strtolower(trim($row['user_type'])) == 'staff' ? 0 : 1,
+                'customer_badge' => $row['customer_category'] ?? null,
                 'company_name' => $row['company_name'] ?? null,
                 'employee_rank' => $row['rank'] ?? null,
                 'country_code_phone' => $row['country_code_phone'] ? '+' . $row['country_code_phone'] : null,

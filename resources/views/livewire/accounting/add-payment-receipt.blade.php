@@ -23,7 +23,6 @@
                             {{ session('success') }}
                         </div>
                         @endif
-
                         @if (session()->has('error'))
                         <div class="alert alert-danger">
                             {{ session('error') }}
@@ -33,102 +32,86 @@
                             <div class="col-sm-4">
                                 <div class="form-group mb-3">
                                     <label for="" id="">Customer <span class="text-danger">*</span></label>
-
                                     <div class="position-relative">
                                         @if ($new_customer)
-                                        <input type="text" wire:model="customer_name"
+                                            <input type="text" wire:model="customer_name"
                                             class="form-control form-control-sm border border-1 customer_input"
-                                            placeholder="Please enter customer name">
-                                        @if (isset($errorMessage['customer_name']))
-                                        <div class="text-danger">{{ $errorMessage['customer_name'] }}</div>
-                                        @endif
-                                        {{-- Add email,mobile,address,company name --}}
-                                        @if ($new_customer)
-                                        <div class="card mt-2">
-                                            <div class="card-body p-2">
-                                                <div class="row">
-                                                    <div class="col-sm-12">
-                                                        <label for="phone" class="form-label">Phone Number
-                                                            <span class="text-danger">*</span></label>
-                                                        <div class="extention-group">
-                                                            <!-- Country Select Dropdown for Phone -->
-                                                            <select wire:model="selectedCountryPhone"
-                                                                wire:change="GetCountryDetails($event.target.selectedOptions[0].getAttribute('data-length'), 'phone')"
-                                                                class="form-control form-control-sm prefix_select flex-30">
-                                                                <option value="" selected hidden>Code
-                                                                </option>
-                                                                @foreach ($countries as $country)
-                                                                <option value="{{ $country->country_code }}"
-                                                                    data-length="{{ $country->mobile_length }}">
-                                                                    {{ $country->title }}
-                                                                    ({{ $country->country_code }})
-                                                                </option>
-                                                                @endforeach
-                                                            </select>
+                                            placeholder="Please enter customer name" {{$customer_id?"disabled":""}}>
+                                            @if (isset($errorMessage['customer_name']))
+                                            <div class="text-danger">{{ $errorMessage['customer_name'] }}</div>
+                                            @endif
+                                            {{-- Add email,mobile,address,company name --}}
+                                            @if ($new_customer)
+                                                <div class="card mt-2">
+                                                    <div class="card-body p-2">
+                                                        <div class="row">
+                                                            <div class="col-md-12">
+                                                                <label for="mobile" class="form-label">Phone Number</label>
+                                                                <div class="input-group input-group-sm" id="parent_mobile" wire:ignore>
+                                                                    <input id="mobile" type="tel" class="form-control tel-code-input"
+                                                                        style="width:286px;" maxlength="8">
+                                                                    <!-- hidden Livewire bindings -->
+                                                                    <input type="hidden" wire:model="phone_code" id="phone_code">
+                                                                    <input type="hidden" wire:model="phone" id="phone">
 
-                                                            <!-- Phone Input Field -->
-                                                            <input type="text" wire:model="phone" id="phone"
-                                                                class="form-control form-control-sm border border-1 p-2 {{ $errorClass['phone'] ?? '' }}"
-                                                                placeholder="Enter Phone Number"
-                                                                maxlength="{{ $mobileLengthPhone }}">
+                                                                </div>
 
-                                                            <!-- Error Message -->
-                                                        </div>
-                                                        @if (isset($errorMessage['phone']))
-                                                        <div class="text-danger">
-                                                            {{ $errorMessage['phone'] }}</div>
-                                                        @endif
-                                                    </div>
-                                                    <div class="col-sm-6">
-                                                        <div class="form-group mb-3">
-                                                            <label>Email</label>
-                                                            <input type="email" wire:model="customer_email"
-                                                                class="form-control form-control-sm"
-                                                                placeholder="Enter email">
-                                                            @if (isset($errorMessage['customer_email']))
-                                                            <div class="text-danger">
-                                                                {{ $errorMessage['customer_email'] }}</div>
-                                                            @endif
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-sm-6">
-                                                        <div class="form-group mb-3">
-                                                            <label>Company Name</label>
-                                                            <input type="text" wire:model="customer_company"
-                                                                class="form-control form-control-sm"
-                                                                placeholder="Enter company name">
-                                                            @if (isset($errorMessage['customer_company']))
-                                                            <div class="text-danger">
-                                                                {{ $errorMessage['customer_company'] }}
+                                                                @if (isset($errorMessage['phone']))
+                                                                    <div class="text-danger">
+                                                                        {{ $errorMessage['phone'] }}
+                                                                    </div>
+                                                                @endif
                                                             </div>
-                                                            @endif
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-sm-12">
-                                                        <div class="form-group mb-3">
-                                                            <label>Address</label>
-                                                            <input type="text" wire:model="customer_address"
-                                                                class="form-control form-control-sm"
-                                                                placeholder="Enter address">
-                                                            @if (isset($errorMessage['customer_address']))
-                                                            <div class="text-danger">
-                                                                {{ $errorMessage['customer_address'] }}
+                                                            <div class="col-sm-6">
+                                                                <div class="form-group mb-3">
+                                                                    <label>Email</label>
+                                                                    <input type="email" wire:model="customer_email"
+                                                                        class="form-control form-control-sm"
+                                                                        placeholder="Enter email">
+                                                                    @if (isset($errorMessage['customer_email']))
+                                                                    <div class="text-danger">
+                                                                        {{ $errorMessage['customer_email'] }}</div>
+                                                                    @endif
+                                                                </div>
                                                             </div>
-                                                            @endif
+                                                            <div class="col-sm-6">
+                                                                <div class="form-group mb-3">
+                                                                    <label>Company Name</label>
+                                                                    <input type="text" wire:model="customer_company"
+                                                                        class="form-control form-control-sm"
+                                                                        placeholder="Enter company name">
+                                                                    @if (isset($errorMessage['customer_company']))
+                                                                    <div class="text-danger">
+                                                                        {{ $errorMessage['customer_company'] }}
+                                                                    </div>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-sm-12">
+                                                                <div class="form-group mb-3">
+                                                                    <label>Address</label>
+                                                                    <input type="text" wire:model="customer_address"
+                                                                        class="form-control form-control-sm"
+                                                                        placeholder="Enter address">
+                                                                    @if (isset($errorMessage['customer_address']))
+                                                                    <div class="text-danger">
+                                                                        {{ $errorMessage['customer_address'] }}
+                                                                    </div>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        @endif
+                                            @endif
                                         @else
-                                        <input type="text" wire:keyup="FindCustomer($event.target.value)"
+                                            <input type="text" wire:keyup="FindCustomer($event.target.value)"
                                             wire:model="customer"
                                             class="form-control form-control-sm border border-1 customer_input"
-                                            placeholder="Search customer by name, mobile, order ID" {{ $readonly }}>
-                                        <input type="hidden" wire:model="customer_id" value="">
+                                            placeholder="Search customer by name, mobile, order ID" {{ $readonly }} {{$customer_id?"disabled":""}}>
+                                            <input type="hidden" wire:model="customer_id" value="" >
                                         @if (isset($errorMessage['customer_id']))
-                                        <div class="text-danger">{{ $errorMessage['customer_id'] }}</div>
+                                            <div class="text-danger">{{ $errorMessage['customer_id'] }}</div>
                                         @endif
                                         @if (!empty($searchResults))
                                         <div id="fetch_customer_details" class="dropdown-menu show w-100"
@@ -146,12 +129,14 @@
                                         @endif
                                         @endif
                                     </div>
-                                    <div class="is-filled form-check-label-group ">
-                                        <input type="checkbox" id="new_customer" wire:model="new_customer"
-                                            wire:change="changeNewCustomer">
-                                        <label for="new_customer" class="mt-0 text-primary cursor-pointer ms-1">New
-                                            Customer</label>
-                                    </div>
+                                    @if($customer_id==null)
+                                        <div class="is-filled form-check-label-group ">
+                                            <input type="checkbox" id="new_customer" wire:model="new_customer"
+                                                wire:change="changeNewCustomer">
+                                            <label for="new_customer" class="mt-0 text-primary cursor-pointer ms-1">New
+                                                Customer</label>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                             <div class="col-sm-4">
@@ -382,5 +367,66 @@
                 input.value = parts[0] + '.' + parts[1];
             }
         }
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/12.1.6/js/intlTelInput.min.js"></script>
+<script>
+    let dialCodesCache = null;
+
+     window.addEventListener('update_input_phone', function (event) {
+        // Load JSON once when page loads
+        $.getJSON("{{ asset('assets/js/dial-codes.json') }}", function (data) {
+            dialCodesCache = data;
+            // Once JSON is loaded, init inputs
+            initIntlTelInput("#mobile", "phone", "phone_code");
+        });
+    });
+
+    function loadDialCodes(dialNumber) {
+        if (!dialCodesCache) return "cf"; // fallback while JSON not loaded
+        return dialCodesCache[dialNumber] || "cf"; // default to cf
+    }
+
+    function initIntlTelInput(selector, phoneModel, codeModel) {
+        var input = $(selector);
+        var codeInput = $("#" + codeModel);
+        var phoneInput = $("#" + phoneModel);
+        var selected_dial_code = codeInput.val(); // only digits
+        var selected_phone_number = phoneInput.val(); // only digits
+        var defaultCountry = loadDialCodes(selected_dial_code);
+        input.intlTelInput({
+            initialCountry: defaultCountry,  // Central African Republic by default
+            preferredCountries: ["us", "gb", "in", "cf"],
+            separateDialCode: true
+        });
+        input.val(selected_phone_number);
+        // On input change (number typing)
+        input.on("input", function () {
+            let number = input.val().replace(/\D/g, ''); // only digits
+            @this.set(phoneModel, number);
+        });
+
+        // On country change
+        input.on("countrychange", function () {
+            let code = "+" + input.intlTelInput("getSelectedCountryData").dialCode;
+            @this.set(codeModel, code);
+            @this.call('CountryCodeSet', selector, code);
+        });
+
+        @this.set(codeModel, selected_dial_code);
+        @this.call('CountryCodeSet', selector, selected_dial_code);
+    }
+
+    // Already existing
+    window.addEventListener('update_input_max_length', function (event) {
+        let itemId = event.detail[0].id;
+        let mobile_length = event.detail[0].mobile_length;
+        if (itemId && mobile_length) {
+            // console.log(itemId);
+            // return false;
+            document.querySelector(itemId).setAttribute("maxlength", mobile_length);
+        }
+    });
+    
 </script>
 @endpush

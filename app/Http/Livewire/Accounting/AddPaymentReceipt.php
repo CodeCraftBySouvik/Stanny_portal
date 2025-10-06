@@ -34,7 +34,7 @@ class AddPaymentReceipt extends Component
     public $payment_collection_id = "";
     public $readonly = "readonly";
     public $customer,$customer_id, $customer_name, $staff_id, $amount, $voucher_no, $payment_date,$next_payment_date,$credit_date,$deposit_date,$payment_mode, $chq_utr_no, $bank_name, $receipt_for = "Customer",$cheque_photo,$cheque_file,$transaction_no;
-    public $mobileLengthPhone,$countries,$selectedCountryPhone,$phone,$customer_email,$customer_company,$customer_address,$withdrawal_charge,$payment_data;
+    public $mobileLengthPhone,$countries,$phone_code,$phone,$customer_email,$customer_company,$customer_address,$withdrawal_charge,$payment_data;
     use WithFileUploads;
 
     public function boot(AccountingRepositoryInterface $accountingRepository)
@@ -42,8 +42,12 @@ class AddPaymentReceipt extends Component
         $this->accountingRepository = $accountingRepository;
     }
     public function mount($payment_voucher_no=""){
-
-          $user = Auth::guard('admin')->user();
+        $this->customer_id = request()->get('customer_id');
+        if(isset($this->customer_id)){
+            $user = User::findOrFail($this->customer_id);
+            $this->customer = $user->name;
+        }
+        $user = Auth::guard('admin')->user();
         $this->my_designation = $user->designation;
         $payment_collection = PaymentCollection::with('customer', 'user')->where('voucher_no',$payment_voucher_no)->first();
         $this->payment_collection_id = !empty($payment_collection)?$payment_collection->id:'';
@@ -80,8 +84,16 @@ class AddPaymentReceipt extends Component
         if(empty($payment_voucher_no)){
             $this->readonly = "";
         }
+    }
+    public function CountryCodeSet($selector, $Code, $number = null)
+    {
+        $mobile_length = Country::where('country_code', $Code)->value('mobile_length') ?? '8';
 
-        $this->countries = Country::where('status',1)->get();
+        // Dispatch for maxlength
+        $this->dispatch('update_input_max_length', [
+            'id' => $selector,
+            'mobile_length' => $mobile_length
+        ]);
     }
     public function rules()
     {
@@ -114,13 +126,13 @@ class AddPaymentReceipt extends Component
     }
 
     public function changeNewCustomer(){
-        // dd($this->new_customer); // This will show true or false
+       $this->dispatch('update_input_phone');
     }
 
     public function submitForm()
     {
-        // dd($this->all());
 
+        $this->mobileLengthPhone = Country::where('country_code', $this->phone_code)->value('mobile_length') ?? '8';
         $this->reset(['errorMessage']);
 
         $this->errorMessage = array();
@@ -138,8 +150,9 @@ class AddPaymentReceipt extends Component
                 $this->errorMessage['phone'] = 'Phone number must contain only digits.';
             } elseif (strlen($this->phone) != $this->mobileLengthPhone) {
                 $this->errorMessage['phone'] = 'Phone number must be exactly ' . $this->mobileLengthPhone . ' digits.';
+            } elseif (User::where('phone', $this->phone)->whereNull('deleted_at')->exists()) {
+                $this->errorMessage['phone'] = 'This phone number is already in use.';
             }
-
         }else{
             if (empty($this->customer_id)) {
                 $this->errorMessage['customer_id'] = 'Please select a customer.';
@@ -189,7 +202,7 @@ class AddPaymentReceipt extends Component
                 if($this->new_customer){
                     $user = new User;
                     $user->name = ucwords($this->customer_name);
-                    $user->country_code_phone = $this->selectedCountryPhone;
+                    $user->country_code_phone = $this->phone_code;
                     $user->phone = $this->phone;
                     $user->email = $this->customer_email ?? null;
                     $user->company_name = $this->customer_company ?? null;
