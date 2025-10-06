@@ -424,7 +424,7 @@ class AddOrderSlip extends Component
                 })
                 ->count();
 
-                if ($pendingItemsCount == 0) {
+                if ($pendingItemsCount == 0 && $processItemsCount > 0) {
                     $status = "Fully Approved By TL";
                 } else {
                     $status = "Partial Approved By TL";
@@ -442,11 +442,12 @@ class AddOrderSlip extends Component
                 $adminApprovedCount = $allRelevantItems
                     ->where('tl_status', 'Approved')
                     ->where('admin_status', 'Approved')
+                    ->whereNotNull('assigned_team') 
                     ->count();
 
                 // Check if any remaining Hold or TL-approved but not Admin-approved
                 $hasPending = $allRelevantItems->where(function($item){
-                    return $item->status == 'Hold' || ($item->tl_status == 'Approved' && $item->admin_status != 'Approved');
+                    return $item->status == 'Hold' || ($item->tl_status == 'Approved' && $item->admin_status != 'Approved') || is_null($item->assigned_team);
                 })->count();
 
                 if ($adminApprovedCount == 0) {

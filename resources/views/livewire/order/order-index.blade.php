@@ -160,7 +160,7 @@
                                 @if($order->status!="Cancelled")
 
                                 {{-- New Code By Souvik --}}
-                                @if($userDesignationId == 1 && ($order->status == 'Partial Approved By TL' || $order->status == 'Fully Approved By TL'))
+                                @if($userDesignationId == 1 && ($order->status == 'Partial Approved By TL' || $order->status == 'Fully Approved By TL' || $order->status == 'Partial Approved By Admin'))
                                 <a href="{{ route('admin.order.add_order_slip', $order->id) }}"
                                     class="btn btn-outline-success select-md btn_outline">
                                     Approve Order
@@ -209,7 +209,7 @@
                                 @else
                                 {{-- ✅ Admin override: Show Approve/Edit/Cancel even if slip exists and status is
                                 Approved By TL --}}
-                                @if($userDesignationId == 1 && ($order->status == 'Partial Approved By TL' || $order->status == 'Fully Approved By TL'))
+                                @if($userDesignationId == 1 && ($order->status == 'Partial Approved By TL' || $order->status == 'Fully Approved By TL' || $order->status == 'Partial Approved By Admin'))
                                 <a href="{{ route('admin.order.add_order_slip', $order->id) }}"
                                     class="btn btn-outline-success select-md btn_outline">
                                     Approve Order

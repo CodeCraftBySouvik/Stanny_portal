@@ -1101,10 +1101,11 @@ protected function resetMeasurements($index)
             $this->errorClass['phone'] = 'border-danger';
             $this->errorMessage['phone'] = 'Please enter customer phone number';
         // } elseif (!preg_match('/^\d{'. $this->mobileLengthPhone .'}$/', $this->phone)) {
-        } elseif (!empty($this->mobileLengthPhone) && strlen($this->phone) != $this->mobileLengthPhone) {
-            $this->errorClass['phone'] = 'border-danger';
-            $this->errorMessage['phone'] = "Phone number must be exactly ".$this->mobileLengthPhone." digits";
-        } else {
+        // } elseif (!empty($this->mobileLengthPhone) && strlen($this->phone) != $this->mobileLengthPhone) {
+        //     $this->errorClass['phone'] = 'border-danger';
+        //     $this->errorMessage['phone'] = "Phone number must be exactly ".$this->mobileLengthPhone." digits";
+        // } 
+          } else {
             $this->errorClass['phone'] = null;
             $this->errorMessage['phone'] = null;
         }
@@ -1481,12 +1482,17 @@ protected function resetMeasurements($index)
                                     // Admin re‑activates the item ➜ Approved / Approved   // ★
                                     $orderItem->tl_status    = 'Approved';                 // ★
                                     $orderItem->admin_status = 'Approved';                 // ★
+                                    // $orderItem->assigned_team = 'production';                 // ★
                                 } elseif ($loggedInAdmin->designation == 4) {
                                     $orderItem->tl_status    = 'Approved';
                                     $orderItem->admin_status = 'Pending';
+                                    // $orderItem->assigned_team = null;                 // ★
+
                                 } else {
                                     $orderItem->tl_status    = 'Pending';
                                     $orderItem->admin_status = 'Pending';
+                                    // $orderItem->assigned_team = null;                 // ★
+                                      
                                 }
                                 $order->status = 'Approval Pending'; //enable mark as received
                             }
@@ -1499,14 +1505,32 @@ protected function resetMeasurements($index)
                     }
 
                     //  If Admin updated any item from Hold → Process, approve order again
-                        if (
-                            $previousStatus !== 'Process' &&
-                            $newStatus === 'Process' &&
-                            in_array($loggedInAdmin->designation, [1, 12])
-                        ) {
-                            $order->status = 'Fully Approved By Admin'; // enable mark as received
+                        // if (
+                        //     $previousStatus !== 'Process' &&
+                        //     $newStatus === 'Process' &&
+                        //     in_array($loggedInAdmin->designation, [1, 12])
+                        // ) {
+                        //     $order->status = 'Fully Approved By Admin'; // enable mark as received
+                        //     $order->save();
+                        // }
+                        if (in_array($loggedInAdmin->designation, [1, 12])) {
+                            $allProcessOrApproved = $order->items()
+                                ->where(function($q){
+                                    $q->where('status', 'Process')
+                                    ->orWhere('status', 'Approved');
+                                })
+                                ->count();
+
+                            $totalItems = $order->items()->count();
+
+                            if ($allProcessOrApproved == $totalItems) {
+                                $order->status = 'Fully Approved By Admin';
+                            } else {
+                                $order->status = 'Partial Approved By Admin';
+                            }
                             $order->save();
                         }
+
                     // ------------------------------------------------------------------
 
                     // Extra Fields
@@ -1563,33 +1587,6 @@ protected function resetMeasurements($index)
                     }
 
                     $orderItem->save();
-
-                   // After the foreach ($this->items as $key => $item) loop
-                    $items = $order->items();
-
-                    // Count Process items with TL approved
-                    $processApprovedCount = $items->where('status', 'Process')
-                                                ->where('tl_status', 'Approved')
-                                                ->count();
-
-                    // Count total Process items
-                    $totalProcessCount = $items->where('status', 'Process')->count();
-                    // Count Hold items
-                    $holdCount = $items->where('status', 'Hold')->count();
-                    // Determine order status based on TL designation
-                    $loggedInAdmin = auth()->guard('admin')->user();
-                    if ($loggedInAdmin->designation == 4) { // TL
-                        if ($holdCount > 0 && $processApprovedCount > 0) {
-                            $order->status = 'Partial Approved By TL';
-                        } elseif ($processApprovedCount == $totalProcessCount) {
-                            $order->status = 'Fully Approved By TL';
-                        } elseif ($holdCount == $totalProcessCount) {
-                            $order->status = 'Approval Pending';
-                        }
-                    }
-
-                    // Save the updated order status
-                    $order->save();
 
 
 
@@ -1668,6 +1665,35 @@ protected function resetMeasurements($index)
                         ]);
                 }
             }
+
+                //   $items = collect($this->items)
+                    $items = $order->items()->get();
+                
+                    // Count Process items with TL approved
+                    $processApprovedCount = $items->where('status', 'Process')
+                                                ->where('tl_status', 'Approved')
+                                                ->count();
+
+                    // Count total Process items
+                    $totalProcessCount = $items->where('status', 'Process')->count();
+
+                    // Count Hold items
+                    $holdCount = $items->where('status', 'Hold')->count();
+                    // dd($processApprovedCount,$totalProcessCount,$holdCount);
+                    // Determine order status based on TL designation
+                    $loggedInAdmin = auth()->guard('admin')->user();
+                    if ($loggedInAdmin->designation == 4) { // TL
+                        if ($holdCount > 0 && $processApprovedCount > 0) {
+                            $order->status = 'Partial Approved By TL';
+                        } elseif ($processApprovedCount == $totalProcessCount && $totalProcessCount > 0) {
+                            $order->status = 'Fully Approved By TL';
+                        } elseif ($holdCount == $totalProcessCount) {
+                            $order->status = 'Approval Pending';
+                        }
+                    }
+
+                    // Save the updated order status
+                    $order->save();
             // Store or update WhatsApp details if the flags are set
             $existingNumbers = UserWhatsapp::where('user_id', $this->orders->customer->id)->pluck('whatsapp_number')->toArray();
 

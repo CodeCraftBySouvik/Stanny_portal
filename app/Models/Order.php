@@ -157,6 +157,7 @@ class Order extends Model
             ->where(function($q) {
                 $q->whereNull('admin_status')->orWhere('admin_status', '!=', 'Approved');
             })
+            ->whereNull('assigned_team')
             ->exists();
     }
 
