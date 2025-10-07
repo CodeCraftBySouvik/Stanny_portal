@@ -17,10 +17,11 @@
                             <input type="date" wire:model="end_date" wire:change="AddEndDate($event.target.value)"
                                 class="form-control select-md bg-white" placeholder="End Date">
                         </div>
-                        
-                         <div class="col-auto" style="margin-top: -27px;">
+
+                        <div class="col-auto" style="margin-top: -27px;">
                             <label for="" class="date_lable">Status</label>
-                            <select class="form-control select-md bg-white" wire:model="status" wire:change="setStatus($event.target.value)">
+                            <select class="form-control select-md bg-white" wire:model="status"
+                                wire:change="setStatus($event.target.value)">
                                 <option value="">Status</option>
                                 <option value="Approval Pending">Approval Pending</option>
                                 <option value="Approved">Approved</option>
@@ -79,7 +80,7 @@
                 </div>
                 @endif
             </div>
-            
+
 
             <div class="table-responsive p-0">
                 <table class="table table-sm table-hover">
@@ -87,7 +88,7 @@
                         <tr>
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Order #
                             </th>
-                           
+
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Placed By
                             </th>
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Status</th>
@@ -105,7 +106,7 @@
                                 <p class="small text-muted mb-1 badge bg-warning">{{ $order->created_at->format('Y-m-d
                                     H:i') }}</p>
                             </td>
-                            
+
                             <td>
                                 <p class="small text-muted mb-1 text-uppercase">
                                     {{$order->createdBy?strtoupper($order->createdBy->name .'
@@ -113,29 +114,51 @@
                             </td>
                             <td>
                                 <span class="badge bg-{{ $order->status_class }}">
-                                {{ $order->status_label }}
+                                    {{ $order->status_label }}
                                 </span>
                             </td>
+                            @php
+                                // Check if there are any items assigned to production and not yet received
+                                $hasPendingProductionItems = $order->items()
+                                    ->where('assigned_team', 'production')
+                                    ->where(function($q) {
+                                        $q->whereNull('received_at')->orWhere('received_at', '');
+                                    })
+                                    ->exists();
+                            @endphp
                             <td class="text-center">
-                                @if ($order->status == 'Fully Approved By Admin' || $order->status == 'Partial Approved By Admin')
-                                    <button wire:click="confirmMarkAsReceived({{ $order->id }})"
-                                       class="btn btn-outline-success select-md btn_outline" @click.stop>Mark As
-                                        Received
-                                    </button>
-                                @elseif($order->status == 'Received at Production'  || $order->status == 'Partial Delivered By Production' || $order->status == 'Fully Delivered By Production')
-                                    @if (!in_array($order->id, $has_order_entry))
-                                       <a href="{{route('production.order.details',$order->id)}}" class="btn btn-outline-success select-md btn_action btn_outline">Stock Entry</a>   
-                                    @elseif(in_array($order->id, $has_order_entry) && $order->status != 'Fully Delivered By Production')
-                                       <a href="{{route('production.order.details',$order->id)}}" class="btn btn-outline-success select-md btn_action btn_outline">Delivery</a>   
-                                    @elseif($order->status == 'Fully Delivered By Production' || $order->status == 'Partial Delivered to Customer')
-                                       <button class="btn btn-outline-success select-md btn_action btn_outline" disabled>Delivered</button> 
-                                    @endif
+                                @if ($hasPendingProductionItems)
+                                <button wire:click="confirmMarkAsReceived({{ $order->id }})"
+                                    class="btn btn-outline-success select-md btn_outline" @click.stop>Mark As
+                                    Received
+                                </button>
+                                @elseif($order->status == 'Received at Production' || $order->status == 'Partial
+                                Delivered By Production' || $order->status == 'Fully Delivered By Production' ||
+                                $order->status == 'Partial Delivered to Customer')
+                                @if (!in_array($order->id, $has_order_entry))
+                                <a href="{{route('production.order.details',$order->id)}}"
+                                    class="btn btn-outline-success select-md btn_action btn_outline">Stock Entry</a>
+                                @elseif(in_array($order->id, $has_order_entry) && $order->status != 'Fully Delivered By
+                                Production')
+                                <a href="{{route('production.order.details',$order->id)}}"
+                                    class="btn btn-outline-success select-md btn_action btn_outline">Delivery</a>
+                                @elseif($order->status == 'Fully Delivered By Production' || $order->status == 'Partial
+                                Delivered to Customer')
+                                <button class="btn btn-outline-success select-md btn_action btn_outline"
+                                    disabled>Delivered</button>
                                 @endif
-                                 @if ($order->status !== 'Fully Approved By Admin' && $order->status !== 'Partial Approved By Admin')
-                                    <a href="{{route('production.order.details',$order->id)}}" class="btn btn-outline-success select-md btn_action btn_outline">Details</a>
                                 @endif
-                                <a href="{{route('production.order.download_pdf',$order->id)}}" target="_blank" class="btn btn-outline-primary select-md btn_outline">
-                                        Download Pdf
+                                @if (!in_array($order->status, [
+                                    'Fully Approved By Admin',
+                                    'Partial Approved By Admin',
+                                    'Partial Delivered to Customer'
+                                ]))
+                                <a href="{{route('production.order.details',$order->id)}}"
+                                    class="btn btn-outline-success select-md btn_action btn_outline">Details</a>
+                                @endif
+                                <a href="{{route('production.order.download_pdf',$order->id)}}" target="_blank"
+                                    class="btn btn-outline-primary select-md btn_outline">
+                                    Download Pdf
                                 </a>
                             </td>
                         </tr>
@@ -144,33 +167,37 @@
                     </tbody>
                 </table>
 
-                   <!-- Stock Entry Modal -->
-                    <div wire:ignore.self class="modal fade" id="stockEntryModal" tabindex="-1" aria-labelledby="stockEntryModalLabel" aria-hidden="true">
+                <!-- Stock Entry Modal -->
+                <div wire:ignore.self class="modal fade" id="stockEntryModal" tabindex="-1"
+                    aria-labelledby="stockEntryModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="stockEntryModalLabel">Enter Stock for Order #{{$stockOrderId}}</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" wire:click="closeStockModal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <!-- Your stock entry form goes here -->
-                            <div class="mb-3">
-                            <label for="stockItem" class="form-label">Fabric / Stock Item</label>
-                            <input type="text" id="stockItem" class="form-control">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="stockEntryModalLabel">Enter Stock for Order
+                                    #{{$stockOrderId}}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                                    wire:click="closeStockModal"></button>
                             </div>
-                            <div class="mb-3">
-                            <label for="quantity" class="form-label">Quantity Used</label>
-                            <input type="number" id="quantity" class="form-control">
+                            <div class="modal-body">
+                                <!-- Your stock entry form goes here -->
+                                <div class="mb-3">
+                                    <label for="stockItem" class="form-label">Fabric / Stock Item</label>
+                                    <input type="text" id="stockItem" class="form-control">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="quantity" class="form-label">Quantity Used</label>
+                                    <input type="number" id="quantity" class="form-control">
+                                </div>
+                                <!-- Add more fields as needed -->
                             </div>
-                            <!-- Add more fields as needed -->
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" wire:click="closeStockModal">Close</button>
-                            <button type="button" class="btn btn-primary">Save Stock Entry</button>
-                        </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                                    wire:click="closeStockModal">Close</button>
+                                <button type="button" class="btn btn-primary">Save Stock Entry</button>
+                            </div>
                         </div>
                     </div>
-                    </div>
+                </div>
 
                 <!-- Pagination -->
                 <div class="mt-4">
@@ -207,5 +234,3 @@
             });
         });
 </script>
-
-

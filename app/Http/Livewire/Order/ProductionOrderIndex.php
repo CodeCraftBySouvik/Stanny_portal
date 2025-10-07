@@ -39,19 +39,55 @@ class ProductionOrderIndex extends Component
         $this->dispatch('showMarkAsReceived',['orderId' => $id]);
     }
 
-     public function markReceivedConfirmed($orderId)
-    {
-        $order = Order::find($orderId);
-        if ($order && in_array($order->status, ['Fully Approved By Admin','Partial Approved By Admin'])) {
-            $order->status = 'Received at Production';
-            $order->save();
+    //  public function markReceivedConfirmed($orderId)
+    // {
+    //     $order = Order::find($orderId);
+    //     if ($order && in_array($order->status, ['Partial Delivered to Customer','Fully Approved By Admin','Partial Approved By Admin'])) {
+    //         $order->status = 'Received at Production';
+    //         $order->save();
 
-            // Optional: add status log or notification
-            session()->flash('message', 'Order marked as Received.');
-        } else {
-            session()->flash('error', 'Order not eligible for receiving.');
-        }
+    //         // Optional: add status log or notification
+    //         session()->flash('message', 'Order marked as Received.');
+    //     } else {
+    //         session()->flash('error', 'Order not eligible for receiving.');
+    //     }
+    // }
+
+    public function markReceivedConfirmed($orderId)
+{
+    $order = Order::find($orderId);
+
+    if (!$order) {
+        session()->flash('error', 'Order not found.');
+        return;
     }
+
+    // Find items assigned to production that are not yet received
+    $newProductionItems = $order->items()
+        ->where('assigned_team', 'production')
+        ->where(function($q) {
+            $q->whereNull('received_at')
+              ->orWhere('received_at', '');
+        })
+        ->get();
+
+    if ($newProductionItems->isEmpty()) {
+        session()->flash('error', 'No new items to mark as received.');
+        return;
+    }
+
+    // Mark those items as received
+    foreach ($newProductionItems as $item) {
+        $item->update(['received_at' => now()]);
+    }
+
+    // Update overall order status
+    $order->status = 'Received at Production';
+    $order->save();
+
+    session()->flash('message', 'New production items marked as received.');
+}
+
 
     
     public function openStockModal($orderNumber)

@@ -311,8 +311,8 @@
                             {{ session('error') }}
                         </div>
                         @endif
-                        <div class="row align-items-center">
-                            @foreach ($order->items as $key => $order_item)
+                        @foreach ($order->items as $key => $order_item)
+                        <div class="row align-items-center mb-2 pb-3">
                             @php
                             $magrin = '';
                             if ($key != 0) {

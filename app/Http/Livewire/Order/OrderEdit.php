@@ -1515,6 +1515,7 @@ protected function resetMeasurements($index)
                         // }
                         if (in_array($loggedInAdmin->designation, [1, 12])) {
                             $allProcessOrApproved = $order->items()
+                                ->whereNotNull('assigned_team')
                                 ->where(function($q){
                                     $q->where('status', 'Process')
                                     ->orWhere('status', 'Approved');
@@ -1522,8 +1523,10 @@ protected function resetMeasurements($index)
                                 ->count();
 
                             $totalItems = $order->items()->count();
+                             // also ensure no items are unassigned
+                            $unassignedCount = $order->items()->whereNull('assigned_team')->count();
 
-                            if ($allProcessOrApproved == $totalItems) {
+                            if ($allProcessOrApproved == $totalItems && $unassignedCount == 0) {
                                 $order->status = 'Fully Approved By Admin';
                             } else {
                                 $order->status = 'Partial Approved By Admin';

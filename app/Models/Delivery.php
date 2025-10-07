@@ -17,7 +17,8 @@ class Delivery extends Model
         'delivered_quantity',
         'unit',
         'delivered_by',
-        'delivered_at'
+        'delivered_at',
+        'status'
     ];
 
     public function order(){

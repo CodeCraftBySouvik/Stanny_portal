@@ -117,16 +117,65 @@ class AddOrderSlip extends Component
                 $item->save();
 
                 // Auto deliver logic for sales team
-                if ($itemData['team'] === 'sales') {
+                // if ($itemData['team'] === 'sales') {
                   
+                //     $this->autoDeliverItem($item);
+                //        //  Update delivery status to 'Received by Sales Team'
+                //        $delivery = Delivery::where('order_item_id',$item->id)->latest()->first();
+                //        if($delivery){
+                //             $delivery->status = "Received by Sales Team";
+                //             $delivery->save();
+                //        }
+                // }
+               if ($itemData['team'] === 'sales') {
+                // dd('hi');
+                    // Try auto delivery first
                     $this->autoDeliverItem($item);
-                       //  Update delivery status to 'Received by Sales Team'
-                       $delivery = Delivery::where('order_item_id',$item->id)->latest()->first();
-                       if($delivery){
-                            $delivery->status = "Received by Sales Team";
-                            $delivery->save();
-                       }
+
+                    // Check if a delivery already exists
+                    $delivery = Delivery::where('order_item_id', $item->id)->latest()->first();
+
+                    if (!$delivery) {
+                        // Create a new delivery depending on collection type
+                        if ($item->collection == 1) {
+                            // 🧵 Fabric Collection
+                            Delivery::create([
+                                'order_id'                  => (int) $item->order_id,
+                                'order_item_id'             => (int) $item->id,
+                                'fabric_id'                 => is_numeric($item->fabrics) ? (int) $item->fabrics : null,
+                                'fabric_quantity'           => (float) $item->quantity,
+                                'delivered_quantity'        => (float) $item->quantity,
+                                'unit'                      => 'meters',
+                                'status'                    => 'Received by Sales Team',
+                                'delivered_by'              => auth()->guard('admin')->user()->id,
+                                'remarks'                   => 'Auto-delivered to Sales Team (Fabric)',
+                                'delivered_at'              => now(),
+                            ]);
+                        } elseif ($item->collection == 2) {
+                            // 📦 Product Collection
+                           $delivery =  Delivery::create([
+                                'order_id'                  => (int) $item->order_id,
+                                'order_item_id'             => (int) $item->id,
+                                'product_id'                => is_numeric($item->product_id) ? (int) $item->product_id : null,
+                                'delivered_quantity'        => (float) $item->quantity,
+                                'unit'                      => 'pieces',
+                                'status'                    => 'Received by Sales Team',
+                                'delivered_by'              => auth()->guard('admin')->user()->id,
+                                'remarks'                   => 'Auto-delivered to Sales Team (Product)',
+                                'delivered_at'              => now(),
+                            ]);
+                        }
+                    } else {
+                        // ✅ Update existing delivery if found
+                        $delivery->update([
+                            'status'       => 'Received by Sales Team',
+                            'remarks'      => 'Auto-updated as delivered to Sales Team',
+                            'delivered_at' => now(),
+                        ]);
+                    }
                 }
+
+
             }
         }
 
@@ -169,6 +218,7 @@ class AddOrderSlip extends Component
                     'unit' => 'meters',
                     'delivered_by' => auth()->guard('admin')->user()->id,
                     'delivery_date' => now(),
+                      'status'                    => 'Delivered',
                 ]);
             }
         } elseif ($item->collection == 2) {
@@ -187,6 +237,7 @@ class AddOrderSlip extends Component
                     'unit' => 'pieces',
                     'delivered_by' => auth()->guard('admin')->user()->id,
                     'delivery_date' => now(),
+                      'status'                    => 'Delivered',
                 ]);
             }
         }
