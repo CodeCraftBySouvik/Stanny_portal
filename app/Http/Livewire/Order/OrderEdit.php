@@ -1458,51 +1458,100 @@ protected function resetMeasurements($index)
 
                     $orderItem->status = $newStatus;
 
+                    // Old 8-10-2025
+                    // if ($statusChanged) {
+
+                    //     // ── 1. Item is (now) Process ──────────────────────────────────
+                    //     if ($newStatus === 'Process') { 
+
+                    //         // 1A. Brand‑new row (previousStatus == null)
+                    //         if (is_null($previousStatus)) {
+                    //             if (in_array($loggedInAdmin->designation, [1, 12])) {
+                    //                 $orderItem->tl_status    = 'Approved';
+                    //                 $orderItem->admin_status = 'Approved';
+                    //             } elseif ($loggedInAdmin->designation == 4) {
+                    //                 $orderItem->tl_status    = 'Approved';
+                    //                 $orderItem->admin_status = 'Pending';
+                    //             } else {
+                    //                 $orderItem->tl_status    = 'Pending';
+                    //                 $orderItem->admin_status = 'Pending';
+                    //             }
+
+                    //         // 1B. Hold → Process (existing row)
+                    //         } else {
+                    //             if (in_array($loggedInAdmin->designation, [1, 12])) {      // ★
+                    //                 // Admin re‑activates the item ➜ Approved / Approved   // ★
+                    //                 $orderItem->tl_status    = 'Approved';                 // ★
+                    //                 $orderItem->admin_status = 'Approved';                 // ★
+                    //                 $orderItem->assigned_team = 'production';                 // ★
+                    //             } elseif ($loggedInAdmin->designation == 4) {
+                    //                 $orderItem->tl_status    = 'Approved';
+                    //                 $orderItem->admin_status = 'Pending';
+                    //                 $orderItem->assigned_team = null;                 // ★
+
+                    //             } else {
+                    //                 $orderItem->tl_status    = 'Pending';
+                    //                 $orderItem->admin_status = 'Pending';
+                    //                 $orderItem->assigned_team = null;                 // ★
+                                      
+                    //             }
+                    //             $order->status = 'Approval Pending'; //enable mark as received
+                    //         }
+
+                    //     // ── 2. Item is leaving Process (Process → Hold or other) ──────
+                    //     } else {
+                    //         $orderItem->tl_status    = 'Pending';
+                    //         $orderItem->admin_status = 'Pending';
+                    //     }
+                    // }
+
+                    // New 8-10-2025
                     if ($statusChanged) {
 
-                        // ── 1. Item is (now) Process ──────────────────────────────────
-                        if ($newStatus === 'Process') { 
+                        if ($newStatus === 'Process') {
 
-                            // 1A. Brand‑new row (previousStatus == null)
+                            // ── Case 1: Brand-new item (previousStatus == null)
                             if (is_null($previousStatus)) {
-                                if (in_array($loggedInAdmin->designation, [1, 12])) {
+
+                                if (in_array($loggedInAdmin->designation, [1, 12])  && $order->created_by == 1) {
+                                    // Admin creates or updates → auto approve & assign production
                                     $orderItem->tl_status    = 'Approved';
                                     $orderItem->admin_status = 'Approved';
-                                } elseif ($loggedInAdmin->designation == 4) {
-                                    $orderItem->tl_status    = 'Approved';
-                                    $orderItem->admin_status = 'Pending';
+                                    $orderItem->assigned_team = 'production';
                                 } else {
+                                    // Non-admin create → no auto approve
                                     $orderItem->tl_status    = 'Pending';
                                     $orderItem->admin_status = 'Pending';
+                                    $orderItem->assigned_team = null;
                                 }
 
-                            // 1B. Hold → Process (existing row)
+                            // ── Case 2: Existing item changed from Hold → Process
                             } else {
-                                if (in_array($loggedInAdmin->designation, [1, 12])) {      // ★
-                                    // Admin re‑activates the item ➜ Approved / Approved   // ★
-                                    $orderItem->tl_status    = 'Approved';                 // ★
-                                    $orderItem->admin_status = 'Approved';                 // ★
-                                    // $orderItem->assigned_team = 'production';                 // ★
-                                } elseif ($loggedInAdmin->designation == 4) {
-                                    $orderItem->tl_status    = 'Approved';
-                                    $orderItem->admin_status = 'Pending';
-                                    // $orderItem->assigned_team = null;                 // ★
 
+                                if (in_array($loggedInAdmin->designation, [1, 12])  && $order->created_by == 1) {
+                                    // Admin re-activates item → approve and assign production
+                                    $orderItem->tl_status    = 'Approved';
+                                    $orderItem->admin_status = 'Approved';
+                                    $orderItem->assigned_team = 'production';
                                 } else {
+                                    // Non-admin (e.g. TL/staff) just updates it → not auto approved
                                     $orderItem->tl_status    = 'Pending';
                                     $orderItem->admin_status = 'Pending';
-                                    // $orderItem->assigned_team = null;                 // ★
-                                      
+                                    $orderItem->assigned_team = null;
                                 }
-                                $order->status = 'Approval Pending'; //enable mark as received
+
+                                // Let system know order still needs admin review
+                                $order->status = 'Approval Pending';
                             }
 
-                        // ── 2. Item is leaving Process (Process → Hold or other) ──────
                         } else {
+                            // ── Case 3: Leaving Process (e.g. Hold, Cancel, etc.)
                             $orderItem->tl_status    = 'Pending';
                             $orderItem->admin_status = 'Pending';
+                            $orderItem->assigned_team = null;
                         }
                     }
+
 
                     //  If Admin updated any item from Hold → Process, approve order again
                         // if (
@@ -1513,26 +1562,59 @@ protected function resetMeasurements($index)
                         //     $order->status = 'Fully Approved By Admin'; // enable mark as received
                         //     $order->save();
                         // }
+                        // if (in_array($loggedInAdmin->designation, [1, 12])) {
+                        //     $allProcessOrApproved = $order->items()
+                        //         ->whereNotNull('assigned_team')
+                        //         ->where(function($q){
+                        //             $q->where('status', 'Process')
+                        //             ->orWhere('status', 'Approved');
+                        //         })
+                        //         ->count();
+
+                        //     $totalItems = $order->items()->count();
+                        //      // also ensure no items are unassigned
+                        //     $unassignedCount = $order->items()->whereNull('assigned_team')->count();
+
+                        //     if ($allProcessOrApproved == $totalItems && $unassignedCount == 0) {
+                        //         $order->status = 'Fully Approved By Admin';
+                        //     } else {
+                        //         $order->status = 'Partial Approved By Admin';
+                        //     }
+                        //     $order->save();
+                        // }
+
                         if (in_array($loggedInAdmin->designation, [1, 12])) {
-                            $allProcessOrApproved = $order->items()
-                                ->whereNotNull('assigned_team')
-                                ->where(function($q){
-                                    $q->where('status', 'Process')
-                                    ->orWhere('status', 'Approved');
-                                })
-                                ->count();
 
                             $totalItems = $order->items()->count();
-                             // also ensure no items are unassigned
+
+                            $allProcessItems = $order->items()
+                                ->where('status', 'Process')
+                                ->whereNotNull('assigned_team')
+                                ->count();
+
                             $unassignedCount = $order->items()->whereNull('assigned_team')->count();
 
-                            if ($allProcessOrApproved == $totalItems && $unassignedCount == 0) {
+                            // ✅ Check if all assigned teams are production
+                            $allProductionTeam = $order->items()
+                                ->whereNotNull('assigned_team')
+                                ->where('assigned_team', '!=', 'production')
+                                ->count() == 0;
+                            // dd($totalItems,$allProcessItems,$unassignedCount,$allProductionTeam);
+                            // ✅ Fully approved only if all items are Process + assigned + all production
+                            if (
+                                $totalItems > 0 &&
+                                $allProcessItems == $totalItems &&
+                                $unassignedCount == 0 &&
+                                $allProductionTeam
+                            ) {
                                 $order->status = 'Fully Approved By Admin';
                             } else {
                                 $order->status = 'Partial Approved By Admin';
                             }
+
                             $order->save();
                         }
+
 
                     // ------------------------------------------------------------------
 
@@ -1732,6 +1814,12 @@ protected function resetMeasurements($index)
                 ->delete();
 
             // Maintain Log
+            $loggedInUserId = auth()->guard('admin')->user()->id ?? null;
+             // Auto Approve for Admin And Store Person
+                 $staff = User::find($loggedInUserId);
+                if ($staff && (in_array($staff->designation,[1,12]) && $order->created_by == 1)) {
+                    $orderRepo->approveOrder($order->id, $staff->id);
+                }
 
             DB::commit();
             session()->flash('success', 'Order has been updated successfully.');
@@ -1742,7 +1830,7 @@ protected function resetMeasurements($index)
             \Log::error('Error updating order: ' . $e->getMessage());
             session()->flash('error', $e->getMessage());
             dd($e->getMessage());
-            session()->flash('error', 'ðŸš¨ Something went wrong. The operation has been rolled back.');
+            session()->flash('error', 'Something went wrong. The operation has been rolled back.');
         }
     }
 

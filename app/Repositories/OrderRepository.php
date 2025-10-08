@@ -21,18 +21,51 @@ class OrderRepository
 
             $order = Order::with('items', 'customer')->findOrFail($orderId);
              // Update each item as Approved if needed
-                foreach ($order->items as $item) {
-                    if ($item->status == 'Process' && $item->admin_status != 'Approved') {
+                // foreach ($order->items as $item) {
+                //     if ($item->status == 'Process' && $item->admin_status != 'Approved') {
+                //         $item->admin_status = 'Approved';
+                //         $item->save();
+                //     }
+                // }
+                 // ✅ Step 1: Update item admin_status based on creation source
+                 $loggedInAdmin = auth()->guard('admin')->user();
+                 foreach ($order->items as $item) {
+
+                // Only handle Process items
+                if ($item->status === 'Process') {
+
+                    // If admin or super admin is approving
+                    if (in_array($loggedInAdmin->designation, [1, 12])) {
+                        $item->tl_status = 'Approved';
                         $item->admin_status = 'Approved';
-                        $item->save();
+
+                        // Assign a team only if not already assigned
+                        // if (empty($item->assigned_team)) {
+                        //     $item->assigned_team = 'production'; // or keep existing logic
+                        // }
                     }
+                    // If TL/staff approving
+                    else {
+                        $item->tl_status = 'Approved';
+                        $item->admin_status = 'Pending';
+                        // keep assigned_team as is (don’t reset)
+                    }
+
+                } else {
+                    // Not in Process (Hold/Cancel)
+                    $item->tl_status = 'Pending';
+                    $item->admin_status = 'Pending';
+                    $item->assigned_team = null;
                 }
+
+                $item->save();
+            }
 
                 // Determine order status based on items
                 $totalItems = $order->items->count();
                 $approvedItems = $order->items->where('admin_status', 'Approved')->count();
                 $holdItems = $order->items->where('status', 'Hold')->count();
-
+                dd($totalItems,$approvedItems,$holdItems);
                 if ($approvedItems == $totalItems) {
                     $orderStatus = 'Fully Approved By Admin';
                 } elseif ($approvedItems > 0 || $holdItems > 0) {

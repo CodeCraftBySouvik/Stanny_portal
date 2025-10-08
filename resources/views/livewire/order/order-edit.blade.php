@@ -482,7 +482,7 @@
                                     <div>
                                         <!-- Delete Button -->
                                         <button type="button" class="btn btn-danger btn-sm danger_btn mb-0"
-                                            wire:click="removeItem({{ $index }})"><span
+                                            wire:click="removeItem({{ $index }})" @if($isDisabled) disabled @endif><span
                                                 class="material-icons">delete</span>
                                         </button>
                                     </div>

@@ -360,14 +360,14 @@ class AddOrderSlip extends Component
                 if ($userDesignationId == 1) {
 
                 //  new – auto‑approve any remaining TL‑approved rows
-                OrderItem::where('order_id', $this->order->id)
-                    ->where('status', 'Process')
-                    ->where('tl_status', 'Approved')
-                    ->where(function($q){           // not yet approved by Admin
-                        $q->whereNull('admin_status')
-                        ->orWhere('admin_status', '!=', 'Approved');
-                    })
-                    ->update(['admin_status' => 'Approved']);
+                // OrderItem::where('order_id', $this->order->id)
+                //     ->where('status', 'Process')
+                //     ->where('tl_status', 'Approved')
+                //     ->where(function($q){           // not yet approved by Admin
+                //         $q->whereNull('admin_status')
+                //         ->orWhere('admin_status', '!=', 'Approved');
+                //     })
+                //     ->update(['admin_status' => 'Approved']);
                     
                 // now re‑run your guard
                 $hasProcessItem = OrderItem::where('order_id', $this->order->id)

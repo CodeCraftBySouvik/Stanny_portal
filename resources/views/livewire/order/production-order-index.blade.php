@@ -132,9 +132,8 @@
                                     class="btn btn-outline-success select-md btn_outline" @click.stop>Mark As
                                     Received
                                 </button>
-                                @elseif($order->status == 'Received at Production' || $order->status == 'Partial
-                                Delivered By Production' || $order->status == 'Fully Delivered By Production' ||
-                                $order->status == 'Partial Delivered to Customer')
+                                @elseif(in_array($order->status,['Received at Production','Partial
+                                Delivered By Production','Fully Delivered By Production','Partial Delivered to Customer','Partial Approved By Admin']))
                                 @if (!in_array($order->id, $has_order_entry))
                                 <a href="{{route('production.order.details',$order->id)}}"
                                     class="btn btn-outline-success select-md btn_action btn_outline">Stock Entry</a>

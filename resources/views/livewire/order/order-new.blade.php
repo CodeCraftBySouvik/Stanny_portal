@@ -764,7 +764,7 @@
                                     <h6 class="badge bg-danger custom_success_badge">Measurements</h6> <span
                                         class="text-danger">*</span>
                                     <!-- Checkbox to Copy Previous Measurements -->
-                                    @if($index > 0)
+                                    @if($index > 0 && !empty($items[$index - 1]['measurements'] ?? []))
                                     <!-- Show checkbox only for second item onwards -->
                                     <div class="form-check mb-2">
                                         <input type="checkbox" class="form-check-input"
