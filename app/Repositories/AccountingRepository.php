@@ -18,8 +18,17 @@ class AccountingRepository implements AccountingRepositoryInterface
 {
     public function StorePaymentReceipt(array $data)
     {
+    $adminUser = null;
+    if(Auth::guard('admin')->check()){
+         // Web admin session
+         $adminUser = Auth::guard('admin')->user();
+    }elseif(Auth::guard('api')->check()){
+        // API token authenticated user
+        $adminUser = Auth::guard('api')->user();
+    }    
 
-    $admin_id = Auth::guard('admin')->user()->id;
+    $admin_id = $adminUser ? $adminUser->id : null;
+
     if(empty($data['payment_collection_id'])){
         $check_store_unpaid_invoices = Invoice::where('customer_id', $data['customer_id'])->where('is_paid',
         0)->get()->toarray();
@@ -48,7 +57,7 @@ class AccountingRepository implements AccountingRepositoryInterface
         'amount' => $data['amount'],
         'chq_utr_no' => !empty($data['chq_utr_no'])?$data['chq_utr_no']:'',
         'bank_name' => !empty($data['bank_name'])?$data['bank_name']:'',
-        'created_by' => Auth::guard('admin')->user()->id
+        'created_by' => $admin_id
         );
 
         // Receipt for Customer
@@ -536,7 +545,7 @@ class AccountingRepository implements AccountingRepositoryInterface
                     'chq_utr_no'  => $data['transaction_no'],
                     'bank_name'   => $data['bank_name'],
                     'narration'   => $data['narration'],
-                    'created_by' => Auth::guard('admin')->user()->id,
+                    'created_by' => $admin_id,
                     'created_at'=>date('Y-m-d H:i:s')
                 ]);
                 /* Entry in ledger */
@@ -582,7 +591,7 @@ class AccountingRepository implements AccountingRepositoryInterface
                     'chq_utr_no'=> '',
                     'bank_name'=> '',
                     'narration'=> $data['narration'],
-                    'created_by'=> Auth::guard('admin')->user()->id,
+                    'created_by'=> $admin_id,
                     'created_at'=> date('Y-m-d H:i:s')
                 ]);
                 /* Entry in ledger */
@@ -630,7 +639,7 @@ class AccountingRepository implements AccountingRepositoryInterface
                 'chq_utr_no'=> $data['transaction_no'],
                 'bank_name'=> $data['bank_name'],
                 'narration'=> $data['narration'],
-                'created_by'=> Auth::guard('admin')->user()->id,
+                'created_by'=> $admin_id,
                 'created_at'=> date('Y-m-d H:i:s')
             ]);
 

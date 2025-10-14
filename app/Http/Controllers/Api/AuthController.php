@@ -14,12 +14,14 @@ use App\Models\Ledger;
 use App\Models\Country;
 use App\Models\BusinessType;
 use App\Models\PaymentCollection;
+use App\Models\UserWhatsapp;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 
 class AuthController extends Controller
@@ -571,79 +573,83 @@ class AuthController extends Controller
     {
         $user = $this->getAuthenticatedUser();
         if ($user instanceof \Illuminate\Http\JsonResponse) {
-            return $user; // Return the response if the user is not authenticated
+            return $user;
         }
-        $filter = $request->keyword;
-        
-        // Fetch filtered users
-        $users = User::with('billingAddress')->where('user_type', 1)
+
+        $filter = trim($request->keyword);
+
+        // Base query
+        $query = User::with('billingAddress')
+            ->where('user_type', 1)
             ->where('status', 1)
-            ->when($filter, function ($query) use ($filter) {
-                $query->where(function ($q) use ($filter) {
-                    $q->where('name', 'like', "%{$filter}%")
+            ->where(function ($query) use ($filter) {
+                $query->where('name', 'like', "%{$filter}%")
+                    ->orWhere('prefix', 'like', "%{$filter}%")
                     ->orWhere('phone', 'like', "%{$filter}%")
                     ->orWhere('whatsapp_no', 'like', "%{$filter}%")
-                    ->orWhere('company_name', 'like', "%{$filter}%")
-                    ->orWhere('email', 'like', "%{$filter}%");
-                });
-            })
-            ->where('created_by', $user->id)
-            ->take(20)
-            ->get();
-          
-            // Fetch orders and get the first matching customer's details
-            $order = Order::where('order_number', 'like', "%{$filter}%")
-                ->orWhereHas('customer', function ($query) use ($filter) {
-                    $query->where('name', 'like', "%{$filter}%");
-                })
-                ->where('created_by', $user->id)
-                ->latest()
-                ->first(); // Fetch only the first order directly
-            
-            if ($order && $order->customer) {
-                $users->prepend($order->customer);
-            }
-            
-            // $data = $users->map(function ($user) {
-            //     return [
-            //         'id' => $user->id,
-            //         'name' => $user->name,
-            //         'email' => $user->email,
-            //         'phone' => $user->phone,
-            //     ];
-            // });
+                    ->orWhere('email', 'like', "%{$filter}%")
+                    ->orWhereRaw("CONCAT(prefix, ' ', name) LIKE ?", ["%{$filter}%"])
+                    ->orWhereRaw("CONCAT(country_code_phone, ' ', phone) LIKE ?", ["%{$filter}%"])
+                    ->orWhereRaw("CONCAT(country_code_phone, '', phone) LIKE ?", ["%{$filter}%"]);
+            });
+
+        // Apply restriction if user is not super admin
+        if (!$user->is_super_admin) {
+            $query->where('created_by', $user->id);
+        }
+
+        $users = $query->orderBy('created_at', 'desc')->get();
+
+        // Optional: also find customer by order number or customer name in orders
+        // $order = Order::with('customer')
+        //     ->where('order_number', 'like', "%{$filter}%")
+        //     ->orWhereHas('customer', function ($query) use ($filter) {
+        //         $query->where('name', 'like', "%{$filter}%");
+        //     })
+        //     ->when(!$user->is_super_admin, fn($q) => $q->where('created_by', $user->id))
+        //     ->latest()
+        //     ->first();
+
+        // // Prepend matched customer if found in order
+        // if ($order && $order->customer && !$users->contains('id', $order->customer->id)) {
+        //     $users->prepend($order->customer);
+        // }
+
         return response()->json([
             'status' => true,
             'message' => 'Data fetched successfully!',
             'data' => $users,
-        ],200);
+        ], 200);
     }
+
     public function customer_store(Request $request){
         $authUser = $this->getAuthenticatedUser();
-        $phone_code_length = $request->phone_code_length;
-        $whatsapp_code_length = $request->whatsapp_code_length;
-        $alternative_phone_1_code_length = $request->alternative_phone_1_code_length;
-        $alternative_phone_2_code_length = $request->alternative_phone_2_code_length;
+         // ✅ Fetch country-specific mobile lengths dynamically
+        $mobileLengthPhone = Country::where('country_code', $request->phone_code)->value('mobile_length');
+        $mobileLengthAlt1  = Country::where('country_code', $request->alternative_phone_code_1)->value('mobile_length');
+        $mobileLengthAlt2  = Country::where('country_code', $request->alternative_phone_code_2)->value('mobile_length');
+        
         $rules = [
             'prefix' => 'required|string|max:255',
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|unique:users,email',
-            'phone_code' => 'required|string|max:255',
+            // 👇 Dynamic mobile length regex based on country
             'phone' => [
                 'required',
-                'regex:/^\d{'. $phone_code_length .'}$/',
-            ],
-            
-            'country_code_alt_1' => 'nullable|string|max:255',
-            'alternative_phone_number_1' => [
-                'nullable',
-                'regex:/^\d{'. $alternative_phone_1_code_length .'}$/',
+                'regex:/^\d{' . $mobileLengthPhone . '}$/',
+                
             ],
 
-            'country_code_alt_2' => 'nullable|string|max:255',
+            'alternative_phone_code_1' => 'nullable|string|max:10',
+            'alternative_phone_number_1' => [
+                'nullable',
+                'regex:/^\d{' . $mobileLengthAlt1 . '}$/',
+            ],
+
+            'alternative_phone_code_2' => 'nullable|string|max:10',
             'alternative_phone_number_2' => [
                 'nullable',
-                'regex:/^\d{'. $alternative_phone_2_code_length .'}$/',
+                'regex:/^\d{' . $mobileLengthAlt2 . '}$/',
             ],
             
             'dob' => 'nullable|date',
@@ -656,11 +662,23 @@ class AuthController extends Controller
             'billing_country' => 'required|string|max:255',
             'billing_pin' => 'nullable|string|max:10',
             'profile_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'verified_video' => 'nullable|file|mimes:mp4,avi,mkv|max:10240',
+        ];
+
+          $messages = [
+            'phone.required' => 'The primary mobile number is required.',
+            'phone.regex' => "The mobile number must be exactly {$mobileLengthPhone} digits as per selected country.",
+            'phone.unique' => 'This mobile number is already registered with another customer.',
+
+            'alternative_phone_number_1.regex' => "Alternative phone number 1 must be exactly {$mobileLengthAlt1} digits.",
+            'alternative_phone_number_2.regex' => "Alternative phone number 2 must be exactly {$mobileLengthAlt2} digits.",
+
+            'email.unique' => 'This email address is already in use.',
+            'profile_image.mimes' => 'Profile image must be a file of type: jpeg, png, jpg.',
+            'gst_certificate_image.mimes' => 'GST certificate must be a file of type: jpg, png, or pdf.',
         ];
 
         // Validate the request
-        $validator = Validator::make($request->all(), $rules);
+        $validator = Validator::make($request->all(), $rules,$messages);
 
         // Return error response if validation fails
         if ($validator->fails()) {
@@ -673,34 +691,86 @@ class AuthController extends Controller
         DB::beginTransaction();
 
         try {
+            
             $profileImagePath = $request->hasFile('profile_image')
                 ? 'storage/' . $request->file('profile_image')->store('profile_images', 'public')
                 : null;
 
-            $verifiedVideoPath = $request->hasFile('verified_video')
-                ? 'storage/' . $request->file('verified_video')->store('verified_videos', 'public')
-                : null;
+          
             // Create the user
             $user = User::create([
                 'prefix' => $request->prefix,
                 'name' => $request->name,
+                'customer_badge' => $request->badge_type,
+                'profile_image' => $profileImagePath,
+                'company_name' => $request->company_name,
+                'employee_rank' => $request->employee_rank,
                 'email' => $request->email,
+                'dob' => $request->dob,
                 'country_code_phone' => $request->phone_code,
                 'phone' => $request->phone,
                 'country_code_whatsapp' => $request->whatsapp_code,
-                'whatsapp_no' => $request->whatsapp_no,
+                // 'whatsapp_no' => $request->whatsapp_no,
+                'gst_number' => $request->gst_number,
+                'credit_limit' => $request->credit_limit === '' ? 0 : $request->credit_limit,
+                'credit_days' => $request->credit_days === '' ? 0 : $request->credit_days,
+                'gst_certificate_image' => $request->hasFile('gst_certificate_image') ? $this->uploadGSTCertificate($request) : null,
+                'country_id' => $request->country_id,
                 'country_code_alt_1' => $request->country_code_alternative_1,
                 'alternative_phone_number_1' => $request->alternative_phone_number_1,
                 'country_code_alt_2' => $request->country_code_alternative_2,
                 'alternative_phone_number_2'  => $request->alternative_phone_number_2,
-                'dob' => $request->dob,
-                'company_name' => $request->company_name,
-                'employee_rank' => $request->employee_rank,
-                'profile_image' => $profileImagePath,
-                'user_type' => 1,
                 'created_by' => $authUser->id,
-                'verified_video' => $verifiedVideoPath,
+                // 'verified_video' => $verifiedVideoPath,
             ]);
+
+            if($request->isWhatsappPhone){
+                $existingRecord = UserWhatsapp::where('whatsapp_number', $authUser->phone)
+                                                    ->where('user_id', '!=', $user->id)
+                                                    ->exists();
+                if(!$existingRecord){
+                    UserWhatsapp::updateOrCreate(
+                        ['user_id' => $user->id,
+                        'whatsapp_number' => $request->phone,
+                        ],
+                        ['country_code' => $request->phone_code,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+
+            if ($request->isWhatsappAlt1) {
+                $existingRecord = UserWhatsapp::where('whatsapp_number', $request->alternative_phone_number_1)
+                                                ->where('user_id', '!=', $user->id)
+                                                ->exists();
+                if(!$existingRecord){
+                UserWhatsapp::updateOrCreate([
+                    'user_id' => $user->id,
+                    'whatsapp_number' => $request->alternative_phone_number_1
+                    ],
+                    ['country_code' => $request->country_code_alternative_1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+              }
+            }
+    
+            if ($request->isWhatsappAlt2) {
+                $existingRecord = UserWhatsapp::where('whatsapp_number', $request->alternative_phone_number_1)
+                                                ->where('user_id', '!=', $user->id)
+                                                ->exists();
+                if(!$existingRecord){
+                UserWhatsapp::updateOrCreate([
+                    'user_id' => $user->id,
+                    'whatsapp_number' => $request->alternative_phone_number_2,
+                    ],
+                    ['country_code' => $request->country_code_alternative_2,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+              }
+            }
             // Save billing address
             UserAddress::create([
                 'user_id' => $user->id,
@@ -727,35 +797,50 @@ class AuthController extends Controller
             ]);
         }
     }
-    public function customer_update($id, Request $request){
-        $phone_code_length = $request->phone_code_length;
-        $whatsapp_code_length = $request->whatsapp_code_length;
-        $alternative_phone_1_code_length = $request->alternative_phone_1_code_length;
-        $alternative_phone_2_code_length = $request->alternative_phone_2_code_length;
-        // dd($whatsapp_code_length);
-        // Validation Rules
+
+    public function customer_update(Request $request, $id)
+    {
+        $authUser = $this->getAuthenticatedUser();
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Customer not found.',
+            ], 404);
+        }
+
+        // ✅ Fetch country-specific mobile lengths dynamically
+        $mobileLengthPhone = Country::where('country_code', $request->phone_code)->value('mobile_length');
+        $mobileLengthAlt1  = Country::where('country_code', $request->alternative_phone_code_1)->value('mobile_length');
+        $mobileLengthAlt2  = Country::where('country_code', $request->alternative_phone_code_2)->value('mobile_length');
+
         $rules = [
             'prefix' => 'required|string|max:255',
             'name' => 'required|string|max:255',
-            'email' => 'nullable|email|unique:users,email,' . $id,
+            'email' => 'nullable|email|unique:users,email,' . $user->id,
             'phone_code' => 'required|string|max:10',
+            
+            // 👇 Dynamic mobile length regex based on country
             'phone' => [
                 'required',
-                "regex:/^\d{{$phone_code_length}}$/",
-            ],
-           
-            'country_code_alt_1' => 'nullable|string|max:255',
-            'alternative_phone_number_1' => [
-                'nullable',
-                'regex:/^\d{'. $alternative_phone_1_code_length .'}$/',
+                'regex:/^\d{' . $mobileLengthPhone . '}$/',
+                Rule::unique('users', 'phone')
+                    ->ignore($user->id)
+                    ->whereNull('deleted_at'),
             ],
 
-            'country_code_alt_2' => 'nullable|string|max:255',
+            'alternative_phone_code_1' => 'nullable|string|max:10',
+            'alternative_phone_number_1' => [
+                'nullable',
+                'regex:/^\d{' . $mobileLengthAlt1 . '}$/',
+            ],
+
+            'alternative_phone_code_2' => 'nullable|string|max:10',
             'alternative_phone_number_2' => [
                 'nullable',
-                'regex:/^\d{'. $alternative_phone_2_code_length .'}$/',
+                'regex:/^\d{' . $mobileLengthAlt2 . '}$/',
             ],
-            
             'dob' => 'nullable|date',
             'company_name' => 'nullable|string|max:255',
             'employee_rank' => 'nullable|string|max:255',
@@ -765,12 +850,24 @@ class AuthController extends Controller
             'billing_country' => 'required|string|max:255',
             'billing_pin' => 'nullable|string|max:10',
             'profile_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'verified_video' => 'nullable|file|mimes:mp4,avi,mkv|max:10240',
+            // 'verified_video' => 'nullable|file|mimes:mp4,avi,mkv|max:10240',
+            'gst_certificate_image' => 'nullable|file|mimes:jpg,png,pdf|max:5120',
         ];
 
-        // Validate input data
-        $validator = Validator::make($request->all(), $rules);
+         $messages = [
+            'phone.required' => 'The primary mobile number is required.',
+            'phone.regex' => "The mobile number must be exactly {$mobileLengthPhone} digits as per selected country.",
+            'phone.unique' => 'This mobile number is already registered with another customer.',
 
+            'alternative_phone_number_1.regex' => "Alternative phone number 1 must be exactly {$mobileLengthAlt1} digits.",
+            'alternative_phone_number_2.regex' => "Alternative phone number 2 must be exactly {$mobileLengthAlt2} digits.",
+
+            'email.unique' => 'This email address is already in use.',
+            'profile_image.mimes' => 'Profile image must be a file of type: jpeg, png, jpg.',
+            'gst_certificate_image.mimes' => 'GST certificate must be a file of type: jpg, png, or pdf.',
+        ];
+
+        $validator = Validator::make($request->all(), $rules,$messages);
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
@@ -780,17 +877,42 @@ class AuthController extends Controller
 
         DB::beginTransaction();
 
-        try {
-            // Find user by ID
-            $user = User::find($id);
-            if (!$user) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'User not found!',
-                ], 404);
+         if ($request->hasFile('profile_image')) {
+                // Delete the old profile image if exists
+                if ($user->profile_image && Storage::exists($user->profile_image)) {
+                    Storage::delete($user->profile_image);
+                }
+                $profileImagePath = 'storage/' . $request->file('profile_image')->store('profile_images', 'public');
+            } else {
+                $profileImagePath = $user->profile_image;
             }
 
-            // Handle Profile Image Upload
+            
+        try {
+            // Update base user fields
+            $user->fill([
+                'prefix' => $request->prefix,
+                'name' => $request->name,
+                'customer_badge' => $request->badge_type,
+                'company_name' => $request->company_name,
+                'employee_rank' => $request->employee_rank,
+                'email' => $request->email,
+                'dob' => $request->dob,
+                'country_code_phone' => $request->phone_code,
+                'phone' => $request->phone,
+                'country_code_whatsapp' => $request->whatsapp_code,
+                'gst_number' => $request->gst_number,
+                'credit_limit' => $request->credit_limit ?: 0,
+                'credit_days' => $request->credit_days ?: 0,
+                'country_id' => $request->country_id,
+                'country_code_alt_1' => $request->alternative_phone_code_1,
+                'alternative_phone_number_1' => $request->alternative_phone_number_1,
+                'country_code_alt_2' => $request->alternative_phone_code_2,
+                'alternative_phone_number_2' => $request->alternative_phone_number_2,
+                'updated_by' => $authUser->id,
+            ]);
+
+               // Handle Profile Image Upload
             if ($request->hasFile('profile_image')) {
                 // Delete the old profile image if exists
                 if ($user->profile_image && Storage::exists($user->profile_image)) {
@@ -801,43 +923,79 @@ class AuthController extends Controller
                 $profileImagePath = $user->profile_image;
             }
 
-            // Handle Verified Video Upload
-            if ($request->hasFile('verified_video')) {
-                if ($user->verified_video && Storage::exists($user->verified_video)) {
-                    Storage::delete($user->verified_video);
-                }
-                $verifiedVideoPath = 'storage/' . $request->file('verified_video')->store('verified_videos', 'public');
-            } else {
-                $verifiedVideoPath = $user->verified_video;
+            if ($request->hasFile('profile_image')) {
+                $user->profile_image = $profileImagePath;
+            }
+            
+            if ($request->hasFile('gst_certificate_image')) {
+                $user->gst_certificate_image = $this->uploadGSTCertificate($request);
             }
 
-            // Update user information
-            $user->update([
-                'prefix' => $request->prefix,
-                'name' => $request->name,
-                'email' => $request->email,
-                'country_code_phone' => $request->phone_code,
-                'phone' => $request->phone,
-                'country_code_whatsapp' => $request->whatsapp_code,
-                'whatsapp_no' => $request->whatsapp_no,
-                'country_code_alt_1' => $request->country_code_alternative_1,
-                'alternative_phone_number_1' => $request->alternative_phone_number_1,
-                'country_code_alt_2' => $request->country_code_alternative_2,
-                'alternative_phone_number_2'  => $request->alternative_phone_number_2,
-                'dob' => $request->dob,
-                'company_name' => $request->company_name,
-                'employee_rank' => $request->employee_rank,
-                'profile_image' => $profileImagePath,
-                'verified_video' => $verifiedVideoPath,
-            ]);
+            $user->save();
 
-            // Update or Create Billing Address
+            //  WhatsApp associations
+            // Main number
+            if ($request->boolean('isWhatsappPhone')) {
+                $exists = UserWhatsapp::where('whatsapp_number', $request->phone)
+                    ->where('user_id', '!=', $user->id)
+                    ->exists();
+
+                if (!$exists) {
+                    UserWhatsapp::updateOrCreate(
+                        ['user_id' => $user->id, 'whatsapp_number' => $request->phone],
+                        ['country_code' => $request->phone_code]
+                    );
+                }
+            } else {
+                UserWhatsapp::where('user_id', $user->id)
+                    ->where('whatsapp_number', $request->phone)
+                    ->delete();
+            }
+
+            // Alt 1
+            if ($request->boolean('isWhatsappAlt1')) {
+                $exists = UserWhatsapp::where('whatsapp_number', $request->alternative_phone_number_1)
+                    ->where('user_id', '!=', $user->id)
+                    ->exists();
+
+                if (!$exists) {
+                    UserWhatsapp::updateOrCreate(
+                        ['user_id' => $user->id, 'whatsapp_number' => $request->alternative_phone_number_1],
+                        ['country_code' => $request->alternative_phone_code_1]
+                    );
+                }
+            } else {
+                UserWhatsapp::where('user_id', $user->id)
+                    ->where('whatsapp_number', $request->alternative_phone_number_1)
+                    ->delete();
+            }
+
+            // Alt 2
+            if ($request->boolean('isWhatsappAlt2')) {
+                $exists = UserWhatsapp::where('whatsapp_number', $request->alternative_phone_number_2)
+                    ->where('user_id', '!=', $user->id)
+                    ->exists();
+
+                if (!$exists) {
+                    UserWhatsapp::updateOrCreate(
+                        ['user_id' => $user->id, 'whatsapp_number' => $request->alternative_phone_number_2],
+                        ['country_code' => $request->alternative_phone_code_2]
+                    );
+                }
+            } else {
+                UserWhatsapp::where('user_id', $user->id)
+                    ->where('whatsapp_number', $request->alternative_phone_number_2)
+                    ->delete();
+            }
+
+            // Update Billing Address
             UserAddress::updateOrCreate(
-                ['user_id' => $user->id, 'address_type' => 1], // Billing Address Type
+                ['user_id' => $user->id, 'address_type' => 1],
                 [
                     'address' => $request->billing_address,
                     'landmark' => $request->billing_landmark,
                     'city' => $request->billing_city,
+                    'state' => $request->billing_state,
                     'country' => $request->billing_country,
                     'zip_code' => $request->billing_pin,
                 ]
@@ -845,18 +1003,18 @@ class AuthController extends Controller
 
             DB::commit();
 
-            // Return Success Response
             return response()->json([
                 'status' => true,
                 'message' => 'Customer information updated successfully!',
-                'user' => $user->load('billingAddress'),
-            ]);
+                'data' => $user->load('userAddress'),
+            ], 200);
+
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
-                'message' => 'Update failed: ' . $e->getMessage(),
-            ]);
+                'message' => $e->getMessage(),
+            ], 500);
         }
     }
 

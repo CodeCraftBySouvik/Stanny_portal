@@ -38,7 +38,7 @@ Route::post('/reset-mpin', [AuthController::class, 'resetMpin']);
 // Route::middleware('auth:sanctum', 'token.expiry')->group(function () {
 Route::middleware('auth:sanctum', 'token.session')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
-
+        
     // profile
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::get('/dashboard', [AuthController::class, 'dashboard']);
@@ -90,7 +90,8 @@ Route::middleware('auth:sanctum', 'token.session')->group(function () {
     
     
     Route::prefix('order')->group(function () { 
-        Route::post('/store', [OrderController::class, 'createOrder']);
+        // Route::post('/store', [OrderController::class, 'createOrder']);
+        Route::post('/store', [OrderController::class, 'store']);
         Route::post('/video/store', [OrderController::class, 'createVideo']);
         Route::get('/list', [OrderController::class, 'index']);
         Route::get('/detail', [OrderController::class, 'detail']);
