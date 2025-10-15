@@ -65,7 +65,7 @@ class OrderRepository
                 $totalItems = $order->items->count();
                 $approvedItems = $order->items->where('admin_status', 'Approved')->count();
                 $holdItems = $order->items->where('status', 'Hold')->count();
-                dd($totalItems,$approvedItems,$holdItems);
+                // dd($totalItems,$approvedItems,$holdItems);
                 if ($approvedItems == $totalItems) {
                     $orderStatus = 'Fully Approved By Admin';
                 } elseif ($approvedItems > 0 || $holdItems > 0) {

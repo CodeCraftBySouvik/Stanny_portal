@@ -610,15 +610,15 @@ class OrderController extends Controller
         ]);
     }
     //ledger view
-    public function getUserLedger(Request $request)
+    public function ledgerView(Request $request)
     {
+
         // 1. Get and Validate Request Parameters
-        $userType = $request->input('user_type');
+        $userType = $request->input('user_type'); 
         $userId = $request->input('user_id'); // Can be staff_id, customer_id, or supplier_id
         $fromDate = $request->input('from_date', date('Y-m-01'));
         $toDate = $request->input('to_date', date('Y-m-d'));
         $bankCash = $request->input('bank_cash');
-
         if (!$userType || !$userId) {
             return response()->json([
                 'status' => 'error',
