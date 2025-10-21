@@ -89,7 +89,7 @@ class AuthController extends Controller
             'numeric',
             function ($attribute, $value, $fail) {
                 $exists = User::where('phone', $value)
-                            ->where('user_type', 1)
+                            ->whereIn('user_type', [1,0])
                             ->exists();
 
                 if (! $exists) {

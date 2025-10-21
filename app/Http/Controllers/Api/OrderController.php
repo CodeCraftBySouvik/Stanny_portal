@@ -521,7 +521,7 @@ class OrderController extends Controller
     
     
     //customer order list
-     public function customer_order_list(Request $request)
+    public function customer_order_list(Request $request)
     {
         $user = $this->getAuthenticatedUser();
         if ($user instanceof \Illuminate\Http\JsonResponse) {
@@ -557,7 +557,6 @@ class OrderController extends Controller
             });
         }
 
-        //  Date range filter
         if (!empty($start_date) && !empty($end_date)) {
             $ordersQuery->whereBetween('created_at', [
                 Carbon::parse($start_date)->startOfDay(),
@@ -565,12 +564,10 @@ class OrderController extends Controller
             ]);
         }
 
-        // Status filter (if provided)
         if (!empty($status)) {
             $ordersQuery->where('status', $status);
         }
 
-        //  Access control — restrict non-super-admins
         if (!$auth->is_super_admin) {
             $ordersQuery->where(function ($subQuery) use ($auth) {
                 $subQuery->where('created_by', $auth->id)
@@ -578,10 +575,16 @@ class OrderController extends Controller
             });
         }
 
-        //  Fetch data
-        $orders = $ordersQuery->orderBy('created_at', 'desc')->get();
+        $orders = $ordersQuery
+            ->with([
+                'items.product:id,name',
+                'items.collectionType:id,title',
+                'items.categoryInfo:id,title'
+            ])
+            ->orderBy('created_at', 'desc')
+            ->get();    
 
-        //  Format results
+
         $data = $orders->map(function ($item) {
             $orderTime = Carbon::parse($item->created_at);
 
@@ -599,7 +602,25 @@ class OrderController extends Controller
                 'order_number' => $item->order_number,
                 'order_amount' => $item->total_amount,
                 'order_time' => $formattedOrderTime,
-                'order_item' => $item->items,
+                'order_item' => $item->items->map(function ($orderItem) use ($item) {
+                    return [
+                        'id' => $orderItem->id,
+                        'order_number' => $item->order_number,
+                        'product_name' => $orderItem->product->name ?? null,
+                        'collection_name' => optional($orderItem->collectionType)->title,
+                        'category_name' => optional($orderItem->categoryInfo)->title,
+                        'quantity' => $orderItem->quantity,
+                        'piece_price' => $orderItem->piece_price,
+                        'total_price' => $orderItem->total_price,
+                        'priority_level' => $orderItem->priority_level,
+                        'expected_delivery_date' => $orderItem->expected_delivery_date,
+                        'status' => $orderItem->status,
+                        'tl_status' => $orderItem->tl_status,
+                        'admin_status' => $orderItem->admin_status,
+                        'created_at' => $orderItem->created_at,
+                        'updated_at' => $orderItem->updated_at,
+                    ];
+                }),
             ];
         });
 
@@ -938,6 +959,59 @@ class OrderController extends Controller
             ], 500);
         }
     }
+
+   public function skipOrderBill(Request $request)
+{
+    $validated = $request->validate([
+        'skip_order_reason' => 'required|string',
+        'salesman_id' => 'required|exists:users,id',
+    ]);
+
+    DB::beginTransaction();
+    try {
+        // Generate order number and get bill ID automatically
+        $billData = Helper::generateInvoiceBill($validated['salesman_id']);
+        $orderNumber = $billData['number'];
+        $billId = $billData['bill_id'];
+
+        if ($orderNumber === '000' || !$billId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active bill book available for this salesman.'
+            ], 400);
+        }
+
+        // Create cancelled order
+        $order = new Order();
+        $order->order_number = $orderNumber;
+        $order->status = 'Cancelled';
+        $order->skip_order_reason = $validated['skip_order_reason'];
+        $order->created_by = $validated['salesman_id'];
+        $order->save();
+
+        // Increment used count
+        $billBook = SalesmanBilling::find($billId);
+        $billBook->increment('no_of_used');
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order skipped successfully.',
+            'data' => [
+                'order_number' => $orderNumber,
+                'bill_id' => $billId
+            ]
+        ]);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'success' => false,
+            'message' => 'Error skipping order: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
 
     
    

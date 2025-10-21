@@ -51,6 +51,12 @@ class OrderItem extends Model
     {
         return $this->belongsTo(Category::class, 'category','id');
     }
+
+    public function categoryInfo()
+    {
+        return $this->belongsTo(Category::class, 'category','id');
+    }
+    
     public function fabric()
     {
         return $this->belongsTo(Fabric::class, 'fabrics','id');

@@ -97,7 +97,10 @@ Route::middleware('auth:sanctum', 'token.session')->group(function () {
         Route::get('/detail', [OrderController::class, 'detail']);
         Route::get('/ledger-view', [OrderController::class, 'ledgerView']);
         Route::post('/payment-receipt-save', [OrderController::class, 'paymentReceiptSave']);
+        Route::post('/skip-order', [OrderController::class, 'skipOrderBill']);
     });
+
+
     
     // More routes related to products can be added here
     // Route::get('/products', [ProductController::class, 'index']);

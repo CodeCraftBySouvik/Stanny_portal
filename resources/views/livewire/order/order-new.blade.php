@@ -265,7 +265,7 @@
                                     </select>
                                     <input type="text" wire:model="name" id="name"
                                         class="form-control form-control-sm border border-1 p-2 {{ $errorClass['name'] ?? '' }}"
-                                        placeholder="Enter customer name">
+                                        placeholder="Enter customer name" wire:keydown.enter.prevent>
                                 </div>
                                 @if(isset($errorMessage['prefix']))
                                 <div class="text-danger error-message">{{ $errorMessage['prefix'] }}</div>
@@ -279,21 +279,21 @@
                             <div class="mb-2 col-md-2">
                                 <label for="employee_rank" class="form-label"> Rank</label>
                                 <input type="text" wire:model="employee_rank" id="employee_rank"
-                                    class="form-control form-control-sm border border-1 p-2" placeholder="Enter rank">
+                                    class="form-control form-control-sm border border-1 p-2" placeholder="Enter rank" wire:keydown.enter.prevent>
                             </div>
 
                             <div class="mb-2 col-md-4">
                                 <label for="company_name" class="form-label">Company Name</label>
                                 <input type="text" wire:model="company_name" id="company_name"
                                     class="form-control form-control-sm border border-1 p-2"
-                                    placeholder="Enter company name">
+                                    placeholder="Enter company name" wire:keydown.enter.prevent>
                             </div>
 
                             <div class="mb-2 col-md-3">
                                 <label for="email" class="form-label">Email </label>
                                 <input type="email" wire:model="email" id="email"
                                     class="form-control form-control-sm border border-1 p-2 {{ $errorClass['email'] ?? '' }}"
-                                    placeholder="Enter email">
+                                    placeholder="Enter email" wire:keydown.enter.prevent>
                                 @if(isset($errorMessage['email']))
                                 <div class="text-danger error-message">{{ $errorMessage['email'] }}</div>
                                 @endif
@@ -305,7 +305,7 @@
                                 <label for="dob" class="form-label">Date Of Birth</label>
                                 <input type="date" autocomplete="bday" wire:model="dob" id="dob"
                                     max="{{ \Carbon\Carbon::today()->format('Y-m-d') }}"
-                                    class="form-control form-control-sm border border-1 p-2 {{ $errorClass['dob'] ?? '' }}">
+                                    class="form-control form-control-sm border border-1 p-2 {{ $errorClass['dob'] ?? '' }}" wire:keydown.enter.prevent>
                                 {{-- @if(isset($errorMessage['dob']))
                                 <div class="text-danger">{{ $errorMessage['dob'] }}</div>
                                 @endif --}}
@@ -316,7 +316,7 @@
                                 <label for="mobile" class="form-label">Phone Number</label>
                                 <div class="input-group input-group-sm" id="parent_mobile" wire:ignore>
                                     <input id="mobile" type="tel" class="form-control tel-code-input"
-                                        style="width:286px;">
+                                        style="width:286px;" wire:keydown.enter.prevent>
                                     <!-- hidden Livewire bindings -->
                                     <input type="hidden" wire:model="phone_code" id="phone_code">
                                     <input type="hidden" wire:model="phone" id="phone">
@@ -327,7 +327,7 @@
                                 <div class="text-danger error-message">{{ $errorMessage['phone'] }}</div>
                                 @enderror
                                 <div class="form-check-label-group">
-                                    <input type="checkbox" id="is_whatsapp1" wire:model="isWhatsappPhone">
+                                    <input type="checkbox" id="is_whatsapp1" wire:model="isWhatsappPhone" wire:keydown.enter.prevent>
                                     <label for="is_whatsapp1" class="form-check-label ms-1">Is Whatsapp</label>
                                 </div>
                             </div>
@@ -337,7 +337,7 @@
                                 <label for="alt_phone_1" class="form-label">Alternative Phone 1</label>
                                 <div class="input-group input-group-sm" id="parent_alt_phone_code_1" wire:ignore>
                                     <input id="alt_phone_1" type="tel" class="form-control tel-code-input"
-                                        style="width:269px;">
+                                        style="width:269px;" wire:keydown.enter.prevent>
                                     <input type="hidden" wire:model="alt_phone_code_1" id="alt_phone_code_1">
                                     <input type="hidden" wire:model="alternative_phone_number_1"
                                         id="alt_phone_hidden_1">
@@ -347,7 +347,7 @@
                                 </div>
                                 @endif
                                 <div class="form-check-label-group">
-                                    <input type="checkbox" id="is_whatsapp2" wire:model="isWhatsappAlt1">
+                                    <input type="checkbox" id="is_whatsapp2" wire:model="isWhatsappAlt1" wire:keydown.enter.prevent>
                                     <label for="is_whatsapp2" class="form-check-label ms-1">Is Whatsapp</label>
                                 </div>
                             </div>
@@ -357,7 +357,7 @@
                                 <label for="alt_phone_2" class="form-label">Alternative Phone 2</label>
                                 <div class="input-group input-group-sm" id="parent_alt_phone_code_2" wire:ignore>
                                     <input id="alt_phone_2" type="tel" class="form-control tel-code-input"
-                                        style="width:269px;">
+                                        style="width:269px;" wire:keydown.enter.prevent>
                                     <input type="hidden" wire:model="alt_phone_code_2" id="alt_phone_code_2">
                                     <input type="hidden" wire:model="alternative_phone_number_2"
                                         id="alt_phone_hidden_2">
@@ -367,7 +367,7 @@
                                 </div>
                                 @endif
                                 <div class="form-check-label-group">
-                                    <input type="checkbox" id="is_whatsapp3" wire:model="isWhatsappAlt2">
+                                    <input type="checkbox" id="is_whatsapp3" wire:model="isWhatsappAlt2" wire:keydown.enter.prevent>
                                     <label for="is_whatsapp3" class="form-check-label ms-1">Is Whatsapp</label>
                                 </div>
                             </div>
@@ -403,7 +403,7 @@
                                             <div class="col-9">
                                                 <input type="text" id="billing_addr"
                                                     class="form-control form-control-sm" wire:model="billing_address"
-                                                    value="">
+                                                    value="" wire:keydown.enter.prevent>
                                                 @if(isset($errorMessage['billing_address']))
                                                 <div class="text-danger error-message">{{
                                                     $errorMessage['billing_address']
@@ -418,7 +418,7 @@
                                             <div class="col-9">
                                                 <input type="text" id="billing_landmark"
                                                     class="form-control form-control-sm" wire:model="billing_landmark"
-                                                    value="">
+                                                    value="" wire:keydown.enter.prevent>
                                                 @if(isset($errorMessage['billing_landmark']))
                                                 <div class="text-danger error-message">{{
                                                     $errorMessage['billing_landmark']
@@ -434,7 +434,7 @@
                                             <div class="col-3">
                                                 <input type="text" id="billing_city"
                                                     class="form-control form-control-sm" wire:model="billing_city"
-                                                    value="">
+                                                    value="" wire:keydown.enter.prevent>
                                                 @if(isset($errorMessage['billing_city']))
                                                 <div class="text-danger error-message">{{ $errorMessage['billing_city']
                                                     }}
@@ -450,7 +450,7 @@
                                             <div class="col-3">
                                                 <input type="text" id="billing_country"
                                                     class="form-control form-control-sm" wire:model="billing_country"
-                                                    value="">
+                                                    value="" wire:keydown.enter.prevent>
                                                 @if(isset($errorMessage['billing_country']))
                                                 <div class="text-danger error-message">{{
                                                     $errorMessage['billing_country']
@@ -462,7 +462,7 @@
                                             </div>
                                             <div class="col-3">
                                                 <input type="text" id="billing_pin" class="form-control form-control-sm"
-                                                    wire:model="billing_pin" value="">
+                                                    wire:model="billing_pin" value="" wire:keydown.enter.prevent>
                                                 @if(isset($errorMessage['billing_pin']))
                                                 <div class="text-danger error-message">{{ $errorMessage['billing_pin']
                                                     }}
@@ -567,7 +567,7 @@
                                         wire:model="items.{{ $index }}.searchproduct"
                                         class="form-control form-control-sm border border-1 customer_input @error('items.'.$index.'.searchproduct') border-danger @enderror"
                                         placeholder="Enter product name"
-                                        wire:change="validateSingle('items.{{ $index }}.searchproduct')">
+                                        wire:change="validateSingle('items.{{ $index }}.searchproduct')" wire:keydown.enter.prevent>
                                     @if (session()->has('errorProduct.' . $index))
                                     <p class="text-danger">{{ session('errorProduct.' . $index) }}</p>
                                     @endif
@@ -598,7 +598,7 @@
                                     <input type="number" wire:model="items.{{ $index }}.quantity" class="form-control form-control-sm border border-1 customer_input
                                         @error('items.' . $index . '.quantity') border-danger @enderror"
                                         placeholder="Enter quantity" min="1" wire:keyup="updateTotalAmount"
-                                        wire:change="validateSingle('items.{{ $index }}.quantity')">
+                                        wire:change="validateSingle('items.{{ $index }}.quantity')" wire:keydown.enter.prevent>
                                     @error('items.' . $index . '.quantity')
                                     <div class="text-danger error-message">{{ $message }}</div>
                                     @enderror
@@ -615,7 +615,7 @@
                                     <input type="text" wire:model="items.{{ $index }}.searchTerm"
                                         wire:keyup="searchFabrics({{ $index }})" class="form-control form-control-sm"
                                         placeholder="Search by fabric name" id="searchFabric_{{ $index }}"
-                                        autocomplete="off">
+                                        autocomplete="off" wire:keydown.enter.prevent>
                                     @error("items.". $index .".searchTerm")
                                     <div class="text-danger error-message">{{ $message }}</div>
                                     @enderror
@@ -644,7 +644,7 @@
                                                 wire:model="items.{{ $index }}.price" class="form-control form-control-sm border border-1 customer_input
                                             @if(session()->has('errorPrice.' . $index)) border-danger @endif
                                             @error('items.' . $index . '.price') border-danger  @enderror"
-                                                placeholder="Enter Price">
+                                                placeholder="Enter Price" wire:keydown.enter.prevent>
                                         </div>
 
                                         <div>
@@ -681,7 +681,7 @@
                                                 wire:model="items.{{ $index }}.price" class="form-control form-control-sm border border-1 customer_input
                                                         @if(session()->has('errorPrice.' . $index)) border-danger @endif
                                                         @error('items.' . $index . '.price') border-danger  @enderror"
-                                                placeholder="Enter Price">
+                                                placeholder="Enter Price" wire:keydown.enter.prevent>
                                         </div>
                                         <div>
                                             <!-- Delete Button -->
@@ -707,7 +707,7 @@
                                         <input type="date" class="form-control form-control-sm border border-1"
                                             wire:model="items.{{$index}}.expected_delivery_date"
                                             min="{{ \Carbon\Carbon::today()->format('Y-m-d') }}"
-                                            wire:change="validateSingle('items.{{ $index }}.expected_delivery_date')">
+                                            wire:change="validateSingle('items.{{ $index }}.expected_delivery_date')" wire:keydown.enter.prevent>
                                         @error("items.$index.expected_delivery_date")
                                         <div class="text-danger">{{ $message }}</div>
                                         @enderror
@@ -747,7 +747,7 @@
                                         <label class="form-label"><strong>Remarks</strong></label>
                                         <textarea type="text" wire:model="items.{{ $index }}.remarks"
                                             class="form-control form-control-sm border border-1 customer_input"
-                                            placeholder="Enter Product Remarks"></textarea>
+                                            placeholder="Enter Product Remarks" wire:keydown.enter.prevent></textarea>
                                         @error("items.".$index.".remarks")
                                         <div class="text-danger error-message">{{ $message }}</div>
                                         @enderror
@@ -840,7 +840,7 @@
                                                 id="page_number"
                                                 class="form-control form-control-sm border border-2 @error('items.'.$index.'.page_number') border-danger @enderror"
                                                 min="1"
-                                                max="{{ isset($items[$index]['selectedCatalogue']) && isset($maxPages[$index][$items[$index]['selectedCatalogue']]) ? $maxPages[$index][$items[$index]['selectedCatalogue']] : '' }}">
+                                                max="{{ isset($items[$index]['selectedCatalogue']) && isset($maxPages[$index][$items[$index]['selectedCatalogue']]) ? $maxPages[$index][$items[$index]['selectedCatalogue']] : '' }}" wire:keydown.enter.prevent>
                                             @error("items.".$index.".page_number")
                                             <div class="text-danger error-message">{{ $message }}</div>
                                             @enderror
@@ -871,7 +871,7 @@
                                                 <label class="form-label"><strong>Remarks</strong></label>
                                                 <textarea type="text" wire:model="items.{{ $index }}.remarks"
                                                     class="form-control form-control-sm border border-1 customer_input"
-                                                    placeholder="Enter Product Remarks"></textarea>
+                                                    placeholder="Enter Product Remarks" wire:keydown.enter.prevent></textarea>
                                                 @error("items.".$index.".remarks")
                                                 <div class="text-danger error-message">{{ $message }}</div>
                                                 @enderror
@@ -886,7 +886,7 @@
                                                 <input type="date" class="form-control form-control-sm border border-1"
                                                     wire:model="items.{{$index}}.expected_delivery_date"
                                                     min="{{ \Carbon\Carbon::today()->format('Y-m-d') }}"
-                                                    wire:change="validateSingle('items.{{ $index }}.expected_delivery_date')">
+                                                    wire:change="validateSingle('items.{{ $index }}.expected_delivery_date')" wire:keydown.enter.prevent>
                                                 @error("items.$index.expected_delivery_date")
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
@@ -1109,7 +1109,7 @@
                                                             <input type="number" min="1"
                                                                 class="form-control form-control-sm border border-1"
                                                                 wire:model="items.{{ $index }}.fold_cuff_size"
-                                                                wire:change="validateSingle('items.{{ $index }}.fold_cuff_size')">
+                                                                wire:change="validateSingle('items.{{ $index }}.fold_cuff_size')" wire:keydown.enter.prevent>
                                                             @error("items.$index.fold_cuff_size")
                                                             <div class="text-danger">{{ $message }}</div>
                                                             @enderror
@@ -1273,7 +1273,7 @@
                                                             <input type="text" class="form-control form-control-sm border border-1"
                                                                 wire:model="items.{{ $index }}.collar_style"
                                                                 wire:change="validateSingle('items.{{ $index }}.collar_style')"
-                                                                placeholder="Enter Collar Style">
+                                                                placeholder="Enter Collar Style" wire:keydown.enter.prevent>
                                                             @error("items.$index.collar_style")
                                                             <div class="text-danger">{{ $message }}</div>
                                                             @enderror
