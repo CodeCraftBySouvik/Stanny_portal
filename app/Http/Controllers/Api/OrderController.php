@@ -18,7 +18,7 @@ use App\Helpers\Helper;
 use App\Models\{
     User, Order, OrderItem, OrderMeasurement, UserWhatsapp, UserAddress,
     SalesmanBilling, Page, Collection, Category, SubCategory, Fabric,
-    CataloguePageItem, OrderItemCatalogueImage, OrderItemVoiceMessage, Measurement,Ledger,PaymentCollection,TodoList
+    CataloguePageItem, OrderItemCatalogueImage, OrderItemVoiceMessage, Measurement,Ledger,PaymentCollection,TodoList,Journal,Payment
 };
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -115,6 +115,147 @@ class OrderController extends Controller
        
 
     }
+
+    public function cashbookModule(Request $request)
+{
+    try {
+            $user = Auth::guard('api')->user();
+
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unauthorized access. Please login first.'
+            ], 401);
+        }
+
+        // ✅ Only designation 1 or super_admin can view all data
+        $isAdmin = ($user->designation == 1) || ($user->is_super_admin ?? false);
+
+        $startDate = Carbon::parse($request->start_date)->startOfDay();
+        $endDate = Carbon::parse($request->end_date)->endOfDay();
+
+        // Opening balance calculations
+        $pastCollections = PaymentCollection::where('is_approve', 1)
+            ->when(!$isAdmin, fn($q) => $q->where('user_id', $user->id))
+            ->whereDate('created_at', '<', $startDate)
+            ->sum('collection_amount');
+
+        $pastExpenses = Journal::where('is_debit', 1)
+            ->whereDate('created_at', '<', $startDate)
+            ->when(!$isAdmin, fn($q) =>
+                $q->whereHas('payment', fn($p) => $p->where('stuff_id', $user->id))
+            )
+            ->sum('transaction_amount');
+
+        $openingBalance = $pastCollections - $pastExpenses;
+
+        // Helper closure for date filtering
+        $applyDateFilter = fn($q) => $q->whereBetween('created_at', [$startDate, $endDate]);
+
+        // 🟩 COLLECTIONS
+        $collectionQuery = PaymentCollection::where('is_approve', 1)
+            ->when(!$isAdmin, fn($q) => $q->where('user_id', $user->id))
+            ->when($request->staff_id, fn($q) => $q->where('user_id', $request->staff_id))
+            ->where(function ($query) {
+                $query->where('payment_type', '!=', 'cheque')
+                      ->orWhere(fn($sub) => $sub->where('payment_type', 'cheque')->whereNotNull('credit_date'));
+            });
+        $applyDateFilter($collectionQuery);
+        $totalCollections = $collectionQuery->sum('collection_amount') + $collectionQuery->sum('withdrawal_charge');
+
+        // 🟧 COLLECTION BY TYPE
+        $types = ['cash', 'neft', 'digital_payment', 'cheque'];
+        $totals = [];
+        foreach ($types as $type) {
+            $query = PaymentCollection::where('is_approve', 1)
+                ->where('payment_type', $type)
+                ->when(!$isAdmin, fn($q) => $q->where('user_id', $user->id))
+                ->when($request->staff_id, fn($q) => $q->where('user_id', $request->staff_id));
+
+            if ($type === 'cheque') {
+                $query->whereNotNull('credit_date');
+            }
+
+            $applyDateFilter($query);
+            $totals[$type] = $query->sum('collection_amount');
+        }
+
+        // 🟥 EXPENSES
+        $expenseQuery = Journal::where('is_debit', 1)
+            ->whereNotNull('payment_id')
+            ->when(!$isAdmin, fn($q) =>
+                $q->whereHas('payment', fn($p) => $p->where('stuff_id', $user->id))
+            )
+            ->when($request->staff_id, fn($q) =>
+                $q->whereHas('payment', fn($p) => $p->where('stuff_id', $request->staff_id))
+            );
+        $applyDateFilter($expenseQuery);
+        $totalExpenses = $expenseQuery->sum('transaction_amount');
+
+        // 🟦 WALLET GIVEN
+        $walletCredits = Journal::where('is_debit', 1)
+            ->when(!$isAdmin, function ($query) use ($user) {
+                $query->where(function ($sub) use ($user) {
+                    $sub->whereHas('payment', fn($p) => $p->where('stuff_id', $user->id))
+                        ->orWhereNull('payment_id');
+                });
+            })
+            ->when($request->staff_id, fn($q) =>
+                $q->whereHas('payment', fn($p) => $p->where('stuff_id', $request->staff_id))
+            );
+        $applyDateFilter($walletCredits);
+        $totalWalletGiven = $walletCredits->sum('transaction_amount');
+
+        $totalWallet = $openingBalance + ($totalCollections + $totalWalletGiven - $totalExpenses);
+
+        // 🟩 PAYMENT COLLECTIONS (detailed list)
+        $paymentCollections = PaymentCollection::where('is_approve', 1)
+            ->when(!$isAdmin, fn($q) => $q->where('user_id', $user->id))
+            ->when($request->staff_id, fn($q) => $q->where('user_id', $request->staff_id))
+            ->where(function ($query) {
+                $query->where('payment_type', '!=', 'cheque')
+                      ->orWhere(fn($sub) => $sub->where('payment_type', 'cheque')->whereNotNull('credit_date'));
+            });
+        $applyDateFilter($paymentCollections);
+        $paymentCollections = $paymentCollections->orderByDesc('created_at')
+            ->where('collection_amount', '>', 0)
+            ->get();
+
+        // 🟥 PAYMENT EXPENSES (detailed list)
+        $validPaymentIds = Journal::whereNotNull('payment_id')->pluck('payment_id');
+        $paymentExpenses = Payment::where('payment_for', 'debit')
+            ->whereIn('id', $validPaymentIds)
+            ->when(!$isAdmin, fn($q) => $q->where('stuff_id', $user->id))
+            ->when($request->staff_id, fn($q) => $q->where('stuff_id', $request->staff_id));
+        $applyDateFilter($paymentExpenses);
+        $paymentExpenses = $paymentExpenses->orderByDesc('created_at')->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Cash Book Summary fetched successfully',
+            'data' => [
+                'opening_balance' => $openingBalance,
+                'total_collections' => $totalCollections,
+                'total_cash' => $totals['cash'] ?? 0,
+                'total_neft' => $totals['neft'] ?? 0,
+                'total_digital' => $totals['digital_payment'] ?? 0,
+                'total_cheque' => $totals['cheque'] ?? 0,
+                'total_expenses' => $totalExpenses,
+                'wallet_given' => $totalWalletGiven,
+                'final_wallet_balance' => $totalWallet,
+                'payment_collections' => $paymentCollections,
+                'payment_expenses' => $paymentExpenses
+            ]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Error fetching Cash Book Summary',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
     
     
     public function store(Request $request, OrderRepository $orderRepo)
@@ -180,7 +321,7 @@ class OrderController extends Controller
             ]);
 
             // $loggedInAdmin = auth()->user();
-            $loggedInAdmin = Auth::guard('sanctum')->user();
+            $loggedInAdmin = Auth::guard('api')->user();
 
 
             if (!$loggedInAdmin) {
@@ -996,7 +1137,7 @@ class OrderController extends Controller
         DB::commit();
 
         return response()->json([
-            'success' => true,
+            'status' => true,
             'message' => 'Order skipped successfully.',
             'data' => [
                 'order_number' => $orderNumber,
@@ -1006,7 +1147,7 @@ class OrderController extends Controller
     } catch (\Exception $e) {
         DB::rollBack();
         return response()->json([
-            'success' => false,
+            'status' => false,
             'message' => 'Error skipping order: ' . $e->getMessage()
         ], 500);
     }

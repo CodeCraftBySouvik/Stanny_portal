@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\FabricController;
 use App\Http\Controllers\Api\BusinessTypeController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\TodoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -98,12 +99,16 @@ Route::middleware('auth:sanctum', 'token.session')->group(function () {
         Route::get('/ledger-view', [OrderController::class, 'ledgerView']);
         Route::post('/payment-receipt-save', [OrderController::class, 'paymentReceiptSave']);
         Route::post('/skip-order', [OrderController::class, 'skipOrderBill']);
+        Route::post('/cashbook-module', [OrderController::class, 'cashbookModule']);
     });
 
-
+    Route::prefix('todo')->group(function () { 
+        Route::get('/list', [TodoController::class, 'todoList']);
+    });
     
-    // More routes related to products can be added here
-    // Route::get('/products', [ProductController::class, 'index']);
-    // Route::put('/products/{id}', [ProductController::class, 'update']);
-    // Route::delete('/products/{id}', [ProductController::class, 'destroy']);
+    Route::prefix('notes')->group(function () { 
+        Route::post('/store', [TodoController::class, 'noteStore']);
+    });
+    
+   
 });
