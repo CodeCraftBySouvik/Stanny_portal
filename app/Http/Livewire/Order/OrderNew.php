@@ -899,17 +899,17 @@ class OrderNew extends Component
         }
     }
 
-    protected function initializeMeasurements($index)
-{
-    $this->items[$index]['get_measurements'] = [];
-    foreach ($this->items[$index]['measurements'] as $measurement) {
-        $this->items[$index]['get_measurements'][$measurement['id']] = [
-            'title' => $measurement['title'],
-            'short_code' => $measurement['short_code'] ?? '',
-            'value' => null,
-        ];
+        protected function initializeMeasurements($index)
+    {
+        $this->items[$index]['get_measurements'] = [];
+        foreach ($this->items[$index]['measurements'] as $measurement) {
+            $this->items[$index]['get_measurements'][$measurement['id']] = [
+                'title' => $measurement['title'],
+                'short_code' => $measurement['short_code'] ?? '',
+                'value' => null,
+            ];
+        }
     }
-}
 
 
 

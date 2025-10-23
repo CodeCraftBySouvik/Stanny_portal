@@ -18,6 +18,7 @@ class Order extends Model
     protected $table = 'orders';
     public $_relatedChanges = [];
     protected $fillable = [
+        'prefix',
         'customer_id',
         'business_type',
         'order_number',

@@ -27,15 +27,20 @@ use Illuminate\Support\Facades\Validator;
 use App\Interfaces\AccountingRepositoryInterface;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use App\Repositories\OrderRepository;
 
 
 class OrderController extends Controller
 {
     protected $accountingRepository;
+    protected $orderRepository;
 
-    public function __construct(AccountingRepositoryInterface $accountingRepository){
+    public function __construct(AccountingRepositoryInterface $accountingRepository,OrderRepository $orderRepository){
         $this->accountingRepository = $accountingRepository;
+        $this->orderRepository = $orderRepository;
     }
+
+
     
     protected function getAuthenticatedUser()
     {
@@ -260,13 +265,14 @@ class OrderController extends Controller
     
     public function store(Request $request, OrderRepository $orderRepo)
     {
+        // dd($request->all());
         DB::beginTransaction();
         try {
             $validated = $request->validate([
                 'customer_id' => 'nullable|integer|exists:users,id',
                 'customerType' => 'nullable|string|max:15',
                 'order_number' => 'nullable|string|not_in:000|unique:orders,order_number',
-                'prefix' => 'nullable|string|max:10',
+                'prefix' => 'required|string|max:10',
                 'name' => 'required|string|max:255',
                 'employee_rank' => 'nullable|string|max:15',
                 'phone' => 'required|string|max:15',
@@ -278,7 +284,7 @@ class OrderController extends Controller
                 'city' => 'nullable|string|max:255',
                 'state' => 'nullable|string|max:255',
                 'country' => 'nullable|string|max:255',
-                'phone_code' => 'nullable|string|max:5',
+                'phone_code' => 'required|string|max:5',
                 'alt_phone_code_1' => 'nullable|string|max:5',
                 'alt_phone_code_2' => 'nullable|string|max:5',
                 'pin' => 'nullable|string|max:10',
@@ -289,7 +295,7 @@ class OrderController extends Controller
                 'billing_country' => 'nullable|string|max:255',
                 'billing_pin' => 'nullable|string|max:10',
                 'billing_landmark' => 'nullable|string|max:255',
-                'customer_image' => 'nullable|file|image|max:2048',
+                'customer_image' => 'required|file|image|max:2048',
                 'isWhatsappPhone' => 'nullable|boolean',
                 'isWhatsappAlt1' => 'nullable|boolean',
                 'isWhatsappAlt2' => 'nullable|boolean',
@@ -298,27 +304,86 @@ class OrderController extends Controller
                 'air_mail' => 'nullable|numeric|min:0',
                 'salesman' => 'required|integer|exists:users,id',
                 'bill_id' => 'nullable|integer|exists:salesman_billing_number,id',
+                
+                  // --- Item Rules ---
                 'items' => 'required|array|min:1',
-                'items.*.product_id' => 'required|exists:products,id',
+                'items.*.collection' => 'required|integer|exists:collections,id',
+                'items.*.category' => 'required|integer|exists:categories,id',
+                'items.*.searchproduct' => 'required|string',
+                'items.*.product_id' => 'required|integer|exists:products,id',
                 'items.*.quantity' => 'required|numeric|min:1',
-                'items.*.price' => 'required|numeric|min:0',
-                'items.*.selected_fabric' => 'nullable|integer|exists:fabrics,id',
-                'items.*.collection' => 'nullable|integer|exists:collections,id',
-                'items.*.category' => 'nullable|integer|exists:categories,id',
-                'items.*.sub_category' => 'nullable|integer|exists:categories,id',
-                'items.*.page_number' => 'nullable|integer',
-                'items.*.page_item' => 'nullable|integer',
-                'items.*.item_status' => 'nullable|string',
-                'items.*.expected_delivery_date' => 'nullable|date',
-                'items.*.priority' => 'nullable|integer',
-                'items.*.remarks' => 'nullable|string',
+                'items.*.price' => 'required|numeric|min:1',
+                'items.*.expected_delivery_date' => 'required|date',
+                'items.*.item_status' => 'required|string',
+                // 🔑 ADD THIS BLOCK FOR MEASUREMENTS
+                'items.*.get_measurements' => 'nullable|array',
+                'items.*.get_measurements.*.value' => 'nullable|numeric|min:0.1',
+
+                // --- Conditional for Collection = 1 ---
+                'items.*.selectedCatalogue' => 'required_if:items.*.collection,1|nullable|string',
+                'items.*.page_number' => 'required_if:items.*.collection,1|nullable|integer',
+                'items.*.fitting' => 'required_if:items.*.collection,1|nullable|string',
+                'items.*.searchTerm' => 'required_if:items.*.collection,1|nullable|string',
+                'items.*.selected_fabric' => 'required_if:items.*.collection,1|nullable|string',
+
+                // --- Media Uploads ---
+                'imageUploads.*.*'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+                'voiceUploads.*.*' => 'nullable|mimes:mp3,wav,ogg,m4a,wma,webm,mpga|max:5120',
+
+                // --- Extra Measurement ---
                 'extra_measurement' => 'nullable|array',
                 'extra_measurement.*' => 'nullable|string',
-                'newUploads' => 'nullable|array',
-                'voiceUploads' => 'nullable|array',
-                'measurements' => 'nullable|array',
-                'measurements.*.*.value' => 'nullable|string',
-            ]);
+              ]);
+                  /**
+             *  Dynamic rule extension for extra measurement
+             */
+                foreach ($request->items ?? [] as $index => $item) {
+                $extra = $request->extra_measurement[$index] ?? null;
+
+                $extraRules = [];
+
+                if ($extra === 'mens_jacket_suit') {
+                    $extraRules["items.$index.vents"] = 'required';
+                    $extraRules["items.$index.shoulder_type"] = 'required';
+                }
+
+                if ($extra === 'ladies_jacket_suit') {
+                    $extraRules["items.$index.vents_required"] = 'required';
+                    $extraRules["items.$index.vents_count"] = 'required_if:items.'.$index.'.vents_required,Yes|nullable|integer|min:1';
+                    $extraRules["items.$index.shoulder_type"] = 'required';
+                }
+
+                if ($extra === 'trouser') {
+                    $extraRules["items.$index.fold_cuff_required"] = 'required';
+                    $extraRules["items.$index.fold_cuff_size"] = 'required_if:items.'.$index.'.fold_cuff_required,Yes|nullable|numeric|min:1';
+                    $extraRules["items.$index.pleats_required"] = 'required';
+                    $extraRules["items.$index.pleats_count"] = 'required_if:items.'.$index.'.pleats_required,Yes|nullable|integer|min:1';
+                    $extraRules["items.$index.back_pocket_required"] = 'required';
+                    $extraRules["items.$index.back_pocket_count"] = 'required_if:items.'.$index.'.back_pocket_required,Yes|nullable|integer|min:1';
+                    $extraRules["items.$index.adjustable_belt"] = 'required';
+                    $extraRules["items.$index.suspender_button"] = 'required';
+                    $extraRules["items.$index.trouser_position"] = 'required';
+                }
+
+                if ($extra === 'shirt') {
+                    $extraRules["items.$index.sleeves"] = 'required';
+                    $extraRules["items.$index.collar"] = 'required';
+                    $extraRules["items.$index.pocket"] = 'required';
+                    $extraRules["items.$index.cuffs"] = 'required';
+                    $extraRules["items.$index.collar_style"] = 'required_if:items.'.$index.'.collar,Other';
+                    $extraRules["items.$index.cuff_style"] = 'required_if:items.'.$index.'.cuffs,Other';
+                }
+
+                if (in_array($extra, ['ladies_jacket_suit', 'shirt', 'mens_jacket_suit'])) {
+                    $extraRules["items.$index.client_name_required"] = 'required';
+                    $extraRules["items.$index.client_name_place"] = 'required_if:items.'.$index.'.client_name_required,Yes';
+                }
+
+                if (!empty($extraRules)) {
+                    $request->validate($extraRules);
+                }
+            }
+                
 
             // $loggedInAdmin = auth()->user();
             $loggedInAdmin = Auth::guard('api')->user();
@@ -330,6 +395,47 @@ class OrderController extends Controller
                     'message' => 'User not logged in',
                 ], 401);
             }
+
+            $salesmanId = $validated['salesman'];
+            $orderNumber = $validated['order_number'] ?? null;
+            $billId = $validated['bill_id'] ?? null;
+
+            if(empty($orderNumber)){
+                $billData = Helper::generateInvoiceBill($salesmanId);
+                $orderNumber = $billData['number'];
+                $billId = $billData['bill_id'];
+
+                if ($orderNumber === '000') {
+                    DB::rollBack();
+                    return response()->json([
+                        'status' => false,
+                        'message' => "Order number could not be generated. Salesman ID {$salesmanId}'s bill book is exhausted or invalid.",
+                    ], 400);
+                }
+            }
+
+            // ----------------------------------------------------
+            // 🔑 ADD THRESHOLD PRICE VALIDATION HERE
+            // ----------------------------------------------------
+            foreach ($validated['items'] as $index => $item) {
+                $selectedFabricId = $item['selected_fabric'] ?? null;
+                $price = floatval($item['price']);
+
+                if ($selectedFabricId) {
+                    // Find the fabric and check the threshold price
+                    $fabricData = Fabric::find($selectedFabricId); 
+
+                    if ($fabricData && $price < floatval($fabricData->threshold_price)) {
+                        // Throw a Validation Exception to halt the process and return a 422 error
+                        throw \Illuminate\Validation\ValidationException::withMessages([
+                            "items.{$index}.price" => [
+                                " The price for fabric '{$fabricData->title}' cannot be less than its threshold price of {$fabricData->threshold_price}."
+                            ],
+                        ]);
+                    }
+                }
+            }
+            // ----------------------------------------------------
 
             // ------------------------------
             // User Create/Update
@@ -426,7 +532,7 @@ class OrderController extends Controller
             $totalAmount = $totalProductAmount + $airMail;
             $paidAmount = $validated['paid_amount'] ?? 0;
            
-            $orderNumber = $validated['order_number'];
+            // $orderNumber = $validated['order_number'];
 
             // ------------------------------
             // Create Order
@@ -461,6 +567,7 @@ class OrderController extends Controller
             // Order Items + Measurements + Extra fields + Images/Voice
             // ------------------------------
             foreach ($validated['items'] as $k => $item) {
+                // dd($item);
 
                 if ($item['collection'] == 1 && empty($item['page_item'])) {
                     $page = Page::where('catalogue_id', $item['selectedCatalogue'])
@@ -477,7 +584,6 @@ class OrderController extends Controller
 
                 $collection_data = Collection::find($item['collection']);
                 $category_data = Category::find($item['category']);
-                $sub_category_data = SubCategory::find($item['sub_category']);
                 $fabric_data = Fabric::find($item['selected_fabric']);
 
                 $orderItem = new OrderItem();
@@ -495,7 +601,6 @@ class OrderController extends Controller
                 $orderItem->product_id = $item['product_id'] ?? null;
                 $orderItem->collection = $collection_data?->id ?? null;
                 $orderItem->category = $category_data?->id ?? null;
-                $orderItem->sub_category = $sub_category_data?->id ?? null;
                 $orderItem->product_name = $item['searchproduct'] ?? null;
                 $orderItem->remarks = $item['remarks'] ?? null;
                 $orderItem->status = $item['item_status'] ?? null;
@@ -617,7 +722,7 @@ class OrderController extends Controller
 
                         $value = trim($measurement['value']);
                         $measurement_data = Measurement::find($mindex);
-
+                        // dd($measurement_data);
                         if ($measurement_data) {
                             OrderMeasurement::create([
                                 'order_item_id' => $orderItem->id,
@@ -643,16 +748,16 @@ class OrderController extends Controller
 
             return response()->json([
                 'status'=>true,
-                'message'=>'Order created/updated successfully',
+                'message'=>'Order created successfully',
                 'data'=>$order
             ],201);
 
         } catch(\Exception $e){
             DB::rollBack();
-            \Log::error('Order creation/update failed: '.$e->getMessage());
+            \Log::error('Order creation failed: '.$e->getMessage());
             return response()->json([
                 'status'=>false,
-                'message'=>'Order creation/update failed',
+                'message'=>'Order creation failed',
                 'error'=>$e->getMessage()
             ],500);
         }

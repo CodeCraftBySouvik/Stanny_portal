@@ -11,7 +11,7 @@ class OrderMeasurement extends Model
 
     protected $table = "order_measurements";
     protected $fillable = [
-        'order_item_id', 'measurement_name', 'measurement_value', 'created_at', 'updated_at'
+        'order_item_id', 'measurement_name','measurement_title_prefix', 'measurement_value', 'created_at', 'updated_at'
     ];
     public function orderItem()
     {
