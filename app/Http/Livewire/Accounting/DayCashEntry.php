@@ -7,6 +7,7 @@ use App\Models\PaymentCollection;
 use App\Models\DayCashEntry as DayCashEntryModel;
 use App\Models\Payment;
 use App\Models\Journal;
+use App\Models\Ledger;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
 
@@ -84,6 +85,9 @@ class DayCashEntry extends Component
     public function submit()
 {
     if ($this->entry_type === 'given') {
+
+          
+
         if ($this->collectedAmount <= 0) {
             $this->addError('collectedAmount', 'Please enter a valid given amount.');
             return;
@@ -103,6 +107,17 @@ class DayCashEntry extends Component
 
             $this->createDebitRecords();
 
+            $ledgerData = [
+                'staff_id' => $this->staff_id,
+                'amount'   => $this->collectedAmount,
+                'is_debit' => 1,
+                'is_credit'=> 0,
+                'bank_cash'=> 'wallet',
+                'voucher_no'=> 'EXPENSE'.time(),
+                'purpose_description' => 'Given amount recorded',
+            ];
+            $this->createLedgerRecord($ledgerData);
+            
             DB::commit();
 
             $this->reset([
@@ -124,10 +139,9 @@ class DayCashEntry extends Component
         return;
     }
 
-    $cashAmount = $this->cashCollectedAmount ?? 0;
-    $digitalAmount = $this->digitalCollectedAmount ?? 0;
+    $cashAmount = floatval($this->cashCollectedAmount) ?? 0;
+    $digitalAmount = floatval($this->digitalCollectedAmount) ?? 0;
     $totalAmount = $cashAmount + $digitalAmount;
-
     // NEW VALIDATION
     if ($this->entry_type === 'collect') {
         if ($this->payment_cash && $cashAmount > $this->totalCash) {
@@ -159,6 +173,16 @@ class DayCashEntry extends Component
 
         $this->settleCollections($cashAmount, $digitalAmount);
 
+          $ledgerData = [
+            'staff_id' => $this->staff_id,
+            'amount'   => $totalAmount,
+            'is_debit' => 1,
+            'is_credit'=> 0,
+            'bank_cash'=> 'wallet',
+            'voucher_no'=> 'EXPENSE'.time(),
+            'purpose_description' => 'Given amount recorded',
+        ];
+        $this->createLedgerRecord($ledgerData);
         DB::commit();
 
         $this->reset([
@@ -316,6 +340,51 @@ class DayCashEntry extends Component
     //     }
     // }
 
+    private function createLedgerRecord($data)
+{
+    // dd($data);
+    // $data should include all required ledger columns
+    $userTypeInt = User::where('id', $this->staff_id)->value('user_type') ?? 0;
+    // Map integer to string for ledgers
+    $userTypeMap = [
+        0 => 'staff',
+        1 => 'customer',
+        // add partner/supplier if needed
+    ];
+
+    $userType = $userTypeMap[$userTypeInt] ?? 'staff'; // default to 'staff'
+
+
+    Ledger::create([
+        'id'                         => null, // auto increment
+        'user_type'                  => $userType,
+        'staff_id'                   => $data['staff_id'] ?? null,
+        'customer_id'                => $data['customer_id'] ?? null,
+        'supplier_id'                => $data['supplier_id'] ?? null,
+        'admin_id'                   => auth()->id(),
+        'payment_id'                 => $data['payment_id'] ?? null,
+        'staff_commision_id'         => null,
+        'collection_staff_commission_id' => null,
+        'store_bad_debt_id'          => null,
+        'transaction_id'             => $data['transaction_id'] ?? null,
+        'invoice_no'                 => $data['invoice_no'] ?? $data['voucher_no'] ?? null,
+        'voucher_no'                 => $data['voucher_no'] ?? null,
+        'transaction_amount'         => $data['amount'] ?? 0,
+        'is_credit'                  => $data['is_credit'] ?? 0,
+        'is_debit'                   => $data['is_debit'] ?? 0,
+        'bank_cash'                  => $data['bank_cash'] ?? 'wallet',
+        'entry_date'                 => now(),
+        'purpose'                    => $data['purpose'] ?? 'day_cash_entry',
+        'purpose_description'        => $data['purpose_description'] ?? null,
+        'start_date'                 => $data['start_date'] ?? null,
+        'whatsapp_status'            => 0,
+        'last_whatsapp'              => null,
+        'created_at'                 => now(),
+        'updated_at'                 => now(),
+    ]);
+}
+
+
    private function settlePaymentType($type, $amount)
 {
     $collections = PaymentCollection::where('user_id', $this->staff_id)
@@ -329,18 +398,18 @@ class DayCashEntry extends Component
 
     foreach ($collections as $collection) {
         if ($remaining <= 0) break;
-
+        // dd($remaining);
         // For non-digital payments (cash, cheque, neft)
         if ($type !== 'digital_payment') {
             if ($remaining >= $collection->collection_amount) {
-                $remaining -= $collection->collection_amount;
+                // $remaining -= $collection->collection_amount;
                 $collection->update([
-                    'collection_amount' => 0,
+                    // 'collection_amount' => 0,
                     'is_settled' => 1,
                 ]);
             } else {
                 $collection->update([
-                    'collection_amount' => $collection->collection_amount - $remaining,
+                    // 'collection_amount' => $collection->collection_amount - $remaining,
                     'is_settled' => 0,
                 ]);
                 $remaining = 0;
@@ -353,8 +422,8 @@ class DayCashEntry extends Component
                 // Full settlement of both amount and charge
                 $remaining -= $totalDue;
                 $collection->update([
-                   'collection_amount' => 0,
-                   'withdrawal_charge' => 0, // This line ensures the charge is zeroed out
+                //    'collection_amount' => 0,
+                //    'withdrawal_charge' => 0, // This line ensures the charge is zeroed out
                    'is_settled' => 1,
                 ]);
             } else {
@@ -373,7 +442,7 @@ class DayCashEntry extends Component
                 } else {
                     // Partial payment of collection amount only
                     $collection->update([
-                        'collection_amount' => $collection->collection_amount - $remaining,
+                        // 'collection_amount' => $collection->collection_amount - $remaining,
                         'is_settled' => 0,
                     ]);
                     $remaining = 0;

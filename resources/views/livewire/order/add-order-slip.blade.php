@@ -455,9 +455,10 @@
                                     <label>Delivery</label>
                                     @endif
                                     <select wire:model="order_item.{{ $key }}.team" class="form-control form-control-sm"
-                                        @if ($this->order_item[$key]['team'])
+                                        {{-- @if ($this->order_item[$key]['team'])
                                         disabled
-                                        @endif>
+                                        @endif --}}
+                                        >
                                         <option value="" selected hidden>Select Team</option>
                                         <option value="sales">Sales Team</option>
                                         <option value="production">Production Team</option>

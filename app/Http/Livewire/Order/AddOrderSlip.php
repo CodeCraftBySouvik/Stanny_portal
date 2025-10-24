@@ -46,6 +46,7 @@ class AddOrderSlip extends Component
         $this->order = Order::with('items.measurements','items.fabric','customer','createdBy')->where('id', $id)->first();
         if($this->order){
             foreach($this->order->items as $key=>$order_item){
+                 
                $product =  $order_item->product ?? null;
 
                $this->order_item[$key] = [
@@ -54,7 +55,7 @@ class AddOrderSlip extends Component
                 'collection_id' => $order_item->collection,
                 'collection_title' => $order_item->collectionType?->title ?? '',
                 'fabrics' => $order_item->fabric,
-                'team' => $order_item->assigned_team,
+                'team' => $order_item->assigned_team ?? 'production',
                 'tl_approved' => $order_item->tl_status == 'Approved',
                 'admin_approved' => $order_item->admin_status == 'Approved',
                 'measurements' => $order_item->measurements->map(function ($m) {

@@ -61,7 +61,7 @@
             </div>
         </div>
     </div>
-    <div class="loader-container" wire:loading>
+    {{-- <div class="loader-container" wire:target>
         <div class="loader"></div>
-    </div>
+    </div> --}}
 </div>

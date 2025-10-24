@@ -1,104 +1,40 @@
 <?php
 
 namespace App\Http\Livewire\Accounting;
+
 use Livewire\Component;
 use App\Models\PaymentCollection;
-use App\Models\Invoice;
-use App\Models\InvoicePayment;
-use App\Models\Journal;
-use App\Models\Ledger;
-use App\Models\Payment;
-use App\Models\PaymentRevoke;
-use App\Models\User;
 use App\Models\DayCashEntry as DayCashEntryModel;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Auth;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Livewire\WithPagination;
+use App\Models\Payment;
+use App\Models\Journal;
+use Illuminate\Support\Facades\DB;
+use App\Models\User;
 
 class DayCashEntry extends Component
 {
-    use WithPagination;
-
-    protected $paginationTheme = 'bootstrap';
     public $totalCollections = 0;
-    public $totalExpenses = 0;
-    public $totalWallet = 0;
-    public $paymentCollections = [];
-    public $paymentExpenses = [];
-
     public $totalCash = 0;
     public $totalNEFT = 0;
     public $totalCheque = 0;
     public $totalDigital = 0;
-    public $collectedAmount;
+    public $totalWallet = 0;
 
-    public $start_date;
-    public $end_date;
-    public $searchStaff = '';
-    public $selectedStaffId = null,$label=null,$entry_type,$balannce;
-    public $staffs = [];
-    public $payment_date;
     public $staff_id;
-    public $showCashInput = false;
-    public $showDigitalInput = false;
+    public $entry_type;
+    public $payment_cash = false;
+    public $payment_digital = false;
     public $cashCollectedAmount;
     public $digitalCollectedAmount;
+    public $collectedAmount;    
+    public $staffs = [];
 
     public function mount()
     {
-        $this->staffs = User::where('user_type', 0)->whereIn('designation', [2,12])->select('name', 'id','designation')->orderBy('name', 'ASC')->get();
-
-    }
-    public function toggleCashCheckbox()
-    {
-        $this->showCashInput = !$this->showCashInput;
-    }
-    public function toggleDigitalCheckbox()
-    {
-        $this->showDigitalInput = !$this->showDigitalInput;
-    }
-   
-    // public function fetchBalance($value)
-    // {
-    //     $this->staff_id=$value;
-    //      // Fetch all payments collected by this user
-    //     $collections = PaymentCollection::where('user_id', $value)
-    //                     ->where('is_approve', 1)
-    //                     ->get();
-
-    //     // Calculate totals
-    //     $total = $collections->sum('collection_amount');
-    //     $cash = $collections->where('payment_type', 'cash')->sum('collection_amount');
-    //     $neft = $collections->where('payment_type', 'neft')->sum('collection_amount');
-    //     $cheque = $collections->where('payment_type', 'cheque')->sum('collection_amount');
-    //     $digital = $collections->where('payment_type', 'digital_payment')->sum('collection_amount');
-
-    //     // Set display value
-    //     $this->totalWallet = $total . " (Cash={$cash}, NEFT={$neft}, Cheque={$cheque}, Digi Payment={$digital})";
-    // }
-        public function fetchBalance($value)
-    {
-        $this->staff_id = $value;
-
-        $collections = PaymentCollection::where('user_id', $value)
-                        ->where('is_approve', 1)
-                        ->where('is_settled', 0)
-                        ->get();
-
-        $this->totalCash = $collections->where('payment_type', 'cash')->sum('collection_amount');
-        $this->totalNEFT = $collections->where('payment_type', 'neft')->sum('collection_amount');
-        $this->totalCheque = $collections->where('payment_type', 'cheque')->sum('collection_amount');
-        // $this->totalDigital = $collections->where('payment_type', 'digital_payment')->sum('collection_amount');
-         $this->totalDigital = $collections
-        ->where('payment_type', 'digital_payment')
-        ->sum(function ($item) {
-            return $item->collection_amount + $item->withdrawal_charge;
-        });
-        
-        $total = $this->totalCash + $this->totalNEFT + $this->totalCheque + $this->totalDigital;
-
-        $this->totalWallet = "{$total} (Cash={$this->totalCash}, NEFT={$this->totalNEFT}, Cheque={$this->totalCheque}, Digi Payment={$this->totalDigital})";
+        $this->staffs = User::where('user_type', 0)
+            ->whereIn('designation', [2,12,4])
+            ->select('name', 'id','designation')
+            ->orderBy('name', 'ASC')
+            ->get();
     }
 
     public function setEntryType($value)
@@ -106,411 +42,377 @@ class DayCashEntry extends Component
         $this->entry_type=$value;
     }
 
-    
+     public function toggleCashCheckbox()
+    {
+        $this->payment_cash = !$this->payment_cash;
+    }
 
+    public function toggleDigitalCheckbox()
+    {
+        $this->payment_digital = !$this->payment_digital;
+    }
 
-    protected $rules = [
-        'staff_id' => 'required|exists:users,id',
-        'totalWallet' => 'required',
-        'entry_type' => 'required',
-        'collectedAmount' => 'required|numeric|min:1',
-    ];
+    public function fetchBalance($value)
+    {
+        $this->staff_id = $value;
+        // $collections = PaymentCollection::where('user_id', $value)
+        //     ->where('is_approve', 1)
+        //     ->where('is_settled', 0)
+        //     ->get();
+         $query = PaymentCollection::where('user_id', $value)
+        ->where('is_approve', 1);
 
-//     public function submit()
-//     {
-//     $this->validate();
+        if ($this->entry_type === 'collected') {
+            $query->where('is_settled', 0);
+        } elseif ($this->entry_type === 'given') {
+            $query->where('is_settled', 1);
+        }
 
-//     // Require at least one payment type
-//     if (!$this->payment_cash && !$this->payment_digital) {
-//         $this->addError('payment_cash', 'Please select at least one payment type.');
-//         return;
-//     }
-    
-//     if ($this->entry_type === 'collect') {
-//         if ($this->collectedAmount > $this->totalCash) {
-//             $this->addError('collectedAmount', 'Collected amount exceeds available cash.');
-//             return;
-//         }
-//     }
+        $collections = $query->get();
 
-//     try {
-//         \DB::beginTransaction();
-
-//         // Save Day Cash Entry
-//         DayCashEntryModel::create([
-//             'staff_id'     => $this->staff_id,
-//             'type'         => $this->entry_type,
-//             'payment_date' => now()->toDateString(),
-//             'amount'       => $this->collectedAmount,
-//         ]);
-
-//         if ($this->entry_type === 'collect') {
-//             $remaining = $this->collectedAmount;
-
-//             $collections = PaymentCollection::where('user_id', $this->staff_id)
-//                 ->where('is_approve', 1)
-//                 ->where('is_settled', 0)
-//                 ->orderBy('id')
-//                 ->get();
-
-//             foreach ($collections as $collection) {
-//                 if (in_array($collection->payment_type, ['cheque', 'neft'])) {
-//                     $collection->update([
-//                         'collection_amount' => 0,
-//                         'is_settled' => 1,
-//                     ]);
-//                     continue;
-//                 }
-
-//                 if ($collection->payment_type === 'cash' && $remaining > 0) {
-//                     if ($remaining >= $collection->collection_amount) {
-//                         $remaining -= $collection->collection_amount;
-//                         $collection->update([
-//                             'collection_amount' => 0,
-//                             'is_settled' => 1,
-//                         ]);
-//                     } else {
-//                         $collection->update([
-//                             'collection_amount' => $collection->collection_amount - $remaining,
-//                             'is_settled' => 0,
-//                         ]);
-//                         $remaining = 0;
-//                     }
-//                 }
-//             }
-//         }
-
-//         //  Handle 'given' entries
-//        if ($this->entry_type === 'given') {
-//     // 1. Add to wallet balance (NOT expense)
-//     Payment::create([
-//         'payment_for' => 'debit',
-//         'stuff_id' => $this->staff_id,
-//         'amount' => $this->collectedAmount,
-//         'payment_in' => 'cash', // or any default
-//         'voucher_no' => 'EXPENSE'.time(),
-//         'payment_date'=> now(),
-//     ]);
-
-//     // 2. Only wallet increase, not added to expenses
-//     Journal::create([
-//         'payment_id' => null, // if needed
-//         'is_debit' => 1, // means this is money given to staff (but not expensed)
-//         'transaction_amount' => $this->collectedAmount,
-//         'created_at' => now(),
-//     ]);
-
-//    }
-
-
-//         \DB::commit();
-
-//         $this->reset([
-//             'collectedAmount', 'totalWallet', 'staff_id', 'entry_type',
-//             'totalCash', 'totalNEFT', 'totalCheque', 'totalDigital'
-//         ]);
-
-//         session()->flash('success', 'Day cash entry submitted successfully!');
-//     } catch (\Exception $e) {
-//         \DB::rollBack();
-//         \Log::error('DayCashEntry Submit Error: ' . $e->getMessage());
-//         session()->flash('error', 'Something went wrong. Please try again.');
-//     }
-// }
-
-
-    //   public function submit()
-    // {
-    //     // Validation
-    //     $this->validate([
-    //         'staff_id' => 'required|exists:users,id',
-    //         'totalWallet' => 'required',
-    //         'entry_type' => 'required',
-    //         'collectedAmount' => 'required|numeric|min:1',
-    //     ]);
-
-    //     // Require at least one payment type
-    //     if (!$this->payment_cash && !$this->payment_digital) {
-    //         $this->addError('payment_cash', 'Please select at least one payment type.');
-    //         return;
-    //     }
-
-    //     // Type-specific checks
-    //     if ($this->entry_type === 'collect') {
-    //         if ($this->payment_cash && !$this->payment_digital && $this->collectedAmount > $this->totalCash) {
-    //             $this->addError('collectedAmount', 'Collected amount exceeds available cash.');
-    //             return;
-    //         }
-
-    //         if ($this->payment_digital && !$this->payment_cash && $this->collectedAmount > $this->totalDigital) {
-    //             $this->addError('collectedAmount', 'Collected amount exceeds available digital payment.');
-    //             return;
-    //         }
-
-    //         if ($this->payment_cash && $this->payment_digital) {
-    //             $totalAvailable = $this->totalCash + $this->totalDigital;
-    //             if ($this->collectedAmount > $totalAvailable) {
-    //                 $this->addError('collectedAmount', 'Collected amount exceeds available cash + digital payment.');
-    //                 return;
-    //             }
-    //         }
-    //     }
-
-
-    //     try {
-    //         \DB::beginTransaction();
-    //         // dd($this->all());
-    //         // Save entry
-    //         DayCashEntryModel::create([
-    //             'staff_id'     => $this->staff_id,
-    //             'type'         => $this->entry_type,
-    //             'payment_date' => now()->toDateString(),
-    //             'amount'       => $this->collectedAmount,
-    //             'payment_cash' => $this->payment_cash,
-    //             'payment_digital' => $this->payment_digital,
-    //         ]);
-
-    //         if ($this->entry_type === 'collect') {
-    //             $remaining = $this->collectedAmount;
-
-    //             $collections = PaymentCollection::where('user_id', $this->staff_id)
-    //                 ->where('is_approve', 1)
-    //                 ->where('is_settled', 0)
-    //                 ->orderBy('id')
-    //                 ->get();
-
-    //             foreach ($collections as $collection) {
-    //                 // Skip if not matching the selected payment types
-    //                 if (
-    //                     ($collection->payment_type === 'cash' && !$this->payment_cash) ||
-    //                     ($collection->payment_type === 'digital_payment' && !$this->payment_digital)
-    //                 ) {
-    //                     continue;
-    //                 }
-
-    //                 // Settlement logic
-    //                 if (in_array($collection->payment_type, ['cheque', 'neft'])) {
-    //                     $collection->update([
-    //                         'collection_amount' => 0,
-    //                         'is_settled' => 1,
-    //                     ]);
-    //                     continue;
-    //                 }
-
-    //                 if ($remaining > 0) {
-    //                     if ($remaining >= $collection->collection_amount) {
-    //                         $remaining -= $collection->collection_amount;
-    //                         $collection->update([
-    //                             'collection_amount' => 0,
-    //                             'is_settled' => 1,
-    //                         ]);
-    //                     } else {
-    //                         $collection->update([
-    //                             'collection_amount' => $collection->collection_amount - $remaining,
-    //                             'is_settled' => 0,
-    //                         ]);
-    //                         $remaining = 0;
-    //                     }
-    //                 }
-    //             }
-    //         }
-
-    //         if ($this->entry_type === 'given') {
-    //             Payment::create([
-    //                 'payment_for' => 'debit',
-    //                 'stuff_id' => $this->staff_id,
-    //                 'amount' => $this->collectedAmount,
-    //                 'payment_in' => $this->payment_cash ? 'cash' : 'digital_payment',
-    //                 'voucher_no' => 'EXPENSE'.time(),
-    //                 'payment_date'=> now(),
-    //             ]);
-
-    //             Journal::create([
-    //                 'payment_id' => null,
-    //                 'is_debit' => 1,
-    //                 'transaction_amount' => $this->collectedAmount,
-    //                 'created_at' => now(),
-    //             ]);
-    //         }
-
-    //         \DB::commit();
-
-    //         $this->reset([
-    //             'collectedAmount', 'totalWallet', 'staff_id', 'entry_type',
-    //             'totalCash', 'totalNEFT', 'totalCheque', 'totalDigital',
-    //             'payment_cash', 'payment_digital'
-    //         ]);
-
-    //         session()->flash('success', 'Day cash entry submitted successfully!');
-    //     } catch (\Exception $e) {
-    //         \DB::rollBack();
-    //         \Log::error('DayCashEntry Submit Error: ' . $e->getMessage());
-    //         session()->flash('error', 'Something went wrong. Please try again.');
-    //     }
-    // }
+        $this->totalCash = $collections->where('payment_type', 'cash')->sum('collection_amount');
+        $this->totalNEFT = $collections->where('payment_type', 'neft')->sum('collection_amount');
+        $this->totalCheque = $collections->where('payment_type', 'cheque')->sum('collection_amount');
+        $this->totalDigital = $collections
+            ->where('payment_type', 'digital_payment')
+            ->sum(fn($item) => $item->collection_amount + $item->withdrawal_charge);
+        
+        $total = $this->totalCash + $this->totalNEFT + $this->totalCheque + $this->totalDigital;
+        $this->totalWallet = "{$total} (Cash={$this->totalCash}, NEFT={$this->totalNEFT}, Cheque={$this->totalCheque}, Digi Payment={$this->totalDigital})";
+    }
 
     public function submit()
-    {
-        // Validation
-        $this->validate([
-            'staff_id' => 'required|exists:users,id',
-            'totalWallet' => 'required',
-            'entry_type' => 'required',
-            'cashCollectedAmount' => 'nullable|numeric|min:0',
-            'digitalCollectedAmount' => 'nullable|numeric|min:0',
-        ]);
-
-        // Ensure at least one payment type is selected
-        if (!$this->payment_cash && !$this->payment_digital) {
-            $this->addError('payment_cash', 'Please select at least one payment type.');
+{
+    if ($this->entry_type === 'given') {
+        if ($this->collectedAmount <= 0) {
+            $this->addError('collectedAmount', 'Please enter a valid given amount.');
             return;
-        }
-
-        // Total collected
-        $totalCollected = ($this->cashCollectedAmount ?? 0) + ($this->digitalCollectedAmount ?? 0);
-
-        if ($totalCollected <= 0) {
-            $this->addError('cashCollectedAmount', 'Please enter a valid amount for at least one payment type.');
-            return;
-        }
-
-        // Type-specific checks
-        if ($this->entry_type === 'collect') {
-            if ($this->cashCollectedAmount > $this->totalCash) {
-                $this->addError('cashCollectedAmount', 'Cash amount exceeds available cash.');
-                return;
-            }
-            if ($this->digitalCollectedAmount > $this->totalDigital) {
-                $this->addError('digitalCollectedAmount', 'Digital amount exceeds available digital payments.');
-                return;
-            }
         }
 
         try {
-            \DB::beginTransaction();
+            DB::beginTransaction();
 
-            // Save Day Cash Entry
             DayCashEntryModel::create([
                 'staff_id'        => $this->staff_id,
                 'type'            => $this->entry_type,
                 'payment_date'    => now()->toDateString(),
-                'amount'          => $totalCollected,
-                'payment_cash'    => $this->cashCollectedAmount ?? 0,
-                'payment_digital' => $this->digitalCollectedAmount ?? 0,
+                'amount'          => $this->collectedAmount,
+                'payment_cash'    => $this->collectedAmount,
+                'payment_digital' => 0,
             ]);
 
-            if ($this->entry_type === 'collect') {
-                // Settlement for cash
-                $remainingCash = $this->cashCollectedAmount ?? 0;
-                if ($remainingCash > 0) {
-                    $cashCollections = PaymentCollection::where('user_id', $this->staff_id)
-                        ->where('is_approve', 1)
-                        ->where('is_settled', 0)
-                        ->where('payment_type', 'cash')
-                        ->orderBy('id')
-                        ->get();
+            $this->createDebitRecords();
 
-                    foreach ($cashCollections as $collection) {
-                        if ($remainingCash <= 0) break;
-
-                        if ($remainingCash >= $collection->collection_amount) {
-                            $remainingCash -= $collection->collection_amount;
-                            $collection->update([
-                                'collection_amount' => 0,
-                                'is_settled' => 1,
-                            ]);
-                        } else {
-                            $collection->update([
-                                'collection_amount' => $collection->collection_amount - $remainingCash,
-                                'is_settled' => 0,
-                            ]);
-                            $remainingCash = 0;
-                        }
-                    }
-                }
-
-                // Settlement for digital
-                $remainingDigital = $this->digitalCollectedAmount ?? 0;
-                if ($remainingDigital > 0) {
-                    $digitalCollections = PaymentCollection::where('user_id', $this->staff_id)
-                        ->where('is_approve', 1)
-                        ->where('is_settled', 0)
-                        ->where('payment_type', 'digital_payment')
-                        ->orderBy('id')
-                        ->get();
-
-                    foreach ($digitalCollections as $collection) {
-                        if ($remainingDigital <= 0) break;
-
-                        if ($remainingDigital >= $collection->collection_amount) {
-                            $remainingDigital -= $collection->collection_amount;
-                            $collection->update([
-                                'collection_amount' => 0,
-                                'is_settled' => 1,
-                            ]);
-                        } else {
-                            $collection->update([
-                                'collection_amount' => $collection->collection_amount - $remainingDigital,
-                                'is_settled' => 0,
-                            ]);
-                            $remainingDigital = 0;
-                        }
-                    }
-                }
-            }
-
-            // Given type (debit to staff)
-            if ($this->entry_type === 'given') {
-                if ($this->cashCollectedAmount > 0) {
-                    Payment::create([
-                        'payment_for' => 'debit',
-                        'stuff_id' => $this->staff_id,
-                        'amount' => $this->cashCollectedAmount,
-                        'payment_in' => 'cash',
-                        'voucher_no' => 'EXPENSE' . time(),
-                        'payment_date'=> now(),
-                    ]);
-                }
-                if ($this->digitalCollectedAmount > 0) {
-                    Payment::create([
-                        'payment_for' => 'debit',
-                        'stuff_id' => $this->staff_id,
-                        'amount' => $this->digitalCollectedAmount,
-                        'payment_in' => 'digital_payment',
-                        'voucher_no' => 'EXPENSE' . time(),
-                        'payment_date'=> now(),
-                    ]);
-                }
-
-                Journal::create([
-                    'payment_id' => null,
-                    'is_debit' => 1,
-                    'transaction_amount' => $totalCollected,
-                    'created_at' => now(),
-                ]);
-            }
-
-            \DB::commit();
+            DB::commit();
 
             $this->reset([
-                'cashCollectedAmount', 'digitalCollectedAmount', 'totalWallet', 'staff_id', 'entry_type',
-                'totalCash', 'totalNEFT', 'totalCheque', 'totalDigital',
-                'payment_cash', 'payment_digital'
+                'collectedAmount', 'staff_id', 'entry_type'
             ]);
 
-            session()->flash('success', 'Day cash entry submitted successfully!');
+            session()->flash('success', 'Given amount recorded successfully!');
         } catch (\Exception $e) {
-            \DB::rollBack();
-            \Log::error('DayCashEntry Submit Error: ' . $e->getMessage());
-            session()->flash('error', 'Something went wrong. Please try again.');
+            DB::rollBack();
+            session()->flash('error', 'Error: ' . $e->getMessage());
+        }
+
+        return;
+    }
+
+    // --- Handle collect type ---
+    if (!$this->payment_cash && !$this->payment_digital) {
+        $this->addError('payment_type', 'Please select at least one payment type.');
+        return;
+    }
+
+    $cashAmount = $this->cashCollectedAmount ?? 0;
+    $digitalAmount = $this->digitalCollectedAmount ?? 0;
+    $totalAmount = $cashAmount + $digitalAmount;
+
+    // NEW VALIDATION
+    if ($this->entry_type === 'collect') {
+        if ($this->payment_cash && $cashAmount > $this->totalCash) {
+            $this->addError('cashCollectedAmount', 'Cash amount exceeds available cash.');
+            return;
+        }
+        if ($this->payment_digital && $digitalAmount > $this->totalDigital) {
+            $this->addError('digitalCollectedAmount', 'Digital amount exceeds available digital payments.');
+            return;
+        }
+    }
+
+    if ($totalAmount <= 0) {
+        $this->addError('amount', 'Please enter a valid amount for at least one payment type.');
+        return;
+    }
+
+    try {
+        DB::beginTransaction();
+
+        DayCashEntryModel::create([
+            'staff_id'        => $this->staff_id,
+            'type'            => $this->entry_type,
+            'payment_date'    => now()->toDateString(),
+            'amount'          => $totalAmount,
+            'payment_cash'    => $cashAmount,
+            'payment_digital' => $digitalAmount,
+        ]);
+
+        $this->settleCollections($cashAmount, $digitalAmount);
+
+        DB::commit();
+
+        $this->reset([
+            'cashCollectedAmount', 'digitalCollectedAmount', 
+            'payment_cash', 'payment_digital'
+        ]);
+        
+        session()->flash('success', 'Day cash entry submitted successfully!');
+        return redirect()->route('admin.accounting.cashbook_module');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        session()->flash('error', 'Error: ' . $e->getMessage());
+    }
+}
+
+    // Old
+    // public function submit()
+    // {
+    //     // dd($this->all());
+    //     // Validation rules
+    //     // $this->validate([
+    //     //     'staff_id' => 'required|exists:users,id',
+    //     //     'totalWallet' => 'required',
+    //     //     'entry_type' => 'required',
+    //     //     'payment_cash' => 'required_without:payment_digital|boolean',
+    //     //     'payment_digital' => 'required_without:payment_cash|boolean',
+    //     //     'cashCollectedAmount' => 'required_if:payment_cash,true|nullable|numeric',
+    //     //     'digitalCollectedAmount' => 'required_if:payment_digital,true|nullable|numeric',
+    //     //     'collectedAmount' => 'required_if:entry_type,given|numeric'
+    //     // ], [
+    //     //     'payment_cash.required_without' => 'Please select at least one payment type',
+    //     //     'payment_digital.required_without' => 'Please select at least one payment type',
+    //     // ]);
+
+    //     // Check if at least one payment type is selected
+    //     if (!$this->payment_cash && !$this->payment_digital) {
+    //         $this->addError('payment_type', 'Please select at least one payment type.');
+    //         return;
+    //     }
+
+    //     // Check if amounts are provided for selected types
+    //     $cashAmount = $this->cashCollectedAmount ?? 0;
+    //     $digitalAmount = $this->digitalCollectedAmount ?? 0;
+    //     $totalAmount = $cashAmount + $digitalAmount;
+        
+    //     if ($totalAmount <= 0) {
+    //         $this->addError('amount', 'Please enter a valid amount for at least one payment type.');
+    //         return;
+    //     }
+
+    //     // Type-specific validation
+    //     if ($this->entry_type === 'collect') {
+    //         if ($this->payment_cash && $cashAmount > $this->totalCash) {
+    //             $this->addError('cashCollectedAmount', 'Cash amount exceeds available cash.');
+    //             return;
+    //         }
+            
+    //         if ($this->payment_digital && $digitalAmount > $this->totalDigital) {
+    //             $this->addError('digitalCollectedAmount', 'Digital amount exceeds available digital payments.');
+    //             return;
+    //         }
+    //     }
+
+    //     try {
+    //         DB::beginTransaction();
+
+    //         // Create day cash entry
+    //         $entry = DayCashEntryModel::create([
+    //             'staff_id'        => $this->staff_id,
+    //             'type'            => $this->entry_type,
+    //             'payment_date'    => now()->toDateString(),
+    //             'amount'          => $totalAmount,
+    //             'payment_cash'    => $cashAmount,
+    //             'payment_digital' => $digitalAmount,
+    //         ]);
+
+    //         // Handle collection
+    //         if ($this->entry_type === 'collect') {
+    //             $this->settleCollections($cashAmount, $digitalAmount);
+    //         } 
+    //         // Handle given
+    //         else {
+    //             $this->createDebitRecords();
+    //         }
+
+    //         DB::commit();
+
+    //         // Reset form
+    //         $this->reset([
+    //             'cashCollectedAmount', 'digitalCollectedAmount', 
+    //             'payment_cash', 'payment_digital','collectedAmount',
+    //             'totalCash', 'totalNEFT', 'totalCheque', 'totalDigital'
+    //         ]);
+            
+    //         session()->flash('success', 'Day cash entry submitted successfully!');
+    //     } catch (\Exception $e) {
+    //         dd($e->getMessage());
+    //         DB::rollBack();
+    //         session()->flash('error', 'Error: ' . $e->getMessage());
+    //     }
+    // }
+
+    private function settleCollections($cashAmount, $digitalAmount)
+    {
+        // Settle cash payments
+        if ($cashAmount > 0) {
+            $this->settlePaymentType('cash', $cashAmount);
+        }
+
+        // Settle digital payments
+        if ($digitalAmount > 0) {
+            $this->settlePaymentType('digital_payment', $digitalAmount);
+        }
+
+        // Automatically settle cheque and NEFT payments
+        PaymentCollection::where('user_id', $this->staff_id)
+            ->where('is_approve', 1)
+            ->where('is_settled', 0)
+            ->whereIn('payment_type', ['cheque', 'neft'])
+            ->update([
+                'collection_amount' => 0,
+                'withdrawal_charge' => 0, 
+                'is_settled' => 1
+            ]);
+
+    }
+
+    // private function settlePaymentType($type, $amount)
+    // {
+    //     $collections = PaymentCollection::where('user_id', $this->staff_id)
+    //         ->where('is_approve', 1)
+    //         ->where('is_settled', 0)
+    //         ->where('payment_type', $type)
+    //         ->orderBy('id')
+    //         ->get();
+
+    //     $remaining = $amount;
+
+    //     foreach ($collections as $collection) {
+    //         if ($remaining <= 0) break;
+
+    //         if ($remaining >= $collection->collection_amount) {
+    //             $remaining -= $collection->collection_amount;
+    //             $collection->update([
+    //                 'collection_amount' => 0,
+    //                 'is_settled' => 1,
+    //             ]);
+    //         } else {
+    //             $collection->update([
+    //                 'collection_amount' => $collection->collection_amount - $remaining,
+    //                 'is_settled' => 0,
+    //             ]);
+    //             $remaining = 0;
+    //         }
+    //     }
+    // }
+
+   private function settlePaymentType($type, $amount)
+{
+    $collections = PaymentCollection::where('user_id', $this->staff_id)
+        ->where('is_approve', 1)
+        ->where('is_settled', 0)
+        ->where('payment_type', $type)
+        ->orderBy('id')
+        ->get();
+
+    $remaining = $amount;
+
+    foreach ($collections as $collection) {
+        if ($remaining <= 0) break;
+
+        // For non-digital payments (cash, cheque, neft)
+        if ($type !== 'digital_payment') {
+            if ($remaining >= $collection->collection_amount) {
+                $remaining -= $collection->collection_amount;
+                $collection->update([
+                    'collection_amount' => 0,
+                    'is_settled' => 1,
+                ]);
+            } else {
+                $collection->update([
+                    'collection_amount' => $collection->collection_amount - $remaining,
+                    'is_settled' => 0,
+                ]);
+                $remaining = 0;
+            }
+        } 
+        // For digital payments
+        else {
+            $totalDue = $collection->collection_amount + $collection->withdrawal_charge;
+            if ($remaining >= $totalDue) {
+                // Full settlement of both amount and charge
+                $remaining -= $totalDue;
+                $collection->update([
+                   'collection_amount' => 0,
+                   'withdrawal_charge' => 0, // This line ensures the charge is zeroed out
+                   'is_settled' => 1,
+                ]);
+            } else {
+                // Handle partial settlement
+                if ($remaining >= $collection->collection_amount) {
+                    // Settle collection amount first, then apply to withdrawal charge
+                    $remaining -= $collection->collection_amount;
+                    $chargeToSettle = min($remaining, $collection->withdrawal_charge);
+                    
+                    $collection->update([
+                        'collection_amount' => 0,
+                        'withdrawal_charge' => $collection->withdrawal_charge - $chargeToSettle,
+                        'is_settled' => ($collection->withdrawal_charge - $chargeToSettle) === 0 ? 1 : 0,
+                    ]);
+                    $remaining = 0;
+                } else {
+                    // Partial payment of collection amount only
+                    $collection->update([
+                        'collection_amount' => $collection->collection_amount - $remaining,
+                        'is_settled' => 0,
+                    ]);
+                    $remaining = 0;
+                }
+            }
+        }
+    }
+}
+
+
+
+
+    private function createDebitRecords()
+    {
+        $amount = $this->collectedAmount; 
+        $timestamp = time();
+
+        if ($amount > 0) {
+            Payment::create([
+                'payment_for' => 'debit',
+                'stuff_id'    => $this->staff_id,
+                'amount'      => $amount,
+                'payment_in'  => 'cash', // Or maybe make this dynamic if needed
+                'voucher_no'  => 'EXPENSE' . $timestamp,
+                'payment_date'=> now(),
+            ]);
+
+            // Create journal entry
+            Journal::create([
+                'payment_id'        => null,
+                'is_debit'           => 1,
+                'transaction_amount' => $amount,
+                'created_at'         => now(),
+            ]);
         }
     }
 
 
-
-
-
-     public function render()
+    public function render()
     {
         return view('livewire.accounting.day-cash-entry');
     }

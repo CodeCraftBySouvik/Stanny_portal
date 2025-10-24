@@ -977,13 +977,18 @@
                                                     @if(!empty($items[$index]['client_name_required']) &&
                                                     $items[$index]['client_name_required'] == 'Yes')
                                                         <div class="col-md-3">
-                                                            <label><strong>Where?</strong></label>
-                                                            <select class="form-control form-control-sm"
+                                                            <label><strong>Name</strong></label>
+                                                            <input type="text" 
+                                                                class="form-control form-control-sm border border-1"
+                                                                wire:model="items.{{ $index }}.client_name_place"
+                                                                 wire:keydown.enter.prevent>
+                                                            {{-- <select class="form-control form-control-sm"
                                                                 wire:model="items.{{ $index }}.client_name_place">
                                                                 <option value="" hidden>Select</option>
                                                                 <option value="Inside Jacket">Inside Jacket</option>
                                                                 <option value="Inside Suit">Inside Suit</option>
-                                                            </select>
+                                                            </select> --}}
+                                                             
                                                             @error("items.$index.client_name_place")
                                                             <div class="text-danger">{{ $message }}</div>
                                                             @enderror
@@ -1072,13 +1077,17 @@
                                                     @if(!empty($items[$index]['client_name_required']) &&
                                                     $items[$index]['client_name_required'] == 'Yes')
                                                         <div class="col-md-3">
-                                                            <label><strong>Where?</strong></label>
-                                                            <select class="form-control form-control-sm"
+                                                            <label><strong>Name</strong></label>
+                                                             <input type="text" 
+                                                                class="form-control form-control-sm border border-1"
+                                                                wire:model="items.{{ $index }}.client_name_place"
+                                                                 wire:keydown.enter.prevent>
+                                                            {{-- <select class="form-control form-control-sm"
                                                                 wire:model="items.{{ $index }}.client_name_place">
                                                                 <option value="" hidden>Select</option>
                                                                 <option value="Inside Jacket">Inside Jacket</option>
                                                                 <option value="Inside Suit">Inside Suit</option>
-                                                            </select>
+                                                            </select> --}}
                                                             @error("items.$index.client_name_place")
                                                             <div class="text-danger">{{ $message }}</div>
                                                             @enderror
@@ -1340,14 +1349,18 @@
                                                     @if(!empty($items[$index]['client_name_required']) &&
                                                     $items[$index]['client_name_required'] == 'Yes')
                                                         <div class="col-md-3">
-                                                            <label><strong>Where?</strong></label>
-                                                            <select class="form-control form-control-sm"
+                                                            <label><strong>Name</strong></label>
+                                                            <input type="text" 
+                                                                class="form-control form-control-sm border border-1"
+                                                                wire:model="items.{{ $index }}.client_name_place"
+                                                                 wire:keydown.enter.prevent>
+                                                            {{-- <select class="form-control form-control-sm"
                                                                 wire:model="items.{{ $index }}.client_name_place">
                                                                 <option value="" hidden>Select</option>
                                                                 <option value="On Cuff">On Cuff</option>
                                                                 <option value="On Pocket">On Pocket</option>
                                                                 <option value="On Pocket Space">On Pocket Space</option>
-                                                            </select>
+                                                            </select> --}}
                                                             @error("items.$index.client_name_place")
                                                             <div class="text-danger">{{ $message }}</div>
                                                             @enderror
