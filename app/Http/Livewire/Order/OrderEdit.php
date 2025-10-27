@@ -465,6 +465,21 @@ class OrderEdit extends Component
         if (in_array($auth->designation, [1, 4])) {
             $rules['items.*.priority'] = 'required';
         }
+
+         foreach ($this->items as $index => $item) {
+            if (isset($item['selectedCatalogue']) &&
+                isset($this->catalogues[$index][$item['selectedCatalogue']]) &&
+                $this->catalogues[$index][$item['selectedCatalogue']] === 'No Catalogue Images') {
+
+                // Make selectedCatalogue,page_number optional
+                $rules["items.$index.selectedCatalogue"] = 'nullable';
+                $rules["items.$index.page_number"] = 'nullable';
+            } else {
+                // Otherwise required if collection = 1
+                $rules["items.$index.selectedCatalogue"] = 'required_if:items.*.collection,1';
+                $rules["items.$index.page_number"] = 'required_if:items.*.collection,1';
+            }
+        }
         return $rules;
     }
 
@@ -636,8 +651,10 @@ class OrderEdit extends Component
     public function SelectedCatalogue($catalogueId, $index)
     {
         $this->items[$index]['page_number'] = null; // Reset page number
-        $this->maxPages[$index] = []; // Reset max page number
-
+        $this->items[$index]['page_item'] = null; // Reset page number
+        //  if (!isset($this->maxPages[$index])) {
+           $this->maxPages[$index] = []; // Reset max page number
+        // }
         // Fetch max page number from database
         $maxPage = Catalogue::where('id', $catalogueId)->value('page_number');
 
@@ -1406,13 +1423,18 @@ protected function resetMeasurements($index)
 
             foreach ($this->items as $key=>$item) {
                 if($item['selected_collection'] == 1 && is_null($item['page_item'])){
-                    $page = Page::where('page_number', $item['page_number'])
-                                ->where('catalogue_id', $item['selectedCatalogue'])
-                                ->first();
-                    $exists_pages = CataloguePageItem::where('page_id', $page->id)->get();
-                    if($exists_pages->isNotEmpty() && empty($item['page_item'])){
-                        $this->addError("items.$key.page_item", "Please select a page item for this page.");
-                        return false;
+                     // Only check if catalogue is not "No Catalogue Images"
+                    if ($item['selectedCatalogue'] !== 'No Catalogue Images') {
+                        $page = Page::where('page_number', $item['page_number'])
+                                    ->where('catalogue_id', $item['selectedCatalogue'])
+                                    ->first();
+                        if($page){
+                            $exists_pages = CataloguePageItem::where('page_id', $page->id)->get();
+                            if($exists_pages->isNotEmpty() && empty($item['page_item'])){
+                                $this->addError("items.$key.page_item", "Please select a page item for this page.");
+                                return false;
+                            }
+                        }
                     }
                 }
                 if (!empty($item['order_item_id'])) {
@@ -1458,52 +1480,7 @@ protected function resetMeasurements($index)
 
                     $orderItem->status = $newStatus;
 
-                    // Old 8-10-2025
-                    // if ($statusChanged) {
-
-                    //     // ── 1. Item is (now) Process ──────────────────────────────────
-                    //     if ($newStatus === 'Process') { 
-
-                    //         // 1A. Brand‑new row (previousStatus == null)
-                    //         if (is_null($previousStatus)) {
-                    //             if (in_array($loggedInAdmin->designation, [1, 12])) {
-                    //                 $orderItem->tl_status    = 'Approved';
-                    //                 $orderItem->admin_status = 'Approved';
-                    //             } elseif ($loggedInAdmin->designation == 4) {
-                    //                 $orderItem->tl_status    = 'Approved';
-                    //                 $orderItem->admin_status = 'Pending';
-                    //             } else {
-                    //                 $orderItem->tl_status    = 'Pending';
-                    //                 $orderItem->admin_status = 'Pending';
-                    //             }
-
-                    //         // 1B. Hold → Process (existing row)
-                    //         } else {
-                    //             if (in_array($loggedInAdmin->designation, [1, 12])) {      // ★
-                    //                 // Admin re‑activates the item ➜ Approved / Approved   // ★
-                    //                 $orderItem->tl_status    = 'Approved';                 // ★
-                    //                 $orderItem->admin_status = 'Approved';                 // ★
-                    //                 $orderItem->assigned_team = 'production';                 // ★
-                    //             } elseif ($loggedInAdmin->designation == 4) {
-                    //                 $orderItem->tl_status    = 'Approved';
-                    //                 $orderItem->admin_status = 'Pending';
-                    //                 $orderItem->assigned_team = null;                 // ★
-
-                    //             } else {
-                    //                 $orderItem->tl_status    = 'Pending';
-                    //                 $orderItem->admin_status = 'Pending';
-                    //                 $orderItem->assigned_team = null;                 // ★
-                                      
-                    //             }
-                    //             $order->status = 'Approval Pending'; //enable mark as received
-                    //         }
-
-                    //     // ── 2. Item is leaving Process (Process → Hold or other) ──────
-                    //     } else {
-                    //         $orderItem->tl_status    = 'Pending';
-                    //         $orderItem->admin_status = 'Pending';
-                    //     }
-                    // }
+                   
 
                     // New 8-10-2025
                     if ($statusChanged) {
@@ -1553,35 +1530,7 @@ protected function resetMeasurements($index)
                     }
 
 
-                    //  If Admin updated any item from Hold → Process, approve order again
-                        // if (
-                        //     $previousStatus !== 'Process' &&
-                        //     $newStatus === 'Process' &&
-                        //     in_array($loggedInAdmin->designation, [1, 12])
-                        // ) {
-                        //     $order->status = 'Fully Approved By Admin'; // enable mark as received
-                        //     $order->save();
-                        // }
-                        // if (in_array($loggedInAdmin->designation, [1, 12])) {
-                        //     $allProcessOrApproved = $order->items()
-                        //         ->whereNotNull('assigned_team')
-                        //         ->where(function($q){
-                        //             $q->where('status', 'Process')
-                        //             ->orWhere('status', 'Approved');
-                        //         })
-                        //         ->count();
-
-                        //     $totalItems = $order->items()->count();
-                        //      // also ensure no items are unassigned
-                        //     $unassignedCount = $order->items()->whereNull('assigned_team')->count();
-
-                        //     if ($allProcessOrApproved == $totalItems && $unassignedCount == 0) {
-                        //         $order->status = 'Fully Approved By Admin';
-                        //     } else {
-                        //         $order->status = 'Partial Approved By Admin';
-                        //     }
-                        //     $order->save();
-                        // }
+                    
 
                         if (in_array($loggedInAdmin->designation, [1, 12])) {
 

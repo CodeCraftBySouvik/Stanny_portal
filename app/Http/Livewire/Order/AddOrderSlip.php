@@ -77,8 +77,15 @@ class AddOrderSlip extends Component
              ];
                 
             }
-            $this->total_amount = $this->order->total_amount;
-            $this->actual_amount = $this->order->total_amount;
+             $this->total_amount = $this->order->items
+            ->where('status', '!=', 'Hold')
+            ->sum(function ($item) {
+                return $item->piece_price * $item->quantity;
+            });
+            $this->actual_amount = $this->total_amount;
+            
+            // $this->total_amount = $this->order->total_amount;
+            // $this->actual_amount = $this->order->total_amount;
             $this->air_mail = $this->order->air_mail;
             $this->customer = optional($this->order->customer)->name;
             $this->customer_id = optional($this->order->customer)->id;

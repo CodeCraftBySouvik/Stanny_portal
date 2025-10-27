@@ -632,8 +632,11 @@
                                                 <option value="" selected hidden>Select Catalogue</option>
                                                 @foreach($item['catalogues'] ?? [] as $cat_log)
                                                 <option value="{{ $cat_log['id'] }}">
-                                                    {{ $cat_log['catalogue_title']['title'] ?? 'No Title' }} (1 - {{
-                                                    $cat_log['page_number'] }})
+                                                    {{ $cat_log['catalogue_title']['title'] ?? 'No Title' }}
+                                                     @if(($cat_log['catalogue_title']['title'] ?? '') !== 'No Catalogue Images')
+                                                        (1 - {{ $cat_log['page_number'] }})
+                                                     @endif 
+                                                   
                                                 </option>
                                                 @endforeach
                                             </select>
@@ -651,7 +654,13 @@
                                                 class="form-control form-control-sm border border-2 @error('items.'.$index.'.page_number') border-danger @enderror"
                                                 min="1"
                                                 max="{{ isset($item['selectedCatalogue']) && isset($maxPages[$index][$item['selectedCatalogue']]) ? $maxPages[$index][$item['selectedCatalogue']] : '' }}"
-                                                @if($isDisabled) disabled @endif>
+                                                @if($isDisabled) disabled @endif
+                                                @if(isset($item['selectedCatalogue']) 
+                                                    && isset($item['catalogues']) 
+                                                    && collect($item['catalogues'])->firstWhere('id', $item['selectedCatalogue'])['catalogue_title']['title'] === 'No Catalogue Images') 
+                                                    disabled 
+                                                @endif
+                                                >
                                             @error("items.".$index.".page_number")
                                             <div class="text-danger inputerror">{{ $message }}</div>
                                             @enderror
@@ -664,7 +673,13 @@
                                             <label class="form-label"><strong>Page Item</strong></label>
                                             <select wire:model="items.{{$index}}.page_item"
                                                 class="form-control form-control-sm border border-2 @error('items.'.$index.'.page_item') border-danger @enderror"
-                                                @if($isDisabled) disabled @endif>
+                                                @if($isDisabled) disabled @endif
+                                                @if(isset($item['selectedCatalogue']) 
+                                                    && isset($item['catalogues']) 
+                                                    && collect($item['catalogues'])->firstWhere('id', $item['selectedCatalogue'])['catalogue_title']['title'] === 'No Catalogue Images') 
+                                                    disabled 
+                                                @endif
+                                                >
                                                 <option value="" selected hidden>Select Page Item</option>
                                                 {{-- @if(!empty($items[$index]['pageItems'])) --}}
                                                 @foreach($items[$index]['pageItems'] as $pageItems)

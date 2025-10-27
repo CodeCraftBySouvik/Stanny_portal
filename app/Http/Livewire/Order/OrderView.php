@@ -8,9 +8,11 @@ use \App\Models\Product;
 use \App\Models\Invoice;
 use App\Models\Delivery;
 use App\Models\Measurement;
+use App\Models\InvoicePayment;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Component;
+use Carbon\Carbon;
 
 class OrderView extends Component
 {
@@ -200,7 +202,10 @@ class OrderView extends Component
         ->orderBy('id', 'desc') // get the most recent before current
         ->first();
         
-       //die($last_order->order_number);exit;
+        //die($last_order->order_number);exit;
+        // ======================
+        //  ITEM CALCULATIONS
+        // ======================
         $item_sold=[];
         $item_delivered=[];
         $rest_items=[];
@@ -235,6 +240,44 @@ class OrderView extends Component
 
             }
         }
+
+            // ======================
+            //  PAYMENT TABLE LOGIC
+            // ======================
+            $totalAmount = $order->total_amount;
+            $deliveredAmount = 0;
+            $paymentRows = [];
+
+            // Fetch payments related to this order’s invoices
+           $payments = InvoicePayment::whereHas('invoice', function($q) use ($order) {
+                $q->where('order_id', $order->id);
+            })->orderBy('created_at', 'asc')->get();
+
+            $totalAmount = $order->total_amount;
+            $totalPaid = 0;
+            $paymentRows = [];
+
+            foreach ($payments as $p) {
+                $totalPaid += $p->paid_amount;
+                $remaining = max(0, $totalAmount - $totalPaid); // TOTAL.REST
+
+                // if fully paid, actual rest should also be 0
+                $actualRest = ($remaining == 0) ? 0 : $p->rest_amount;
+
+                $paymentRows[] = [
+                    'date' => Carbon::parse($p->created_at)->format('d.m.Y'),
+                    'pay' => number_format($p->paid_amount, 2),
+                    'total_rest' => number_format($remaining, 2),
+                    'act_rest' => number_format($actualRest, 2),
+                    'signature' => '',
+                ];
+            }
+
+
+             // ======================
+            //  PDF DATA
+            // ======================
+            
         $data = [
             'order_no' => $order['order_number'],
             'last_order_no' =>$last_order->order_number ?? 'N/A',
@@ -247,6 +290,7 @@ class OrderView extends Component
             'rest_items' => implode("+",$rest_items),
             'status' => implode("+",$item_delivered),
             'net_qty' =>$net_qty,
+            'paymentRows' => $paymentRows,
         ];
         $pdf = Pdf::loadView('invoice.product_delivery', $data)->setPaper('A4');
         // return $pdf->download('product_delivery.pdf');

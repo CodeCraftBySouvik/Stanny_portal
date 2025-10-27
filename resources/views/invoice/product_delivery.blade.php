@@ -135,7 +135,35 @@
       </tr>
     </thead>
     <tbody>
+      {{-- <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
       <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr> --}}
+      {{-- <tr>
         <td></td>
         <td></td>
         <td></td>
@@ -169,35 +197,22 @@
         <td></td>
         <td></td>
         <td></td>
-      </tr>
+      </tr> --}}
+        @forelse($paymentRows as $row)
       <tr>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
+        <td>{{ $row['date'] }}</td>
+        <td>{{ $row['pay'] }}</td>
+        <td>{{ $row['total_rest'] }}</td>
+        <td>{{ $row['act_rest'] }}</td>
+        <td>{{ $row['signature'] }}</td>
       </tr>
-      <tr>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-      </tr>
+    @empty
+      @for($i = 1; $i <= 9; $i++)
+        <tr>
+          <td></td><td></td><td></td><td></td><td></td>
+        </tr>
+      @endfor
+    @endforelse
     </tbody>
   </table>
 

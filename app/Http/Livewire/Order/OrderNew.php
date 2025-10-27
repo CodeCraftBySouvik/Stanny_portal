@@ -403,6 +403,21 @@ class OrderNew extends Component
             $rules['items.*.priority'] = 'required';
         }
 
+         foreach ($this->items as $index => $item) {
+            if (isset($item['selectedCatalogue']) &&
+                isset($this->catalogues[$index][$item['selectedCatalogue']]) &&
+                $this->catalogues[$index][$item['selectedCatalogue']] === 'No Catalogue Images') {
+
+                // Make selectedCatalogue,page_number optional
+                $rules["items.$index.selectedCatalogue"] = 'nullable';
+                $rules["items.$index.page_number"] = 'nullable';
+            } else {
+                // Otherwise required if collection = 1
+                $rules["items.$index.selectedCatalogue"] = 'required_if:items.*.collection,1';
+                $rules["items.$index.page_number"] = 'required_if:items.*.collection,1';
+            }
+        }
+
 
         return $rules;
     }
@@ -600,7 +615,10 @@ class OrderNew extends Component
     public function SelectedCatalogue($catalogueId, $index)
     {
         $this->items[$index]['page_number'] = null; // Reset page number
-        $this->maxPages[$index] = []; // Reset max page number
+        $this->items[$index]['page_item'] = null; // Reset page item
+         if (!isset($this->maxPages[$index])) {
+            $this->maxPages[$index] = []; // Reset max page number
+         }
 
         // Fetch max page number from database
         $maxPage = Catalogue::where('id', $catalogueId)->value('page_number');
