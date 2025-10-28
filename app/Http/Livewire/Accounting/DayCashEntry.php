@@ -82,121 +82,120 @@ class DayCashEntry extends Component
         $this->totalWallet = "{$total} (Cash={$this->totalCash}, NEFT={$this->totalNEFT}, Cheque={$this->totalCheque}, Digi Payment={$this->totalDigital})";
     }
 
-    public function submit()
-{
-    if ($this->entry_type === 'given') {
+        public function submit()
+    {
+        if ($this->entry_type === 'given') {
 
-          
 
-        if ($this->collectedAmount <= 0) {
-            $this->addError('collectedAmount', 'Please enter a valid given amount.');
+            if ($this->collectedAmount <= 0) {
+                $this->addError('collectedAmount', 'Please enter a valid given amount.');
+                return;
+            }
+
+            try {
+                DB::beginTransaction();
+
+                DayCashEntryModel::create([
+                    'staff_id'        => $this->staff_id,
+                    'type'            => $this->entry_type,
+                    'payment_date'    => now()->toDateString(),
+                    'amount'          => $this->collectedAmount,
+                    'payment_cash'    => $this->collectedAmount,
+                    'payment_digital' => 0,
+                ]);
+
+                $this->createDebitRecords();
+
+                $ledgerData = [
+                    'staff_id' => $this->staff_id,
+                    'amount'   => $this->collectedAmount,
+                    'is_debit' => $this->entry_type === 'given' ? 1 : 0,  // ✅ given = debit
+                    'is_credit'=> $this->entry_type === 'collect' ? 1 : 0, // ✅ collect = credit
+                    'bank_cash'=> 'wallet',
+                    'voucher_no'=> 'EXPENSE'.time(),
+                    'purpose_description' => 'Given amount recorded',
+                ];
+                $this->createLedgerRecord($ledgerData);
+                
+                DB::commit();
+
+                $this->reset([
+                    'collectedAmount', 'staff_id', 'entry_type'
+                ]);
+
+                session()->flash('success', 'Given amount recorded successfully!');
+            } catch (\Exception $e) {
+                DB::rollBack();
+                session()->flash('error', 'Error: ' . $e->getMessage());
+            }
+
+            return;
+        }
+
+        // --- Handle collect type ---
+        if (!$this->payment_cash && !$this->payment_digital) {
+            $this->addError('payment_type', 'Please select at least one payment type.');
+            return;
+        }
+
+        $cashAmount = floatval($this->cashCollectedAmount) ?? 0;
+        $digitalAmount = floatval($this->digitalCollectedAmount) ?? 0;
+        $totalAmount = $cashAmount + $digitalAmount;
+        // NEW VALIDATION
+        if ($this->entry_type === 'collect') {
+            if ($this->payment_cash && $cashAmount > $this->totalCash) {
+                $this->addError('cashCollectedAmount', 'Cash amount exceeds available cash.');
+                return;
+            }
+            if ($this->payment_digital && $digitalAmount > $this->totalDigital) {
+                $this->addError('digitalCollectedAmount', 'Digital amount exceeds available digital payments.');
+                return;
+            }
+        }
+
+        if ($totalAmount <= 0) {
+            $this->addError('amount', 'Please enter a valid amount for at least one payment type.');
             return;
         }
 
         try {
             DB::beginTransaction();
-
+            
             DayCashEntryModel::create([
                 'staff_id'        => $this->staff_id,
                 'type'            => $this->entry_type,
                 'payment_date'    => now()->toDateString(),
-                'amount'          => $this->collectedAmount,
-                'payment_cash'    => $this->collectedAmount,
-                'payment_digital' => 0,
+                'amount'          => $totalAmount,
+                'payment_cash'    => $cashAmount,
+                'payment_digital' => $digitalAmount,
             ]);
 
-            $this->createDebitRecords();
+            $this->settleCollections($cashAmount, $digitalAmount);
 
             $ledgerData = [
                 'staff_id' => $this->staff_id,
-                'amount'   => $this->collectedAmount,
-                'is_debit' => 1,
-                'is_credit'=> 0,
+                'amount'   => $totalAmount,
+            'is_debit' => $this->entry_type === 'given' ? 1 : 0,  // ✅ given = debit
+            'is_credit'=> $this->entry_type === 'collect' ? 1 : 0, // ✅ collect = credit
                 'bank_cash'=> 'wallet',
                 'voucher_no'=> 'EXPENSE'.time(),
                 'purpose_description' => 'Given amount recorded',
             ];
             $this->createLedgerRecord($ledgerData);
-            
             DB::commit();
 
             $this->reset([
-                'collectedAmount', 'staff_id', 'entry_type'
+                'cashCollectedAmount', 'digitalCollectedAmount', 
+                'payment_cash', 'payment_digital'
             ]);
-
-            session()->flash('success', 'Given amount recorded successfully!');
+            
+            session()->flash('success', 'Day cash entry submitted successfully!');
+            return redirect()->route('admin.accounting.cashbook_module');
         } catch (\Exception $e) {
             DB::rollBack();
             session()->flash('error', 'Error: ' . $e->getMessage());
         }
-
-        return;
     }
-
-    // --- Handle collect type ---
-    if (!$this->payment_cash && !$this->payment_digital) {
-        $this->addError('payment_type', 'Please select at least one payment type.');
-        return;
-    }
-
-    $cashAmount = floatval($this->cashCollectedAmount) ?? 0;
-    $digitalAmount = floatval($this->digitalCollectedAmount) ?? 0;
-    $totalAmount = $cashAmount + $digitalAmount;
-    // NEW VALIDATION
-    if ($this->entry_type === 'collect') {
-        if ($this->payment_cash && $cashAmount > $this->totalCash) {
-            $this->addError('cashCollectedAmount', 'Cash amount exceeds available cash.');
-            return;
-        }
-        if ($this->payment_digital && $digitalAmount > $this->totalDigital) {
-            $this->addError('digitalCollectedAmount', 'Digital amount exceeds available digital payments.');
-            return;
-        }
-    }
-
-    if ($totalAmount <= 0) {
-        $this->addError('amount', 'Please enter a valid amount for at least one payment type.');
-        return;
-    }
-
-    try {
-        DB::beginTransaction();
-
-        DayCashEntryModel::create([
-            'staff_id'        => $this->staff_id,
-            'type'            => $this->entry_type,
-            'payment_date'    => now()->toDateString(),
-            'amount'          => $totalAmount,
-            'payment_cash'    => $cashAmount,
-            'payment_digital' => $digitalAmount,
-        ]);
-
-        $this->settleCollections($cashAmount, $digitalAmount);
-
-          $ledgerData = [
-            'staff_id' => $this->staff_id,
-            'amount'   => $totalAmount,
-            'is_debit' => 1,
-            'is_credit'=> 0,
-            'bank_cash'=> 'wallet',
-            'voucher_no'=> 'EXPENSE'.time(),
-            'purpose_description' => 'Given amount recorded',
-        ];
-        $this->createLedgerRecord($ledgerData);
-        DB::commit();
-
-        $this->reset([
-            'cashCollectedAmount', 'digitalCollectedAmount', 
-            'payment_cash', 'payment_digital'
-        ]);
-        
-        session()->flash('success', 'Day cash entry submitted successfully!');
-        return redirect()->route('admin.accounting.cashbook_module');
-    } catch (\Exception $e) {
-        DB::rollBack();
-        session()->flash('error', 'Error: ' . $e->getMessage());
-    }
-}
 
     // Old
     // public function submit()

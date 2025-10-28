@@ -48,7 +48,7 @@
                                                             <select class="form-control" wire:model="entry_type"
                                                                 wire:change="setEntryType($event.target.value)">
                                                                 <option value="">Select Type</option>
-                                                                <option value="collect">Collect</option>
+                                                                <option value="collected">Collect</option>
                                                                 <option value="given">Given</option>
 
                                                             </select>
@@ -86,7 +86,7 @@
                                                         <p class='text-danger'>{{ $message }}</p>
                                                         @enderror
                                                         {{-- New checkboxes for payment method --}}
-                                                        @if (!empty($entry_type) && $entry_type == 'collect')
+                                                        @if (!empty($entry_type) && $entry_type == 'collected')
                                                         <div class="form-check">
                                                             <input type="checkbox" wire:change="toggleCashCheckbox">
                                                             <label for="cashCheck">Cash</label>

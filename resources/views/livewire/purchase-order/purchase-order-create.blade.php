@@ -127,14 +127,14 @@
                                     <div class="col-md-2">
                                      @if ($isFabricSelected[$index] ?? false)
                                         <label for="price_per_mtr_{{$index}}" class="form-label">Price/Mtr (Inc. Tax) <span class="text-danger">*</span></label>
-                                        <input type="text" wire:model="rows.{{$index}}.price_per_mtr"
+                                        <input type="number" wire:model="rows.{{$index}}.price_per_mtr"
                                             wire:keyup="updateRowAmount({{ $index }})"  id="price_per_mtr_{{$index}}" class="form-control form-control-sm border border-1 p-2" placeholder="Product Cost Price">
                                         @error('rows.'.$index.'.price_per_mtr')
                                             <div class="text-danger">{{ $message }}</div>
                                         @enderror
                                      @else
                                         <label for="price_per_qty_{{$index}}" class="form-label">Price/Qty (Inc. Tax) <span class="text-danger">*</span></label>
-                                        <input type="text" wire:model="rows.{{$index}}.price_per_qty"
+                                        <input type="number" wire:model="rows.{{$index}}.price_per_qty"
                                             wire:keyup="updateRowAmount({{ $index }})"  id="price_per_qty_{{$index}}" class="form-control form-control-sm border border-1 p-2" placeholder="Product Cost Price">
                                         @error('rows.'.$index.'.price_per_qty')
                                             <div class="text-danger">{{ $message }}</div>

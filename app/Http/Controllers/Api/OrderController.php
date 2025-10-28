@@ -5,15 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-// use App\Models\User;
-// use App\Models\Order;
-// use App\Models\OrderItem;
-// use App\Models\Product;
-// use App\Models\OrderMeasurement;
-// use App\Models\Ledger;
-// use App\Models\PaymentCollection;
-// use App\Models\SalesmanBilling;
-// use App\Models\Measurement;
 use App\Helpers\Helper;
 use App\Models\{
     User, Order, OrderItem, OrderMeasurement, UserWhatsapp, UserAddress,
@@ -268,6 +259,16 @@ class OrderController extends Controller
         // dd($request->all());
         DB::beginTransaction();
         try {
+            $extraMeasurements = [];
+            foreach ($request->items ?? [] as $index => $item) {
+                $productName = $item['searchproduct'] ?? '';
+                $extraMeasurements[$index] = Helper::ExtraRequiredMeasurement($productName);
+            }
+        
+            // Merge back into request for validation
+            $request->merge(['extra_measurement' => $extraMeasurements]);
+
+
             $validated = $request->validate([
                 'customer_id' => 'nullable|integer|exists:users,id',
                 'customerType' => 'nullable|string|max:15',
@@ -341,7 +342,7 @@ class OrderController extends Controller
                 $extra = $request->extra_measurement[$index] ?? null;
 
                 $extraRules = [];
-
+             if ($item['collection'] == 1) {
                 if ($extra === 'mens_jacket_suit') {
                     $extraRules["items.$index.vents"] = 'required';
                     $extraRules["items.$index.shoulder_type"] = 'required';
@@ -378,6 +379,7 @@ class OrderController extends Controller
                     $extraRules["items.$index.client_name_required"] = 'required';
                     $extraRules["items.$index.client_name_place"] = 'required_if:items.'.$index.'.client_name_required,Yes';
                 }
+            }
 
                 if (!empty($extraRules)) {
                     $request->validate($extraRules);
@@ -404,7 +406,7 @@ class OrderController extends Controller
                 $billData = Helper::generateInvoiceBill($salesmanId);
                 $orderNumber = $billData['number'];
                 $billId = $billData['bill_id'];
-
+                
                 if ($orderNumber === '000') {
                     DB::rollBack();
                     return response()->json([

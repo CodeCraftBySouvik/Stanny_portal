@@ -85,8 +85,6 @@ Route::middleware('auth:sanctum', 'token.session')->group(function () {
         Route::get('/pages', [ProductController::class, 'pages']);
         Route::get('/page/item', [ProductController::class, 'pageItem']);
         Route::get('/products-collection-wise', [ProductController::class, 'getProductsByCollection']);
-       
-        
     });
     
     

@@ -142,8 +142,17 @@ class AddOrderSlip extends Component
 
                     // Check if a delivery already exists
                     $delivery = Delivery::where('order_item_id', $item->id)->latest()->first();
-
-                    if (!$delivery) {
+                    if ($delivery) {
+                    // **CRITICAL CHANGE: Only update the status if it's NOT already 'Delivered'**
+                        if ($delivery->status !== 'Delivered') { 
+                            $delivery->update([
+                                'status'       => 'Received by Sales Team',
+                                'remarks'      => 'Auto-updated as received by Sales Team',
+                                'delivered_at' => now(), // Or use existing delivered_at if possible
+                            ]);
+                        }
+                    }
+                    elseif (!$delivery) {
                         // Create a new delivery depending on collection type
                         if ($item->collection == 1) {
                             // 🧵 Fabric Collection
