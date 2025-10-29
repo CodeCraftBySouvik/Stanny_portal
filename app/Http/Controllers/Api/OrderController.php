@@ -390,7 +390,6 @@ class OrderController extends Controller
             // $loggedInAdmin = auth()->user();
             $loggedInAdmin = Auth::guard('api')->user();
 
-
             if (!$loggedInAdmin) {
                 return response()->json([
                     'status' => false,
@@ -398,7 +397,8 @@ class OrderController extends Controller
                 ], 401);
             }
 
-            $salesmanId = $validated['salesman'];
+            $salesmanId = $loggedInAdmin->id;
+
             $orderNumber = $validated['order_number'] ?? null;
             $billId = $validated['bill_id'] ?? null;
 
@@ -553,15 +553,16 @@ class OrderController extends Controller
                 'paid_amount'=>$paidAmount,
              
                 'last_payment_date'=>now(),
-                'created_by'=>$validated['salesman'],
+                'created_by'=> $loggedInAdmin->id,
                 'team_lead_id'=>$validated['team_lead_id'] ?? $loggedInAdmin->parent_id ?? null,
             ]);
+            
 
             // ------------------------------
             // Salesman Billing
             // ------------------------------
-            if($request->bill_id){
-                $bill = SalesmanBilling::find($request->bill_id);
+            if($billId){
+                $bill = SalesmanBilling::find($billId);
                 if($bill) $bill->increment('no_of_used');
             }
 
@@ -682,21 +683,12 @@ class OrderController extends Controller
 
                 $orderItem->save();
 
-                if ($loggedInAdmin->designation == 4) {
-                    $totalItems = count($validated['items']);
-                    $approvedItems = $order->items()
-                        ->where('status', 'Process')
-                        ->where('tl_status', 'Approved')
-                        ->count();
+                
 
-                    $order->status = match (true) {
-                        $approvedItems == $totalItems => 'Fully Approved By TL',
-                        $approvedItems > 0 => 'Partial Approved By TL',
-                        default => 'Approval Pending',
-                    };
-
-                    $order->save();
-                }
+                // Auto-approve only if the LOGGED-IN user is Admin (1) or Store Person (12)
+                // if ($loggedInAdmin && in_array($loggedInAdmin->designation, [1, 12])) {
+                //     $orderRepo->approveOrder($order->id, $loggedInAdmin->id);
+                // }
 
                 if (!empty($validated['newUploads'][$k])) {
                     foreach ($validated['newUploads'][$k] as $image) {
@@ -737,21 +729,39 @@ class OrderController extends Controller
                 }
             }
 
+            if ($loggedInAdmin->designation == 4) {
+                    $totalItems = count($validated['items']);
+                    $approvedItems = $order->items()
+                        ->where('status', 'Process')
+                        ->where('tl_status', 'Approved')
+                        ->count();
+
+                    $order->status = match (true) {
+                        $approvedItems == $totalItems => 'Fully Approved By TL',
+                        $approvedItems > 0 => 'Partial Approved By TL',
+                        default => 'Approval Pending',
+                    };
+
+                    $order->save();
+                }
+
            
 
-            $staff = isset($validated['salesman']) ? User::find($validated['salesman']) : null;
-
-            if ($staff && in_array($staff->designation, [1, 12])) {
-                $orderRepo->approveOrder($order->id, $staff->id);
+           // ✅ Auto-approve only if logged-in user is Admin (1) or Store Person (12)
+            if ($loggedInAdmin && in_array((int)$loggedInAdmin->designation, [1, 12])) {
+                $orderRepo->approveOrder($order->id, $loggedInAdmin->id);
             }
-
 
             DB::commit();
 
             return response()->json([
                 'status'=>true,
                 'message'=>'Order created successfully',
-                'data'=>$order
+                'data'=>[
+                    'order' => $order,
+                    'order_number' => $orderNumber,
+                    'bill_id' => $billId,
+                ]
             ],201);
 
         } catch(\Exception $e){
