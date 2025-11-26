@@ -256,8 +256,9 @@ class OrderController extends Controller
     
     public function store(Request $request, OrderRepository $orderRepo)
     {
-        // dd($request->all());
+        dd($request->all());
         DB::beginTransaction();
+      
         try {
             $extraMeasurements = [];
             foreach ($request->items ?? [] as $index => $item) {
@@ -316,7 +317,7 @@ class OrderController extends Controller
                 'items.*.price' => 'required|numeric|min:1',
                 'items.*.expected_delivery_date' => 'required|date',
                 'items.*.item_status' => 'required|string',
-                // 🔑 ADD THIS BLOCK FOR MEASUREMENTS
+                //  ADD THIS BLOCK FOR MEASUREMENTS
                 'items.*.get_measurements' => 'nullable|array',
                 'items.*.get_measurements.*.value' => 'nullable|numeric|min:0.1',
 
@@ -328,8 +329,8 @@ class OrderController extends Controller
                 'items.*.selected_fabric' => 'required_if:items.*.collection,1|nullable|string',
 
                 // --- Media Uploads ---
-                'imageUploads.*.*'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-                'voiceUploads.*.*' => 'nullable|mimes:mp3,wav,ogg,m4a,wma,webm,mpga|max:5120',
+                'imageUploads.*.*' => 'nullable|file|image|mimes:jpg,jpeg,png,webp|max:2048',
+                'voiceUploads.*.*' => 'nullable|file|mimes:mp3,wav,ogg,m4a,wma,webm,mpga|max:5120',
 
                 // --- Extra Measurement ---
                 'extra_measurement' => 'nullable|array',
@@ -417,7 +418,7 @@ class OrderController extends Controller
             }
 
             // ----------------------------------------------------
-            // 🔑 ADD THRESHOLD PRICE VALIDATION HERE
+            //  ADD THRESHOLD PRICE VALIDATION HERE
             // ----------------------------------------------------
             foreach ($validated['items'] as $index => $item) {
                 $selectedFabricId = $item['selected_fabric'] ?? null;
@@ -602,8 +603,8 @@ class OrderController extends Controller
                     : null;
 
                 $orderItem->product_id = $item['product_id'] ?? null;
-                $orderItem->collection = $collection_data?->id ?? null;
-                $orderItem->category = $category_data?->id ?? null;
+                $orderItem->collection = $collection_data ? $collection_data->id : null;
+                $orderItem->category = $category_data ? $category_data->id : null;
                 $orderItem->product_name = $item['searchproduct'] ?? null;
                 $orderItem->remarks = $item['remarks'] ?? null;
                 $orderItem->status = $item['item_status'] ?? null;
@@ -690,23 +691,30 @@ class OrderController extends Controller
                 //     $orderRepo->approveOrder($order->id, $loggedInAdmin->id);
                 // }
 
-                if (!empty($validated['newUploads'][$k])) {
-                    foreach ($validated['newUploads'][$k] as $image) {
-                        $path = $image->store('uploads/order_item_catalogue_images', 'public');
-                        OrderItemCatalogueImage::create([
-                            'order_item_id' => $orderItem->id,
-                            'image_path' => $path,
-                        ]);
+              if ($request->imageUploads[0]) {
+                    $images = $request->file('imageUploads')[$k];
+                    foreach ($images as $image) {
+                            $path = $image->store('uploads/order_item_catalogue_images', 'public');
+                            OrderItemCatalogueImage::create([
+                                'order_item_id' => $orderItem->id,
+                                'image_path' => $path,
+                            ]);
+                            
                     }
                 }
 
-                if (!empty($validated['voiceUploads'][$k])) {
-                    foreach ($validated['voiceUploads'][$k] as $voice) {
-                        $audioPath = $voice->store('uploads/order_item_voice_messages', 'public');
-                        OrderItemVoiceMessage::create([
-                            'order_item_id' => $orderItem->id,
-                            'voices_path' => $audioPath,
-                        ]);
+                // dd($request->voiceUploads[0]);
+                if ($request->voiceUploads[0]) {
+                    $voiceUploads = $request->file('voiceUploads');
+                    if (isset($voiceUploads[$k]) && is_array($voiceUploads[$k])) {
+                        foreach ($voiceUploads[$k] as $voice) {
+                                $audioPath = $voice->store('uploads/order_item_voice_messages', 'public');
+                                OrderItemVoiceMessage::create([
+                                    'order_item_id' => $orderItem->id,
+                                    'voices_path' => $audioPath,
+                                ]);
+                              
+                        }
                     }
                 }
 
@@ -747,7 +755,7 @@ class OrderController extends Controller
 
            
 
-           // ✅ Auto-approve only if logged-in user is Admin (1) or Store Person (12)
+           //  Auto-approve only if logged-in user is Admin (1) or Store Person (12)
             if ($loggedInAdmin && in_array((int)$loggedInAdmin->designation, [1, 12])) {
                 $orderRepo->approveOrder($order->id, $loggedInAdmin->id);
             }
@@ -759,6 +767,7 @@ class OrderController extends Controller
                 'message'=>'Order created successfully',
                 'data'=>[
                     'order' => $order,
+                    'order_item' => $orderItem,
                     'order_number' => $orderNumber,
                     'bill_id' => $billId,
                 ]
