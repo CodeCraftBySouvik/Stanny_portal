@@ -272,12 +272,20 @@
 
             <!-- Submenu -->
             <ul id="StockManagementSubmenu"
-                class="collapse list-unstyled ms-4 {{ in_array(Route::currentRouteName(), ['stock.index']) ? 'show' : '' }}">
+                class="collapse list-unstyled ms-4 {{ in_array(Route::currentRouteName(), ['stock.index','stock.adjustment']) ? 'show' : '' }}">
                 @if ($this->hasPermission('view_stock_logs'))
                     <li class="nav-item">
                         <a class="nav-link text-white {{ Route::currentRouteName() == 'stock.index' ? 'active ' : '' }}"
                             href="{{ route('stock.index') }}">
                             Stock Logs
+                        </a>
+                    </li>
+                @endif
+                @if ($this->hasPermission('stock_adjustment'))
+                    <li class="nav-item">
+                        <a class="nav-link text-white {{ Route::currentRouteName() == 'stock.adjustment' ? 'active ' : '' }}"
+                            href="{{ route('stock.adjustment') }}">
+                            Stock Adjustment
                         </a>
                     </li>
                 @endif

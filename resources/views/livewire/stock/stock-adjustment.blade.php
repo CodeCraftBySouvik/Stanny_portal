@@ -1,27 +1,23 @@
 <div class="container">
-    <!-- Navbar -->
-    <!-- End Navbar -->
     <section class="admin__title">
-        <h5>Purchase Order</h5>
+        <h5>Stock Adjustment Log</h5>
     </section>
     <section>
         <ul class="breadcrumb_menu">
-            <li>Purchase Order</li>
-            <li><a href="{{route('purchase_order.create')}}">PO</a></li>
+            <li>Stock Adjustment</li>
+            <li>Stock</li>
             <li class="back-button"></li>
         </ul>
     </section>
     <div class="search__filter">
-        <div class="row align-items-center justify-content-between">
-            <div class="col-auto">
-                <p class="text-sm font-weight-bold">{{count($data)}} Items</p>
-            </div>
+        <div class="row align-items-center justify-content-end">
+           
             <div class="col-auto">
                 <div class="row g-3 align-items-center">
                     <div class="col-auto mt-0">
                         <input type="text" wire:model="search" class="form-control select-md bg-white search-input"
-                            id="customer" placeholder="Search by supplier name or PO number" value=""
-                            style="width: 350px;" wire:keyup="FindCustomer($event.target.value)">
+                            id="customer" placeholder="Search..." value=""
+                            style="width: 350px;" >
                     </div>
                     @if(!empty($search))
                     <div class="col-auto mt-3">
@@ -31,53 +27,39 @@
                     @endif
                     <div class="col-md-auto mt-3">
                         <button class="btn btn-outline-success select-md" data-bs-toggle="modal"
-                            data-bs-target="#openingStockModal">Bulk Upload</button>
+                            data-bs-target="#stockAdjustModal">Stock Adjustment</button>
                     </div>
-                    <div class="col-md-auto mt-3">
-                        <a href="{{route('purchase_order.create')}}" class="btn btn-outline-success select-md">Add New
-                            PO</a>
-                    </div>
+                   
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Bulk Upload Modal -->
-    <div wire:ignore.self class="modal fade" id="openingStockModal" tabindex="-1"
-        aria-labelledby="openingStockModalLabel" aria-hidden="true">
+    <div wire:ignore.self class="modal fade" id="stockAdjustModal" tabindex="-1"
+        aria-labelledby="stockAdjustModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="openingStockModalLabel">Bulk Upload Opening Stock</h5>
+                    <h5 class="modal-title" id="stockAdjustModalLabel">Upload Stock Adjustment Report</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
-                <form wire:submit.prevent="bulkUploadOpeningStock">
+                <form wire:submit.prevent="uploadStockAdjustment">
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label>Supplier</label>
-                            <select wire:model="bulkSupplier" class="form-control">
-                                <option value="">Select Supplier</option>
-                                @foreach($suppliers as $supplier)
-                                <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
-                                @endforeach
-                            </select>
-                            @error('bulkSupplier') <span class="text-danger">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div class="mb-3">
                             <label>Upload CSV/XLSX</label>
-                            <input type="file" wire:model="bulkFile" class="form-control">
-                            @error('bulkFile') <span class="text-danger">{{ $message }}</span> @enderror
+                            <input type="file" wire:model="csvFile" class="form-control">
+                            @error('csvFile') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">
                             Close
                         </button>
 
-                        <button class="btn btn-success" wire:click="bulkUploadOpeningStock">
+                        <button class="btn btn-sm btn-success" wire:click="uploadStockAdjustment">
                             Upload & Process
                         </button>
                     </div>
@@ -111,22 +93,18 @@
                             <thead>
                                 <tr>
                                     <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">
-                                        Ordered At</th>
+                                       Time</th>
                                     <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">
-                                        Created By</th>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">PO
-                                        Number</th>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Net
-                                        Amount</th>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">
-                                        Supplier</th>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">
-                                        Status</th>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">
-                                        Action</th>
+                                       Fabric / Product</th>
+                                    
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Adjustment (Meters)</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10"> Old Qty</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10"> New Qty</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Remarks</th>
+                                  
                                 </tr>
                             </thead>
-                            <tbody>
+                            {{-- <tbody>
                                 @forelse ($data as $purchaseOrder)
                                 <tr>
                                     <td>
@@ -197,10 +175,10 @@
                                     </td>
                                 </tr>
                                 @endforelse
-                            </tbody>
+                            </tbody> --}}
                         </table>
                         <div class="mt-4">
-                            {{ $data->links() }}
+                            {{-- {{ $data->links() }} --}}
                         </div>
                     </div>
                 </div>
@@ -208,29 +186,3 @@
         </div>
     </div>
 </div>
-@push('js')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-    window.addEventListener('confirmApprove', function (event) {
-        const purchaseOrderId = event.detail[0].purchaseOrderId;
-
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "You want to approve this order.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, Approve it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Call Livewire method directly
-                @this.call('approveOrder', purchaseOrderId);
-
-                // Optional success message
-                Swal.fire("Approved!", "The purchase order has been approved.", "success");
-            }
-        });
-    });
-</script>
-@endpush

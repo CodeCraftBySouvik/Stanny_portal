@@ -32,6 +32,7 @@ class PermissionSeeder extends Seeder
             
             
             ['parent_name' => 'stock_management', 'name' => 'view_stock_logs', 'route' => 'stock.index'],
+            ['parent_name' => 'stock_management', 'name' => 'stock_adjustment', 'route' => 'stock.adjustment'],
 
             ['parent_name' => 'product_management', 'name' => 'catalogue_details', 'route' => 'product.catalogue'],
             ['parent_name' => 'product_management', 'name' => 'collection_details', 'route' => 'admin.collections.index'],

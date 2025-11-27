@@ -35,7 +35,7 @@ use App\Http\Livewire\Supplier\SupplierDetails;
 use App\Http\Livewire\Measurement\MeasurementIndex;
 use App\Http\Livewire\Fabric\{FabricsIndex,FabricCategoryIndex};
 use App\Http\Livewire\PurchaseOrder\{PurchaseOrderIndex,PurchaseOrderCreate,PurchaseOrderEdit,GenerateGrn,PurchaseOrderDetails,GeneratePdf};
-use App\Http\Livewire\Stock\{StockIndex,UserLedger};
+use App\Http\Livewire\Stock\{StockIndex,UserLedger,StockAdjustment};
 use App\Http\Livewire\Report\{UserLedgerReport};
 use App\Http\Livewire\BusinessType\BusinessTypeIndex;
 use App\Http\Livewire\Country\CountryIndex;
@@ -156,6 +156,7 @@ Route::group(['prefix' => 'admin','middleware' => 'admin'], function () {
     // Stock Report
     Route::group(['prefix' => 'stock'], function () {
        Route::get('/',StockIndex::class)->name('stock.index')->middleware('check.permission');
+       Route::get('/adjustment',StockAdjustment::class)->name('stock.adjustment')->middleware('check.permission');
        Route::get('/user-ledger',UserLedger::class)->name('user.ledger');
     });
 

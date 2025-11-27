@@ -166,8 +166,8 @@
                                     <tr class="text-center">
                                         <td>{{ $index + 1 }}</td>
                                         <td>{{ $fabric->fabric->title ?? 'N/A' }}</td>
-                                        <td>{{ intval($fabric->qty_while_grn) }}</td>
-                                        <td>{{ intval($fabric->qty_in_meter) }}</td>
+                                        <td>{{ $fabric->qty_while_grn }}</td>
+                                        <td>{{ $fabric->qty_in_meter }}</td>
                                         <td>Rs. {{ number_format($fabric->piece_price, 2) }}</td>
                                         <td>Rs. {{ number_format($fabric->total_price, 2) }}</td>
                                         <td> {{ date('d-m-Y', strtotime($fabric->created_at))}}</td>
