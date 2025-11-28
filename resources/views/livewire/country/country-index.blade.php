@@ -19,8 +19,17 @@
                         <div class="card-header pb-0">
                             <div class="row">
                                 <div class="col-md-6">
+                                     <div class="position-relative">
                                     <input type="text" class="form-control" placeholder="Search by country name..."
                                         wire:model="search" wire:keyup="FindCountry($event.target.value)">
+                                       
+                                          @if($search)
+                                            <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 16px;"
+                                                wire:click="resetSearch">
+                                                ❌
+                                            </span>
+                                        @endif
+                                     </div>
                                 </div>
                                 <div class="col-md-12 mt-3">
                                     @if(session()->has('message'))
@@ -132,11 +141,11 @@
                         <span class="text-danger">{{ $message }}</span>
                         @enderror
                     </div>
-                    {{-- <div class="mb-3">
-                        <label>Status</label><br>
-                        <input type="checkbox" wire:model="selectedCountry.status"> Active
-                    </div> --}}
-                    <button class="btn btn-success" wire:click="updateCountry">Update</button>
+                    @if ($isEditMode)
+                      <button class="btn btn-success btn-sm" wire:click="updateCountry">Update</button>
+                    @else
+                      <button class="btn btn-success btn-sm" disabled>Select a country to edit</button>
+                    @endif
                 </div>
             </div>
         </div>

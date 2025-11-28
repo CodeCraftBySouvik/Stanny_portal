@@ -124,7 +124,7 @@ class OrderController extends Controller
             ], 401);
         }
 
-        // ✅ Only designation 1 or super_admin can view all data
+        //  Only designation 1 or super_admin can view all data
         $isAdmin = ($user->designation == 1) || ($user->is_super_admin ?? false);
 
         $startDate = Carbon::parse($request->start_date)->startOfDay();
@@ -148,7 +148,7 @@ class OrderController extends Controller
         // Helper closure for date filtering
         $applyDateFilter = fn($q) => $q->whereBetween('created_at', [$startDate, $endDate]);
 
-        // 🟩 COLLECTIONS
+        //  COLLECTIONS
         $collectionQuery = PaymentCollection::where('is_approve', 1)
             ->when(!$isAdmin, fn($q) => $q->where('user_id', $user->id))
             ->when($request->staff_id, fn($q) => $q->where('user_id', $request->staff_id))
@@ -159,7 +159,7 @@ class OrderController extends Controller
         $applyDateFilter($collectionQuery);
         $totalCollections = $collectionQuery->sum('collection_amount') + $collectionQuery->sum('withdrawal_charge');
 
-        // 🟧 COLLECTION BY TYPE
+        //  COLLECTION BY TYPE
         $types = ['cash', 'neft', 'digital_payment', 'cheque'];
         $totals = [];
         foreach ($types as $type) {
@@ -176,7 +176,7 @@ class OrderController extends Controller
             $totals[$type] = $query->sum('collection_amount');
         }
 
-        // 🟥 EXPENSES
+        //  EXPENSES
         $expenseQuery = Journal::where('is_debit', 1)
             ->whereNotNull('payment_id')
             ->when(!$isAdmin, fn($q) =>
@@ -188,7 +188,7 @@ class OrderController extends Controller
         $applyDateFilter($expenseQuery);
         $totalExpenses = $expenseQuery->sum('transaction_amount');
 
-        // 🟦 WALLET GIVEN
+        //  WALLET GIVEN
         $walletCredits = Journal::where('is_debit', 1)
             ->when(!$isAdmin, function ($query) use ($user) {
                 $query->where(function ($sub) use ($user) {
@@ -204,7 +204,7 @@ class OrderController extends Controller
 
         $totalWallet = $openingBalance + ($totalCollections + $totalWalletGiven - $totalExpenses);
 
-        // 🟩 PAYMENT COLLECTIONS (detailed list)
+        //  PAYMENT COLLECTIONS (detailed list)
         $paymentCollections = PaymentCollection::where('is_approve', 1)
             ->when(!$isAdmin, fn($q) => $q->where('user_id', $user->id))
             ->when($request->staff_id, fn($q) => $q->where('user_id', $request->staff_id))
@@ -217,7 +217,7 @@ class OrderController extends Controller
             ->where('collection_amount', '>', 0)
             ->get();
 
-        // 🟥 PAYMENT EXPENSES (detailed list)
+        //  PAYMENT EXPENSES (detailed list)
         $validPaymentIds = Journal::whereNotNull('payment_id')->pluck('payment_id');
         $paymentExpenses = Payment::where('payment_for', 'debit')
             ->whereIn('id', $validPaymentIds)
@@ -256,7 +256,7 @@ class OrderController extends Controller
     
     public function store(Request $request, OrderRepository $orderRepo)
     {
-        dd($request->all());
+        // dd($request->all());
         DB::beginTransaction();
       
         try {
@@ -282,7 +282,7 @@ class OrderController extends Controller
                 'alt_phone_2' => 'nullable|string|max:15',
                 'email' => 'nullable|email|max:255',
                 'dob' => 'nullable|date',
-                'selectedBusinessType' => 'nullable|integer',
+                'selectedBusinessType' => 'required',
                 'city' => 'nullable|string|max:255',
                 'state' => 'nullable|string|max:255',
                 'country' => 'nullable|string|max:255',
@@ -291,10 +291,10 @@ class OrderController extends Controller
                 'alt_phone_code_2' => 'nullable|string|max:5',
                 'pin' => 'nullable|string|max:10',
                 'landmark' => 'nullable|string|max:255',
-                'billing_address' => 'nullable|string|max:255',
-                'billing_city' => 'nullable|string|max:255',
+                'billing_address' => 'required|string|max:255',
+                'billing_city' => 'required|string|max:255',
                 'billing_state' => 'nullable|string|max:255',
-                'billing_country' => 'nullable|string|max:255',
+                'billing_country' => 'required|string|max:255',
                 'billing_pin' => 'nullable|string|max:10',
                 'billing_landmark' => 'nullable|string|max:255',
                 'customer_image' => 'required|file|image|max:2048',
@@ -318,8 +318,8 @@ class OrderController extends Controller
                 'items.*.expected_delivery_date' => 'required|date',
                 'items.*.item_status' => 'required|string',
                 //  ADD THIS BLOCK FOR MEASUREMENTS
-                'items.*.get_measurements' => 'nullable|array',
-                'items.*.get_measurements.*.value' => 'nullable|numeric|min:0.1',
+                'items.*.get_measurements' => 'required|array',
+                'items.*.get_measurements.*.value' => 'required|numeric|min:0.1',
 
                 // --- Conditional for Collection = 1 ---
                 'items.*.selectedCatalogue' => 'required_if:items.*.collection,1|nullable|string',
@@ -718,23 +718,74 @@ class OrderController extends Controller
                     }
                 }
 
-                if (!empty($item['get_measurements'])) {
-                    foreach ($item['get_measurements'] as $mindex => $measurement) {
-                        if (!isset($measurement['value'])) continue;
+                if (isset($item['get_measurements']) && count($item['get_measurements']) > 0) {
 
-                        $value = trim($measurement['value']);
+                    // Get all required measurement IDs for this product
+                    $get_all_measurment_field = Measurement::where('product_id', $item['product_id'])
+                        ->pluck('id')
+                        ->toArray();
+
+                    $get_all_field_measurment_id = [];
+
+                    foreach ($item['get_measurements'] as $mindex => $measurement) {
+                        $value = isset($measurement['value']) ? trim($measurement['value']) : null;
+
+                        // Missing value check
+                        if ($value === null || $value === '') {
+                            $title = Measurement::find($mindex)->title ?? 'Unknown Measurement';
+                            DB::rollBack();
+                            return response()->json([
+                                'status' => false,
+                                'message' => "🚨 Measurement '$title' value is missing.",
+                                'item_index' => $k,
+                                'measurement_id' => $mindex
+                            ], 422);
+                        }
+
+                        // Numeric check
+                        if (!is_numeric($value) || floatval($value) <= 0) {
+                            $title = Measurement::find($mindex)->title ?? 'Unknown Measurement';
+                            DB::rollBack();
+                            return response()->json([
+                                'status' => false,
+                                'message' => "🚨 '$title' must be numeric and greater than 0.",
+                                'item_index' => $k,
+                                'measurement_id' => $mindex
+                            ], 422);
+                        }
+
+                        // Save Valid Measurement
                         $measurement_data = Measurement::find($mindex);
-                        // dd($measurement_data);
                         if ($measurement_data) {
-                            OrderMeasurement::create([
-                                'order_item_id' => $orderItem->id,
-                                'measurement_name' => $measurement_data->title,
-                                'measurement_title_prefix' => $measurement_data->short_code,
-                                'measurement_value' => $value,
-                            ]);
+                            $orderMeasurement = new OrderMeasurement();
+                            $orderMeasurement->order_item_id = $orderItem->id;
+                            $orderMeasurement->measurement_name = $measurement_data->title;
+                            $orderMeasurement->measurement_title_prefix = $measurement_data->short_code;
+                            $orderMeasurement->measurement_value = $value;
+                            $orderMeasurement->save();
+
+                            $get_all_field_measurment_id[] = $mindex;
                         }
                     }
+
+                    // Check if any mandatory measurement is missing
+                    $missing_measurements = array_diff($get_all_measurment_field, $get_all_field_measurment_id);
+
+                    if (!empty($missing_measurements)) {
+                        $missing_names = Measurement::whereIn('id', $missing_measurements)->pluck('title')->toArray();
+                        $missing_list = implode(', ', $missing_names);
+
+                        DB::rollBack();
+                        return response()->json([
+                            'status' => false,
+                            'message' => "🚨 Missing mandatory measurements: $missing_list.",
+                            'item_index' => $k,
+                            'missing_measurements_ids' => $missing_measurements
+                        ], 422);
+                    }
                 }
+
+
             }
 
             if ($loggedInAdmin->designation == 4) {

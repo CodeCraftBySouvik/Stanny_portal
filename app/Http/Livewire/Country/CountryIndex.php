@@ -11,11 +11,11 @@ class CountryIndex extends Component
 {
     // public $country;
     public $selectedCountry = '';
-    public $title,$country_code,$mobile_length;
+    public $title,$country_code,$mobile_length,$search;
+    public $isEditMode = false;
 
     use WithPagination;
     protected $paginationTheme = 'bootstrap';
-    public $search = '';
 
      public function updatingSearch()
     {
@@ -37,12 +37,20 @@ class CountryIndex extends Component
         $this->title = $this->selectedCountry->title;
         $this->country_code = $this->selectedCountry->country_code;
         $this->mobile_length = $this->selectedCountry->mobile_length;
+        $this->isEditMode = true;
     }
+
+    public function resetSearch(){
+        $this->resetForm();
+    }
+
     public function resetForm(){
+        $this->search = '';
         $this->selectedCountry = '';
         $this->title = '';
         $this->country_code = '';
         $this->mobile_length = '';
+         $this->isEditMode = false;
     }
 
     public function updateCountry(){
