@@ -11,33 +11,23 @@
     </section>
     <div class="search__filter">
         <div class="row align-items-center justify-content-end">
-           
+
             <div class="col-auto">
                 <div class="row g-3 align-items-center">
-                    <div class="col-auto mt-0">
-                        <input type="text" wire:model="search" class="form-control select-md bg-white search-input"
-                            id="customer" placeholder="Search..." value=""
-                            style="width: 350px;" >
-                    </div>
-                    @if(!empty($search))
-                    <div class="col-auto mt-3">
-                        <button type="button" wire:click="resetForm"
-                            class="btn btn-outline-danger select-md">Clear</button>
-                    </div>
-                    @endif
+                   
                     <div class="col-md-auto mt-3">
                         <button class="btn btn-outline-success select-md" data-bs-toggle="modal"
                             data-bs-target="#stockAdjustModal">Stock Adjustment</button>
                     </div>
-                   
+
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Bulk Upload Modal -->
-    <div wire:ignore.self class="modal fade" id="stockAdjustModal" tabindex="-1"
-        aria-labelledby="stockAdjustModalLabel" aria-hidden="true">
+    <div wire:ignore.self class="modal fade" id="stockAdjustModal" tabindex="-1" aria-labelledby="stockAdjustModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -50,7 +40,19 @@
                         <div class="mb-3">
                             <label>Upload CSV/XLSX</label>
                             <input type="file" wire:model="csvFile" class="form-control">
+                            <div wire:loading wire:target="csvFile" class="mt-2 text-center">
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                Uploading...
+                            </div>
                             @error('csvFile') <span class="text-danger">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <p>Download a sample CSV file for reference:</p>
+                            <a href="{{ asset('assets/csv/stock_adjustment_sample.csv') }}"
+                                class="btn btn-sm btn-outline-primary" download>
+                                Download Sample CSV
+                            </a>
                         </div>
                     </div>
 
@@ -93,89 +95,81 @@
                             <thead>
                                 <tr>
                                     <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">
-                                       Time</th>
+                                        Time</th>
                                     <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">
-                                       Fabric / Product</th>
-                                    
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Adjustment (Meters)</th>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10"> Old Qty</th>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10"> New Qty</th>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">Remarks</th>
-                                  
+                                        Fabric / Product</th>
+
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">
+                                        Adjustment Stock</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">
+                                        Old Qty</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">
+                                        New Qty</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">
+                                        Remarks</th>
+
                                 </tr>
                             </thead>
-                            {{-- <tbody>
-                                @forelse ($data as $purchaseOrder)
-                                <tr>
-                                    <td>
-                                        <p class="text-xs font-weight-bold mb-0">{{
-                                            $purchaseOrder->created_at?->format('d-m-Y') ?? 'N/A' }}
-                                        </p>
-                                    </td>
-                                    <td>
-                                        <p class="text-xs font-weight-bold mb-0">{{$purchaseOrder->createdBy ?
-                                            $purchaseOrder->createdBy->name : 'N/A'}}
-                                        </p>
-                                    </td>
-                                    <td>
-                                        <div class="badge bg-success">{{ $purchaseOrder->unique_id }}</div>
-                                    </td>
-                                    <td>{{ $purchaseOrder->total_price }}
-                                    </td>
-                                    <td>
-                                        {{ $purchaseOrder->supplier? $purchaseOrder->supplier->name : "" }}
-                                    </td>
-                                    <td>
-                                        @if ($purchaseOrder->is_approved == 0)
-                                        <span class="badge bg-warning"><span>Pending</span></span>
-                                        @elseif ($purchaseOrder->is_approved == 1 && $purchaseOrder->status == 0)
-                                        <span class="badge bg-info">Approved</span>
-                                        @elseif ($purchaseOrder->status == 1)
-                                        <span class="badge bg-success"><span>Received</span></span>
+                            
+                            <tbody>
+                            {{-- NOTE: You should remove @dd($logData) before using the page --}}
+                            {{-- @dd($logData)  --}}
+                            @forelse ($logData as $index => $stock_adjust_data)
+                            <tr>
+                                <td>
+                                    <p class="text-xs font-weight-bold mb-0">
+                                        {{ $stock_adjust_data->created_at?->format('d-m-Y H:i') ?? 'N/A' }}
+                                    </p>
+                                </td>
+                                
+                                <td>
+                                    {{-- Use the ID from the corresponding column --}}
+                                    <div class="badge bg-success">
+                                        @if ($stock_adjust_data->fabric_id)
+                                            Fabric: {{ $stock_adjust_data->fabric ?  $stock_adjust_data->fabric->title : "N/A" }}
+                                        @elseif ($stock_adjust_data->product_id)
+                                            Product: {{ $stock_adjust_data->product ? $stock_adjust_data->product->name : "N/A" }}
+                                        @else
+                                            N/A
                                         @endif
-
-                                    </td>
-
-                                    <td class="align-middle action_tab">
-
-                                        <button wire:click="downloadPdf({{ $purchaseOrder->id }})"
-                                            class="btn btn-outline-primary select-md btn_outline">PDF</button>
-                                        @if($purchaseOrder->status == 0 && $purchaseOrder->is_approved == 1)
-                                        <a href="{{route('purchase_order.edit',$purchaseOrder->id)}}"
-                                            class="btn btn-outline-primary select-md btn_action btn_outline"
-                                            data-toggle="tooltip" data-original-title="Edit product">
-                                            Edit
-                                        </a>
-
-
-                                        <a href="{{route('purchase_order.generate_grn',['purchase_order_id'=>$purchaseOrder->id])}}"
-                                            class="btn btn-outline-primary select-md btn_action btn_outline">
-                                            Generate GRN
-                                        </a>
-                                        @endif
-                                        <a href="{{route('purchase_order.details',['purchase_order_id'=>$purchaseOrder->id])}}"
-                                            class="btn btn-outline-primary select-md btn_action btn_outline">
-                                            Details
-                                        </a>
-                                        @php
-                                        $designationId = auth()->guard('admin')->user()->id;
-                                        @endphp
-                                        @if ($purchaseOrder->is_approved == 0 && $designationId == 1)
-                                        <button wire:click="approveConfirmOrder({{ $purchaseOrder->id }})"
-                                            class="btn btn-outline-success select-md btn_outline">
-                                            Approve
-                                        </button>
-                                        @endif
-                                    </td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="5" class="text-center">
-                                        <span class="text-xs text-secondary mb-0">No products found.</span>
-                                    </td>
-                                </tr>
-                                @endforelse
-                            </tbody> --}}
+                                    </div>
+                                </td>
+                                
+                                <td>
+                                    <span class="text-xs font-weight-bold mb-0 
+                                        @if($stock_adjust_data->adjustment < 0) text-danger @else text-success @endif">
+                                        {{ $stock_adjust_data->adjustment }}
+                                    </span>
+                                </td>
+                                
+                                <td>
+                                    <p class="text-xs font-weight-bold mb-0">
+                                        {{ $stock_adjust_data->old_qty }}
+                                    </p>
+                                </td>
+                                
+                                <td>
+                                    <p class="text-xs font-weight-bold mb-0">
+                                        {{ $stock_adjust_data->new_qty }}
+                                    </p>
+                                </td>
+                                
+                                <td>
+                                    <p class="text-xs font-weight-bold mb-0">
+                                        {{ $stock_adjust_data->remarks }}
+                                    </p>
+                                </td>
+                                
+                                {{-- REMOVED all irrelevant Purchase Order columns and action buttons --}}
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="6" class="text-center">
+                                    <span class="text-xs text-secondary mb-0">No stock adjustment logs found.</span>
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
                         </table>
                         <div class="mt-4">
                             {{-- {{ $data->links() }} --}}
@@ -186,3 +180,13 @@
         </div>
     </div>
 </div>
+ <script>
+        window.addEventListener('close_modal', event => {
+            let modalEl = document.getElementById('stockAdjustModal');
+            let modal = bootstrap.Modal.getInstance(modalEl); // Get existing modal instance
+            if (modal) {
+                modal.hide();
+            }
+        });
+
+    </script>
