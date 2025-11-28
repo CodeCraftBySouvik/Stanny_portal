@@ -42,7 +42,7 @@ class StockAdjustment extends Component
             $errorCount = 0;
             $errors = [];
 
-            // 🔹 Group records by fabric/product (case & space insensitive)
+            //  Group records by fabric/product (case & space insensitive)
             $rows = collect($data[0])
                 ->filter(fn($row) => !empty(array_filter($row))) // remove empty rows
                 ->groupBy(fn($row) => strtolower(trim(preg_replace('/\s+/', ' ', $row['fabricproduct'] ?? ''))))
@@ -130,12 +130,12 @@ class StockAdjustment extends Component
 
             $message = "✔ Stock adjustment completed. Processed: {$processedCount}";
             if ($errorCount > 0) {
-                $message .= " ❗ Errors: {$errorCount} | " . implode(' | ', array_slice($errors, 0, 3));
+                $message .= "Errors: {$errorCount} | " . implode(' | ', array_slice($errors, 0, 3));
             }
 
             session()->flash($errorCount > 0 ? 'error' : 'message', $message);
             $this->dispatch('close_modal');
-            $this->reset(['csvFile']); // 🔹 clear file to prevent rerun
+            $this->reset(['csvFile']); 
 
         } catch (\Exception $e) {
             DB::rollBack();
