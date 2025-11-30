@@ -149,7 +149,6 @@ class OrderNew extends Component
                 $this->mobileLengthWhatsapp = Country::where('country_code',$this->selectedCountryWhatsapp)->value('mobile_length') ?? '';
                 $this->mobileLengthAlt1 = Country::where('country_code',$this->alt_phone_code_1)->value('mobile_length') ?? '';
                 $this->mobileLengthAlt2 = Country::where('country_code',$this->alt_phone_code_2)->value('mobile_length') ?? '';
-
                 $this->isWhatsappPhone = UserWhatsapp::where('user_id',$customer->id)->where('whatsapp_number',$this->phone)->exists();
                 $this->isWhatsappAlt1 = UserWhatsapp::where('user_id',$customer->id)->where('whatsapp_number',$this->alternative_phone_number_1)->exists();
                 $this->isWhatsappAlt2 = UserWhatsapp::where('user_id',$customer->id)->where('whatsapp_number',$this->alternative_phone_number_2)->exists();
@@ -286,6 +285,7 @@ class OrderNew extends Component
                 $this->mobileLengthAlt2 = $mobileLength;
                 break;
         }
+        //   $this->updateMobileLengths();
     }
 
 
@@ -1564,7 +1564,8 @@ protected function fillMatchingMeasurements($currentIndex, $sourceIndex)
     public function CountryCodeSet($selector, $Code, $number = null)
     {
         $mobile_length = Country::where('country_code', $Code)->value('mobile_length') ?? '';
-
+        $alt1_mobile_length = Country::where('country_code', $Code)->value('mobile_length') ?? '';
+        $alt2_mobile_length = Country::where('country_code', $Code)->value('mobile_length') ?? '';
         // Dispatch for maxlength
         $this->dispatch('update_input_max_length', [
             'id' => $selector,
@@ -1578,6 +1579,8 @@ protected function fillMatchingMeasurements($currentIndex, $sourceIndex)
             'number' => $number
         ]);
         $this->mobileLengthPhone = $mobile_length;
+        $this->mobileLengthAlt1 = $alt1_mobile_length;
+        $this->mobileLengthAlt2 = $alt2_mobile_length;
     }
 
     public function selectCustomer($customerId)
@@ -1728,7 +1731,7 @@ protected function fillMatchingMeasurements($currentIndex, $sourceIndex)
             if (!empty($this->alternative_phone_number_1)) {
                 if (!preg_match('/^\d{'. $this->mobileLengthAlt1 .'}$/', $this->alternative_phone_number_1)) {
                     $this->errorClass['alternative_phone_number_1'] = 'border-danger';
-                    $this->errorMessage['alternative_phone_number_1'] = 'Alternative number 1 must be exactly ' . $this->mobileLengthAlt1 . ' digits';
+                    $this->errorMessage['alternative_phone_number_1'] = 'Alternative number 1 must be exactly ' .$this->mobileLengthAlt1. ' digits';
                 } else {
                     $this->errorClass['alternative_phone_number_1'] = null;
                     $this->errorMessage['alternative_phone_number_1'] = null;
