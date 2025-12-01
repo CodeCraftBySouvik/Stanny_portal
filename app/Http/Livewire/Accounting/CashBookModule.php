@@ -364,26 +364,7 @@ class CashBookModule extends Component
         $this->totalExpenses = $expenseQuery->sum('transaction_amount');
 
     
-        //   $walletCredits = Journal::where('is_debit', 1)
-        //     ->when(!$user->is_super_admin, function ($query) use ($user) {
-        //         $query->where(function ($subQuery) use ($user) {
-        //             $subQuery->whereHas('payment', function ($q) use ($user) {
-        //                 $q->where('stuff_id', $user->id);
-        //             })
-        //             ->orWhereNull('payment_id'); // Include wallet top-ups (given)
-        //         });
-        //     })
-        //     ->when($this->selectedStaffId, function ($q) {
-        //         $q->whereHas('payment', fn($p) => $p->where('stuff_id', $this->selectedStaffId));
-        //     });
-
-
-
-        // if ($this->start_date && $this->end_date) {
-        //     $walletCredits->whereBetween('created_at', [$startDate, $endDate]);
-        // }
-
-        // $totalWalletGiven = $walletCredits->sum('transaction_amount');
+       
 
         $collectedFromStaff = DayCashEntry::where('type', 'collected')
             ->whereDate('payment_date', '>=', $firstCollectionDate ?? $this->start_date)

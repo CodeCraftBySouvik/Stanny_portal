@@ -184,6 +184,7 @@ class User extends Authenticatable
     {
         return $this->hasMany(Payment::class, 'supplier_id');
     }
+    
     public function hasPermissionByRoute($route)
     {
         if (!$this->designationDetails) {

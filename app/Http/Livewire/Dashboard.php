@@ -8,6 +8,8 @@ use App\Models\User;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Invoice;
+use App\Models\Branch;
+use App\Models\PaymentCollection;
 
 use Illuminate\Support\Facades\Auth;
 
@@ -27,20 +29,13 @@ class Dashboard extends Component
     public $todays_collection = 0;
     public $todays_expense = 0;
     public $user;
+    public $branchReports = [];
+    public $branches = [];
+    public $branch_id;
+
     public function mount(){
         $this->user = Auth::guard('admin')->user();
-         // Get IDs of self + team (only if not super admin)
-    //     $userIds = [$this->user->id];
-
-    //    if (!$this->user->is_super_admin) {
-    //     $isTeamLead = User::where('parent_id', $this->user->id)->exists();
-
-    //     if ($isTeamLead) {
-    //         $teamIds = User::where('parent_id', $this->user->id)->pluck('id')->toArray();
-    //         $userIds = array_merge($userIds, $teamIds); // self + child users
-    //     }
-    // }
-
+       
           $userIds = [];
 
       if ($this->user->is_super_admin) {
@@ -128,7 +123,83 @@ class Dashboard extends Component
         // For Production
 
         $this->total_invoice = Invoice::whereIn('created_by', $userIds)->count();
+
+
+        // Branch wise  Total Sale, Total No of order, Total Collection, Total Expense,  
+         $this->branches = Branch::latest()->get();
+
+         $this->branchReports = $this->branches->map(function ($branch) {
+              // Find staff users of this branch
+              $staffIds = User::where('branch_id',$branch->id)
+                          ->where('user_type',0)  // staff type
+                          ->pluck('id');
+
+              return [
+                'branch_name'   => $branch->name,
+                'total_orders' => Order::whereIn('created_by',$staffIds)->count(),
+                'total_sale' => Order::join('order_items', 'orders.id', '=', 'order_items.order_id')
+                              ->whereIn('created_by', $staffIds)
+                              ->sum('order_items.total_price'),
+
+                'total_collection' => PaymentCollection::whereIn('user_id', $staffIds)
+                                      ->sum('collection_amount'),
+
+                'total_expense' => Payment::whereIn('stuff_id', $staffIds)
+                                  ->where('payment_for', 'debit')
+                                ->sum('amount'),
+
+              ];
+         });
     }
+
+    public function selectBranch()
+  {
+      if ($this->branch_id) {
+          $staffIds = User::where('branch_id', $this->branch_id)
+                          ->where('user_type', 0)
+                          ->pluck('id');
+
+          $branch = Branch::find($this->branch_id);
+
+          $this->branchReports = [
+              [
+                  'branch_name' => $branch->name,
+                  'total_orders' => Order::whereIn('created_by', $staffIds)->count(),
+                  'total_sale' => Order::join('order_items', 'orders.id', '=', 'order_items.order_id')
+                                      ->whereIn('created_by', $staffIds)
+                                      ->sum('order_items.total_price'),
+                  'total_collection' => PaymentCollection::whereIn('user_id', $staffIds)
+                                              ->sum('collection_amount'),
+                  'total_expense' => Payment::whereIn('stuff_id', $staffIds)
+                                            ->where('payment_for', 'debit')
+                                            ->sum('amount'),
+              ]
+          ];
+      } else {
+          // If no branch selected, clear or show all
+          // "All Branches" selected → show all
+        $this->branchReports = $this->branches->map(function ($branch) {
+            $staffIds = User::where('branch_id', $branch->id)
+                            ->where('user_type', 0)
+                            ->pluck('id');
+
+            return [
+                'branch_name' => $branch->name,
+                'total_orders' => Order::whereIn('created_by', $staffIds)->count(),
+                'total_sale' => Order::join('order_items', 'orders.id', '=', 'order_items.order_id')
+                                     ->whereIn('created_by', $staffIds)
+                                     ->sum('order_items.total_price'),
+                'total_collection' => PaymentCollection::whereIn('user_id', $staffIds)
+                                             ->sum('collection_amount'),
+                'total_expense' => Payment::whereIn('stuff_id', $staffIds)
+                                          ->where('payment_for', 'debit')
+                                          ->sum('amount'),
+            ];
+        })->toArray();
+      }
+  }
+
+
     public function render()
     {
         return view('livewire.dashboard');
