@@ -270,7 +270,7 @@ class OrderController extends Controller
             $request->merge(['extra_measurement' => $extraMeasurements]);
 
 
-            $validated = $request->validate([
+            $rules =[
                 'customer_id' => 'nullable|integer|exists:users,id',
                 'customerType' => 'nullable|string|max:15',
                 'order_number' => 'nullable|string|not_in:000|unique:orders,order_number',
@@ -335,57 +335,54 @@ class OrderController extends Controller
                 // --- Extra Measurement ---
                 'extra_measurement' => 'nullable|array',
                 'extra_measurement.*' => 'nullable|string',
-              ]);
+              ];
                   /**
              *  Dynamic rule extension for extra measurement
              */
-                foreach ($request->items ?? [] as $index => $item) {
+                foreach ($request->items as $index => $item) {
                 $extra = $request->extra_measurement[$index] ?? null;
 
-                $extraRules = [];
              if ($item['collection'] == 1) {
                 if ($extra === 'mens_jacket_suit') {
-                    $extraRules["items.$index.vents"] = 'required';
-                    $extraRules["items.$index.shoulder_type"] = 'required';
+                    $rules["items.$index.vents"] = 'required';
+                    $rules["items.$index.shoulder_type"] = 'required';
                 }
 
                 if ($extra === 'ladies_jacket_suit') {
-                    $extraRules["items.$index.vents_required"] = 'required';
-                    $extraRules["items.$index.vents_count"] = 'required_if:items.'.$index.'.vents_required,Yes|nullable|integer|min:1';
-                    $extraRules["items.$index.shoulder_type"] = 'required';
+                    $rules["items.$index.vents_required"] = 'required';
+                    $rules["items.$index.vents_count"] = 'required_if:items.'.$index.'.vents_required,Yes|nullable|integer|min:1';
+                    $rules["items.$index.shoulder_type"] = 'required';
                 }
 
                 if ($extra === 'trouser') {
-                    $extraRules["items.$index.fold_cuff_required"] = 'required';
-                    $extraRules["items.$index.fold_cuff_size"] = 'required_if:items.'.$index.'.fold_cuff_required,Yes|nullable|numeric|min:1';
-                    $extraRules["items.$index.pleats_required"] = 'required';
-                    $extraRules["items.$index.pleats_count"] = 'required_if:items.'.$index.'.pleats_required,Yes|nullable|integer|min:1';
-                    $extraRules["items.$index.back_pocket_required"] = 'required';
-                    $extraRules["items.$index.back_pocket_count"] = 'required_if:items.'.$index.'.back_pocket_required,Yes|nullable|integer|min:1';
-                    $extraRules["items.$index.adjustable_belt"] = 'required';
-                    $extraRules["items.$index.suspender_button"] = 'required';
-                    $extraRules["items.$index.trouser_position"] = 'required';
+                    $rules["items.$index.fold_cuff_required"] = 'required';
+                    $rules["items.$index.fold_cuff_size"] = 'required_if:items.'.$index.'.fold_cuff_required,Yes|nullable|numeric|min:1';
+                    $rules["items.$index.pleats_required"] = 'required';
+                    $rules["items.$index.pleats_count"] = 'required_if:items.'.$index.'.pleats_required,Yes|nullable|integer|min:1';
+                    $rules["items.$index.back_pocket_required"] = 'required';
+                    $rules["items.$index.back_pocket_count"] = 'required_if:items.'.$index.'.back_pocket_required,Yes|nullable|integer|min:1';
+                    $rules["items.$index.adjustable_belt"] = 'required';
+                    $rules["items.$index.suspender_button"] = 'required';
+                    $rules["items.$index.trouser_position"] = 'required';
                 }
 
                 if ($extra === 'shirt') {
-                    $extraRules["items.$index.sleeves"] = 'required';
-                    $extraRules["items.$index.collar"] = 'required';
-                    $extraRules["items.$index.pocket"] = 'required';
-                    $extraRules["items.$index.cuffs"] = 'required';
-                    $extraRules["items.$index.collar_style"] = 'required_if:items.'.$index.'.collar,Other';
-                    $extraRules["items.$index.cuff_style"] = 'required_if:items.'.$index.'.cuffs,Other';
+                    $rules["items.$index.sleeves"] = 'required';
+                    $rules["items.$index.collar"] = 'required';
+                    $rules["items.$index.pocket"] = 'required';
+                    $rules["items.$index.cuffs"] = 'required';
+                    $rules["items.$index.collar_style"] = 'required_if:items.'.$index.'.collar,Other';
+                    $rules["items.$index.cuff_style"] = 'required_if:items.'.$index.'.cuffs,Other';
                 }
 
                 if (in_array($extra, ['ladies_jacket_suit', 'shirt', 'mens_jacket_suit'])) {
-                    $extraRules["items.$index.client_name_required"] = 'required';
-                    $extraRules["items.$index.client_name_place"] = 'required_if:items.'.$index.'.client_name_required,Yes';
+                    $rules["items.$index.client_name_required"] = 'required';
+                    $rules["items.$index.client_name_place"] = 'required_if:items.'.$index.'.client_name_required,Yes';
                 }
             }
 
-                if (!empty($extraRules)) {
-                    $request->validate($extraRules);
-                }
-            }
+        }
+        $validated = $request->validate($rules);
                 
 
             // $loggedInAdmin = auth()->user();
@@ -566,13 +563,10 @@ class OrderController extends Controller
                 $bill = SalesmanBilling::find($billId);
                 if($bill) $bill->increment('no_of_used');
             }
-
             // ------------------------------
             // Order Items + Measurements + Extra fields + Images/Voice
             // ------------------------------
             foreach ($validated['items'] as $k => $item) {
-                // dd($item);
-
                 if ($item['collection'] == 1 && empty($item['page_item'])) {
                     $page = Page::where('catalogue_id', $item['selectedCatalogue'])
                         ->where('page_number', $item['page_number'])
@@ -587,7 +581,7 @@ class OrderController extends Controller
                 }
 
                 $collection_data = Collection::find($item['collection']);
-                $category_data = Category::find($item['category']);
+               $category_data = Category::find((int) $item['category']);
                 $fabric_data = Fabric::find($item['selected_fabric']);
 
                 $orderItem = new OrderItem();
@@ -636,7 +630,6 @@ class OrderController extends Controller
                     $orderItem->tl_status = 'Pending';
                     $orderItem->admin_status = 'Pending';
                 }
-
                 if ($item['collection'] == 1) {
                     $extra = $validated['extra_measurement'][$k] ?? null;
 
@@ -681,7 +674,6 @@ class OrderController extends Controller
                             : null;
                     }
                 }
-
                 $orderItem->save();
 
                 
