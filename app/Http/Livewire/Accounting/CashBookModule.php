@@ -15,7 +15,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\WithPagination;
-use App\Models\DayCashEntry;
+use App\Models\{DayCashEntry,Branch};
 
 
 class CashBookModule extends Component
@@ -38,14 +38,18 @@ class CashBookModule extends Component
     public $searchStaff = '';
     public $selectedStaffId = null;
     public $staffSuggestions = [];
+    public $branches = [];
+    public $staff_branch = '';
 
     protected $listeners = ['revoke-payment-confirmed' => 'revokePayment'];
 
     public function mount()
     {
+        $this->branches = Branch::latest()->get();
         // Default to current month
         $this->start_date = Carbon::now()->toDateString();
         $this->end_date = Carbon::now()->toDateString();
+         $this->staff_branch = '';
     }
 
     public function AddStartDate($date){
@@ -227,6 +231,13 @@ class CashBookModule extends Component
         $this->staffSuggestions = [];
     }
 
+    public function selectBranch()
+    {
+        $this->selectedStaffId = null;
+        $this->searchStaff = '';
+        $this->staffSuggestions = [];
+    }
+
 
       public function render()
     {
@@ -278,6 +289,12 @@ class CashBookModule extends Component
                 $query->where('user_id', $user->id);
             })
             ->when($this->selectedStaffId, fn($q) => $q->where('user_id', $this->selectedStaffId))
+            ->when($this->staff_branch, fn($q) =>
+                $q->whereHas('user', fn($u) =>
+                    $u->where('branch_id', $this->staff_branch)
+                )
+            )
+
             ->where(function ($query) {
         $query->where('payment_type', '!=', 'cheque')  // Include all except 'cheque'
               ->orWhere(function ($subQuery) {
@@ -297,8 +314,14 @@ class CashBookModule extends Component
             ->when(!$user->is_super_admin, function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })
-            ->when($this->selectedStaffId, fn($q) => $q->where('user_id', $this->selectedStaffId));
+            ->when($this->selectedStaffId, fn($q) => $q->where('user_id', $this->selectedStaffId))
+            ->when($this->staff_branch, fn($q) =>
+                $q->whereHas('user', fn($u) =>
+                    $u->where('branch_id', $this->staff_branch)
+                )
+        );
 
+            
         if ($this->start_date && $this->end_date) {
             $collectionQuery->whereBetween('created_at', [$startDate, $endDate]);
         }
@@ -310,7 +333,13 @@ class CashBookModule extends Component
             ->when(!$user->is_super_admin, function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })
-            ->when($this->selectedStaffId, fn($q) => $q->where('user_id', $this->selectedStaffId));
+            ->when($this->selectedStaffId, fn($q) => $q->where('user_id', $this->selectedStaffId))
+            ->when($this->staff_branch, fn($q) =>
+                $q->whereHas('user', fn($u) =>
+                    $u->where('branch_id', $this->staff_branch)
+                )
+        );
+
 
         if ($this->start_date && $this->end_date) {
             $collectionQuery->whereBetween('created_at', [$startDate, $endDate]);
@@ -323,7 +352,13 @@ class CashBookModule extends Component
             ->when(!$user->is_super_admin, function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })
-            ->when($this->selectedStaffId, fn($q) => $q->where('user_id', $this->selectedStaffId));
+            ->when($this->selectedStaffId, fn($q) => $q->where('user_id', $this->selectedStaffId))
+            ->when($this->staff_branch, fn($q) =>
+                $q->whereHas('user', fn($u) =>
+                    $u->where('branch_id', $this->staff_branch)
+                )
+        );
+
 
         if ($this->start_date && $this->end_date) {
             $collectionQuery->whereBetween('created_at', [$startDate, $endDate]);
@@ -337,7 +372,13 @@ class CashBookModule extends Component
             ->when(!$user->is_super_admin, function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })
-            ->when($this->selectedStaffId, fn($q) => $q->where('user_id', $this->selectedStaffId));
+            ->when($this->selectedStaffId, fn($q) => $q->where('user_id', $this->selectedStaffId))
+            ->when($this->staff_branch, fn($q) =>
+                $q->whereHas('user', fn($u) =>
+                    $u->where('branch_id', $this->staff_branch)
+                )
+        );
+
 
         if ($this->start_date && $this->end_date) {
             $collectionQuery->whereBetween('created_at', [$startDate, $endDate]);
@@ -356,6 +397,8 @@ class CashBookModule extends Component
              ->when($this->selectedStaffId, function ($query) {
                 $query->whereHas('payment', fn($q) => $q->where('stuff_id', $this->selectedStaffId));
             });
+            
+
 
         if ($this->start_date && $this->end_date) {
             $expenseQuery->whereBetween('created_at', [$startDate, $endDate]);
@@ -370,6 +413,12 @@ class CashBookModule extends Component
             ->whereDate('payment_date', '>=', $firstCollectionDate ?? $this->start_date)
             ->whereDate('payment_date', '<=', $this->end_date)
             ->when($this->selectedStaffId, fn($q) => $q->where('staff_id', $this->selectedStaffId))
+            ->when($this->staff_branch, fn($q) =>
+                $q->whereHas('staff', fn($u) =>
+                    $u->where('branch_id', $this->staff_branch)
+                )
+            )
+
             ->when(!$user->is_super_admin, function($q) use ($user) {
                 $q->where('staff_id', $user->id);
             })
@@ -379,6 +428,12 @@ class CashBookModule extends Component
             ->whereDate('payment_date', '>=', $firstCollectionDate ?? $this->start_date)
             ->whereDate('payment_date', '<=', $this->end_date)
             ->when($this->selectedStaffId, fn($q) => $q->where('staff_id', $this->selectedStaffId))
+            ->when($this->staff_branch, fn($q) =>
+                $q->whereHas('staff', fn($u) =>
+                    $u->where('branch_id', $this->staff_branch)
+                )
+            )
+
             ->when(!$user->is_super_admin, function($q) use ($user) {
                 $q->where('staff_id', $user->id);
             })
@@ -394,6 +449,12 @@ class CashBookModule extends Component
             ->when($this->selectedStaffId, function($query){
                 $query->where('user_id', $this->selectedStaffId);
             })
+            ->when($this->staff_branch, fn($q) =>
+                $q->whereHas('user', fn($u) =>
+                    $u->where('branch_id', $this->staff_branch)
+                )
+            )
+
             ->where(function ($query) {
              $query->where('payment_type', '!=', 'cheque')  // Include all except 'cheque'
               ->orWhere(function ($subQuery) {
@@ -419,6 +480,8 @@ class CashBookModule extends Component
               ->when($this->selectedStaffId, function($query){
                 $query->where('stuff_id', $this->selectedStaffId);
             });
+            
+
 
         if ($this->start_date && $this->end_date) {
             $paymentExpenseQuery->whereBetween('created_at', [$startDate, $endDate]);

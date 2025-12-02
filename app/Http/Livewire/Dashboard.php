@@ -124,9 +124,17 @@ class Dashboard extends Component
 
         $this->total_invoice = Invoice::whereIn('created_by', $userIds)->count();
 
-
         // Branch wise  Total Sale, Total No of order, Total Collection, Total Expense,  
-         $this->branches = Branch::latest()->get();
+        if($this->user->is_super_admin){
+          // Super admin → can see all branches
+           $this->branches = Branch::latest()->get();
+        }else{
+          // Regular user → only their own branch
+          $this->branches = Branch::where('id',$this->user->branch_id)->get();
+          // Auto-select logged-in user's branch
+          $this->branch_id = $this->user->branch_id;
+        }
+
 
          $this->branchReports = $this->branches->map(function ($branch) {
               // Find staff users of this branch
@@ -176,26 +184,10 @@ class Dashboard extends Component
               ]
           ];
       } else {
-          // If no branch selected, clear or show all
-          // "All Branches" selected → show all
-        $this->branchReports = $this->branches->map(function ($branch) {
-            $staffIds = User::where('branch_id', $branch->id)
-                            ->where('user_type', 0)
-                            ->pluck('id');
-
-            return [
-                'branch_name' => $branch->name,
-                'total_orders' => Order::whereIn('created_by', $staffIds)->count(),
-                'total_sale' => Order::join('order_items', 'orders.id', '=', 'order_items.order_id')
-                                     ->whereIn('created_by', $staffIds)
-                                     ->sum('order_items.total_price'),
-                'total_collection' => PaymentCollection::whereIn('user_id', $staffIds)
-                                             ->sum('collection_amount'),
-                'total_expense' => Payment::whereIn('stuff_id', $staffIds)
-                                          ->where('payment_for', 'debit')
-                                          ->sum('amount'),
-            ];
-        })->toArray();
+           if ($this->user->is_super_admin) {
+            $this->mount(); // reload all branches
+        }
+       
       }
   }
 

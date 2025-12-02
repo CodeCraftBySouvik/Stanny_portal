@@ -15,4 +15,9 @@ class DayCashEntry extends Model
         'payment_cash',
         'payment_digital'
     ];
+
+    public function staff()
+  {
+      return $this->belongsTo(User::class, 'staff_id', 'id');
+  }
 }
