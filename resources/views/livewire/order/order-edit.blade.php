@@ -1544,31 +1544,86 @@
         var input = $(selector);
         var codeInput = $("#" + codeModel);
         var phoneInput = $("#" + phoneModel);
-        var selected_dial_code = codeInput.val(); // only digits
-        var selected_phone_number = phoneInput.val(); // only digits
+        
+        var selected_dial_code = codeInput.val(); // Get the stored dial code
+        var selected_phone_number = phoneInput.val(); // Get the stored phone number
+        
         var defaultCountry = loadDialCodes(selected_dial_code);
+        
+        // Initialize intlTelInput
         input.intlTelInput({
-            initialCountry: defaultCountry,  // Central African Republic by default
+            initialCountry: defaultCountry,
             preferredCountries: ["us", "gb", "in", "cf"],
             separateDialCode: true
         });
+        
+        // Set the phone number value
         input.val(selected_phone_number);
+        
+        //  KEY FIX: Manually trigger mobile length update for pre-selected country
+        setTimeout(function() {
+            let countryData = input.intlTelInput("getSelectedCountryData");
+            let code = "+" + countryData.dialCode;
+            
+            // Set the code in Livewire
+            @this.set(codeModel, code);
+            
+            // Call CountryCodeSet to set mobile length
+            @this.call('CountryCodeSet', selector, code);
+            
+            console.log(`Initial mobile length set for ${selector} with code ${code}`);
+        }, 100); // Small delay to ensure intlTelInput is fully initialized
+        
         // On input change (number typing)
-        input.on("input", function () {
+        input.on("input keyup", function () {
             let number = input.val().replace(/\D/g, ''); // only digits
             @this.set(phoneModel, number);
         });
 
         // On country change
         input.on("countrychange", function () {
-            let code = "+" + input.intlTelInput("getSelectedCountryData").dialCode;
+            let countryData = input.intlTelInput("getSelectedCountryData");
+            let code = "+" + countryData.dialCode;
+            
+            // Update Livewire properties
             @this.set(codeModel, code);
+            
+            // Call the method to update mobile length
             @this.call('CountryCodeSet', selector, code);
+            
+            console.log(`Country changed for ${selector} to code ${code}`);
         });
-
-        @this.set(codeModel, selected_dial_code);
-        @this.call('CountryCodeSet', selector, selected_dial_code);
     }
+
+    // function initIntlTelInput(selector, phoneModel, codeModel) {
+    //     var input = $(selector);
+    //     var codeInput = $("#" + codeModel);
+    //     var phoneInput = $("#" + phoneModel);
+    //     var selected_dial_code = codeInput.val(); // only digits
+    //     var selected_phone_number = phoneInput.val(); // only digits
+    //     var defaultCountry = loadDialCodes(selected_dial_code);
+    //     input.intlTelInput({
+    //         initialCountry: defaultCountry,  // Central African Republic by default
+    //         preferredCountries: ["us", "gb", "in", "cf"],
+    //         separateDialCode: true
+    //     });
+    //     input.val(selected_phone_number);
+    //     // On input change (number typing)
+    //     input.on("input", function () {
+    //         let number = input.val().replace(/\D/g, ''); // only digits
+    //         @this.set(phoneModel, number);
+    //     });
+
+    //     // On country change
+    //     input.on("countrychange", function () {
+    //         let code = "+" + input.intlTelInput("getSelectedCountryData").dialCode;
+    //         @this.set(codeModel, code);
+    //         @this.call('CountryCodeSet', selector, code);
+    //     });
+
+    //     @this.set(codeModel, selected_dial_code);
+    //     @this.call('CountryCodeSet', selector, selected_dial_code);
+    // }
 
     // Already existing
     window.addEventListener('update_input_max_length', function (event) {
@@ -1578,6 +1633,8 @@
             document.querySelector(itemId).setAttribute("maxlength", mobile_length);
         }
     });
+
+    
 </script>
 
 @endpush

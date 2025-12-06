@@ -1833,14 +1833,23 @@ protected function resetMeasurements($index)
     public function CountryCodeSet($selector, $Code, $number = null)
     {
         $mobile_length = Country::where('country_code', $Code)->value('mobile_length') ?? '';
-
+        // Determine which field to update based on selector
+        if (strpos($selector, 'mobile') !== false || strpos($selector, '#mobile') !== false) {
+            $this->mobileLengthPhone = $mobile_length;
+        } elseif (strpos($selector, 'alt_phone_1') !== false) {
+            $this->mobileLengthAlt1 = $mobile_length;
+        } elseif (strpos($selector, 'alt_phone_2') !== false) {
+            $this->mobileLengthAlt2 = $mobile_length;
+        }
+    
         // Dispatch for maxlength
         $this->dispatch('update_input_max_length', [
             'id' => $selector,
             'mobile_length' => $mobile_length
         ]);
+        
 
-        $this->mobileLengthPhone = $mobile_length;
+        
     }
 
     public function render()
