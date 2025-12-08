@@ -89,6 +89,7 @@ class Order extends Model
         "Fully Approved By Admin"                   => ["Fully Approved By Admin", "fully_approved_order_by_admin"],
         "Ready for Delivery"               => ["Ready for Delivery", "ready_for_delivery"],
         "Cancelled"                        => ["Cancelled", "order_cancelled"],
+        "On Hold"                        => ["On Hold", "order_on_hold"],
         "Returned"                         => ["Returned", "order_returned"],
         "Received by Sales Team"           => ["Received by Sales Team", "received_by_sales_team"],
         "Delivered to Customer"            =>["Delivered to Customer","delivered_to_customer"],

@@ -73,8 +73,8 @@
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                                         aria-label="Close"></button>
                                 </div>
-                                <div class="modal-body">
-                                    <div class="row">
+                                <div class="modal-body p-5">
+                                    <div class="row g-4">
                                         <!-- Bill Number -->
                                         <div class="col-md-6">
                                             <label class="form-label"><strong>Bill Number</strong></label>
@@ -85,7 +85,29 @@
                                             <p class="text-danger small">{{$message}}</p>
                                             @enderror
                                         </div>
-                                        <div class="col-md-6">
+                                         <!--  Status Selection Radio Buttons -->
+                                            <div class="col-md-6">
+                                                <label class="form-label"><strong>Choose Action Type <span class="text-danger">*</span></strong></label>
+                                                <div class="d-flex rounded-lg h-100 align-items-center bg-white">
+                                                    <!-- Option: Cancelled -->
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input text-red-500" type="radio" name="selectedStatus"
+                                                            id="statusCancelled" value="Cancelled" wire:model.live="selected_status" required>
+                                                        <label class="form-check-label font-medium text-danger" for="statusCancelled">
+                                                            Cancelled
+                                                        </label>
+                                                    </div>
+                                                    <!-- Option: Hold -->
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input text-yellow-500" type="radio" name="selectedStatus"
+                                                            id="statusHold" value="On Hold" wire:model.live="selected_status" required>
+                                                        <label class="form-check-label font-medium text-success" for="statusHold">
+                                                            Hold
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <div class="col-12">
                                             <label class="form-label"><strong>Reason <span
                                                         class="text-danger">*</span></strong></label>
                                             <textarea class="form-control form-control-sm border border-1"

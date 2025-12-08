@@ -49,7 +49,7 @@
 
         </ul>
     </section>
-    @if ($order->skip_order_reason)
+    @if ($order->status == 'Cancelled')
     <div class="card shadow-sm mb-2">
         <div class="card-body text-center">
             <h3 class="text-danger skip-order">Order Skipped</h3>

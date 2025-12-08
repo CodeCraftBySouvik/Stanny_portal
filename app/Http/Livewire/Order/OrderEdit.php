@@ -1213,8 +1213,8 @@ protected function resetMeasurements($index)
             session()->forget('errorPrice.' . $index);
         } else {
             // Reset price and show error for invalid input
-            $this->items[$index]['price'] = 0;
-            session()->flash('errorPrice.' . $index, 'ðŸš¨ Please enter a valid price.');
+            // $this->items[$index]['price'] = 0;
+            session()->flash('errorPrice.' . $index, 'Please enter a valid price.');
         }
 
         $this->updateBillingAmount(); // Update billing after validation
@@ -1417,11 +1417,14 @@ protected function resetMeasurements($index)
                 $order->total_amount = $total_amount;
                 $order->last_payment_date = now();
                 // $order->created_by = auth()->guard('admin')->user()->id;
+                $loggedInAdmin = auth()->guard('admin')->user();
+                $order->team_lead_id = $loggedInAdmin->parent_id ?? null;
                 $order->save();
             }
 
-
+            
             foreach ($this->items as $key=>$item) {
+                // dd($item);
                 if($item['selected_collection'] == 1 && is_null($item['page_item'])){
                      // Only check if catalogue is not "No Catalogue Images"
                     if ($item['selectedCatalogue'] !== 'No Catalogue Images') {
@@ -1446,6 +1449,7 @@ protected function resetMeasurements($index)
                     $orderItem->order_id = $order->id;
                     $orderItem->product_id = $item['product_id'];
                 }
+                // dd($item);
                 if ($orderItem) {
                     $orderItem->product_id = $item['product_id'];
                     $orderItem->order_id = $order->id;
@@ -1479,8 +1483,7 @@ protected function resetMeasurements($index)
                     $statusChanged  = $previousStatus !== $newStatus;
 
                     $orderItem->status = $newStatus;
-
-                   
+                //    dd($orderItem);
 
                     // New 8-10-2025
                     if ($statusChanged) {
@@ -1527,10 +1530,20 @@ protected function resetMeasurements($index)
                             $orderItem->admin_status = 'Pending';
                             $orderItem->assigned_team = null;
                         }
+
+                        if ($loggedInAdmin && $loggedInAdmin->designation == 2 && ($previousStatus === 'Hold' || $newStatus === 'Process')) {
+                            if ($order->status === 'On Hold') {
+                                $order->status = 'Approval Pending';
+                                $order->save();
+                                
+                            }
+                        }
                     }
+                    // dd($order);
 
 
                     
+                       
 
                         if (in_array($loggedInAdmin->designation, [1, 12])) {
 
@@ -1621,7 +1634,7 @@ protected function resetMeasurements($index)
                     }
 
                     $orderItem->save();
-
+                    // dd($orderItem);
 
 
                     if ($orderItem) {
@@ -1652,6 +1665,7 @@ protected function resetMeasurements($index)
                         }
                     }
 
+                   
 
                     foreach ($item['measurements'] as $measurement) {
                         if (!isset($measurement['value']) || $measurement['value'] === '' ) {
@@ -1673,7 +1687,7 @@ protected function resetMeasurements($index)
                         $orderMeasurement = OrderMeasurement::where('order_item_id', $orderItem->id)
                                                             ->where('measurement_name', $measurementName)
                                                             ->first();
-
+                    
                         if ($orderMeasurement) {
                             $orderMeasurement->update([
                                 'measurement_value' => $measurementValue,
@@ -1694,9 +1708,12 @@ protected function resetMeasurements($index)
                     }
 
                     $orderItem = OrderItem::where('order_id', $order->id)->where('product_id', $item['product_id'])->first();
+                    if($orderItem){
                         $orderItem->update([
                             'selected_fabric' => $item['selected_fabric'], // Save selected fabric ID
                         ]);
+                    }
+
                 }
             }
 
@@ -1726,16 +1743,38 @@ protected function resetMeasurements($index)
                         }
                     }
 
+                    // if ($loggedInAdmin->designation == 2) {
+
+                    //     // If any item was changed Hold → Process
+                    //     $itemChangedToProcess = $order->items->contains(function ($item) {
+                    //         return $item->original['status'] === 'Hold' && $item->status === 'Process';
+                    //     });
+
+                    //     if ($itemChangedToProcess) {
+
+                    //         if ($order->status === 'On Hold') {
+
+                    //             $order->status = 'Approval Pending';
+                    //             $order->save();
+
+                              
+                    //         }
+                    //     }
+                    // }
+
                     // Save the updated order status
                     $order->save();
+                    // dd($order);
+                    $customerId = $user->id ?? $order->customer_id;
+
             // Store or update WhatsApp details if the flags are set
-            $existingNumbers = UserWhatsapp::where('user_id', $this->orders->customer->id)->pluck('whatsapp_number')->toArray();
+            $existingNumbers = UserWhatsapp::where('user_id', $customerId)->pluck('whatsapp_number')->toArray();
 
             $updatedNumbers = [];
 
             if ($this->isWhatsappPhone) {
                 UserWhatsapp::updateOrCreate(
-                    ['user_id' => $this->orders->customer->id, 'whatsapp_number' => $this->phone], // Search criteria
+                    ['user_id' => $customerId, 'whatsapp_number' => $this->phone], // Search criteria
                     ['country_code' => $this->phone_code, 'updated_at' => now()]
                 );
                 $updatedNumbers[] = $this->phone;
@@ -1743,7 +1782,7 @@ protected function resetMeasurements($index)
 
             if ($this->isWhatsappAlt1) {
                 UserWhatsapp::updateOrCreate(
-                    ['user_id' => $this->orders->customer->id, 'whatsapp_number' => $this->alternative_phone_number_1], // Search criteria
+                    ['user_id' => $customerId, 'whatsapp_number' => $this->alternative_phone_number_1], // Search criteria
                     ['country_code' => $this->alt_phone_code_1, 'updated_at' => now()]
                 );
                 $updatedNumbers[] = $this->alternative_phone_number_1;
@@ -1751,14 +1790,14 @@ protected function resetMeasurements($index)
 
             if ($this->isWhatsappAlt2) {
                 UserWhatsapp::updateOrCreate(
-                    ['user_id' => $this->orders->customer->id, 'whatsapp_number' => $this->alternative_phone_number_2], // Search criteria
+                    ['user_id' => $customerId, 'whatsapp_number' => $this->alternative_phone_number_2], // Search criteria
                     ['country_code' => $this->alt_phone_code_2, 'updated_at' => now()]
                 );
                 $updatedNumbers[] = $this->alternative_phone_number_2;
             }
 
             // Delete records that were not updated
-            UserWhatsapp::where('user_id', $this->orders->customer->id)
+            UserWhatsapp::where('user_id', $customerId)
                 ->whereNotIn('whatsapp_number', $updatedNumbers)
                 ->delete();
 
@@ -1775,10 +1814,10 @@ protected function resetMeasurements($index)
             //ChangeTracker::clear(); // to prevent accidental leakage into other requests
             return redirect()->route('admin.order.index');
         } catch (\Exception $e) {
+            dd($e->getMessage());
             DB::rollBack();
             \Log::error('Error updating order: ' . $e->getMessage());
             session()->flash('error', $e->getMessage());
-            dd($e->getMessage());
             session()->flash('error', 'Something went wrong. The operation has been rolled back.');
         }
     }

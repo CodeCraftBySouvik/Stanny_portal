@@ -100,7 +100,8 @@ class OrderNew extends Component
     public $air_mail,$logedin_user;
     public $customerType = 'new';
     public $extra_measurement = [];
-    
+    public $selected_status = 'Cancelled';
+
     public function onCustomerTypeChange($value){
         $this->customerType = $value;
         if($value == 'new'){
@@ -217,7 +218,7 @@ class OrderNew extends Component
     }
 
     public function skipOrder(){
-        // dd('hi');
+        // dd($this->all());
       $this->validate([
             'order_number' => 'required|string|not_in:000|unique:orders,order_number',
             'skip_order_reason' => 'required'
@@ -227,7 +228,7 @@ class OrderNew extends Component
           try {
              $order = new Order();
             $order->order_number = $this->order_number;
-            $order->status = 'Cancelled';
+            $order->status = $this->selected_status;
             $order->skip_order_reason = $this->skip_order_reason;
             $order->created_by = auth()->guard('admin')->id();
             $order->save();
@@ -239,10 +240,15 @@ class OrderNew extends Component
             }
 
             DB::commit();
+
+            $message = ($this->selected_status === 'On Hold')
+                       ? 'Order ' . $this->order_number . ' placed on HOLD successfully.'
+                       : 'Order ' . $this->order_number . ' skipped (cancelled) successfully.';
+
             $this->reset(['skip_order_reason']); // clear modal field
             $this->dispatch('hide-skip-modal'); 
             return redirect()->route('admin.order.index');
-            session()->flash('success', 'Order skipped successfully.');
+            session()->flash('success', $message);
           }catch(\Exception $e){
             dd($e->getMessage());
              DB::rollBack();
@@ -762,21 +768,33 @@ class OrderNew extends Component
         }
 
         // Clear previous products in the current index
-        $this->items[$index]['products'] = [];
+        // $this->items[$index]['products'] = [];
+        if ($term === '') {
+            $this->items[$index]['products'] = Product::where('collection_id', $collection)
+                ->where('category_id', $category)
+                ->where('status', 1)
+                ->get();
 
+            return;
+        }
         if (!empty($term)) {
             // Search for products within the specified collection and matching the term
             $this->items[$index]['products'] = Product::where('collection_id', $collection)
                 ->where('category_id', $category)
                 ->where(function ($query) use ($term) {
-                    $query->where('name', 'like', '%' . $term . '%')
-                          ->orWhere('product_code', 'like', '%' . $term . '%');
+                     if ($term != '') {
+                        $query->where('name', 'like', '%' . $term . '%')
+                            ->orWhere('product_code', 'like', '%' . $term . '%');
+                     }
                 })
                 ->where('status', 1)
                 ->get();
         }
 
     }
+
+    
+
      
     public function updateTotalAmount()
     {

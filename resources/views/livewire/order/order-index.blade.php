@@ -160,11 +160,13 @@
                                 @if($order->status!="Cancelled")
 
                                 {{-- New Code By Souvik --}}
-                                @if($userDesignationId == 1 && ($order->status == 'Partial Approved By TL' || $order->status == 'Fully Approved By TL' || $order->status == 'Partial Approved By Admin'))
+                                @if($userDesignationId == 1 && ($order->status == 'Partial Approved By TL' || $order->status == 'Fully Approved By TL' || $order->status == 'Partial Approved By Admin' || $order->status == 'On Hold'))
+                                @if ($order->status != 'On Hold')
                                 <a href="{{ route('admin.order.add_order_slip', $order->id) }}"
                                     class="btn btn-outline-success select-md btn_outline">
                                     Approve Order
                                 </a>
+                                @endif
                                 <a href="{{ route('admin.order.edit', $order->id) }}"
                                     class="btn btn-outline-success select-md btn_outline">
                                     Edit
@@ -176,7 +178,7 @@
                                 @endif
 
                                 {{-- (Optional) TL Approve button --}}
-                                @if($userDesignationId == 4 && in_array($order->status, ['Approval Pending', 'Partial Approved By TL']) && $order->created_by != $userId)
+                                @if($userDesignationId == 4 && in_array($order->status, ['Approval Pending', 'Partial Approved By TL','On Hold']) && $order->created_by != $userId)
                                 <a href="{{ route('admin.order.add_order_slip', $order->id) }}"
                                     class="btn btn-outline-success select-md btn_outline">
                                     Approve Order
@@ -194,7 +196,7 @@
 
                                 {{-- Designation 2(Sales Person): Show only Edit and Cancel if status is Approval
                                 Pending --}}
-                                @if($userDesignationId == 2 && $order->status == 'Approval Pending')
+                                @if($userDesignationId == 2 && ($order->status == 'Approval Pending' || $order->status == 'On Hold'))
                                 <a href="{{ route('admin.order.edit', $order->id) }}"
                                     class="btn btn-outline-success select-md btn_outline">
                                     Edit

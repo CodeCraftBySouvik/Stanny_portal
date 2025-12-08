@@ -1262,6 +1262,12 @@ color: #ffffff !important;
     background-color: #00ae00 !important;
     font-weight: bold;
 }
+ 
+.bg-order_on_hold{
+    color: #ffffff !important;
+    background-color: #d4289b !important;
+    font-weight: bold;
+}
 
 
 
