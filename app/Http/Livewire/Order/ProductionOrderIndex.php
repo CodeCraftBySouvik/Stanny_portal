@@ -137,9 +137,10 @@ class ProductionOrderIndex extends Component
     public function downloadOrderPdf($orderid){
        $order = Order::with('items','customer')->findOrFail($orderid);
        $previousOrder = Order::where('id','<',$orderid)
-                                ->orderBy('id','desc')
-                                ->first();
-        $orderItems = $order->items->map(function ($item) use($order) {
+       ->orderBy('id','desc')
+       ->first();
+       $orderItems = $order->items->map(function ($item) use($order) {
+            $extra = \App\Helpers\Helper::ExtraRequiredMeasurement($item->product_name);
 
             $product = Product::find($item->product_id);
             return [
@@ -158,6 +159,24 @@ class ProductionOrderIndex extends Component
                 'catlogue_image' => $item->catlogue_image,
                 'voice_remark' => $item->voice_remark,
                 'expected_delivery_date' => $item->expected_delivery_date,
+
+                 // Extra fields packed here
+                'extra_type'           => $extra,
+                'shoulder_type'        => $item->shoulder_type,
+                'vents'                => $item->vents,
+                'vents_required'       => $item->vents_required,
+                'vents_count'          => $item->vents_count,
+                'fold_cuff_required'   => $item->fold_cuff_required,
+                'fold_cuff_size'       => $item->fold_cuff_size,
+                'pleats_required'      => $item->pleats_required,
+                'pleats_count'         => $item->pleats_count,
+                'back_pocket_required' => $item->back_pocket_required,
+                'back_pocket_count'    => $item->back_pocket_count,
+                'adjustable_belt'      => $item->adjustable_belt,
+                'suspender_button'     => $item->suspender_button,
+                'trouser_position'     => $item->trouser_position,   
+                'client_name_required'     => $item->client_name_required,   
+                'client_name_place'     => $item->client_name_place,   
             ];
         });
 

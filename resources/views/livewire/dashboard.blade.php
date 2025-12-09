@@ -710,7 +710,10 @@
             </div>
         </div>
         @endif
-       
+        @php
+            $productionTeam = auth()->guard('admin')->user();
+        @endphp
+        @if ($productionTeam->designation != 13)
         <div>
             <div class="card mt-3">
                 <div
@@ -771,7 +774,7 @@
                 </div>
             </div>
         </div>
-
+        @endif
 
     </div>
 </div>
