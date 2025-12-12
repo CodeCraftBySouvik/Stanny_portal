@@ -89,9 +89,9 @@
 
 <body>
     <div class="container">
-
+        <div class="no-break">
         {{-- Order Info + Customer Info in One Row --}}
-        <table width="100%" cellpadding="10" cellspacing="0" style="margin-bottom: 20px;">
+        <table width="100%" cellpadding="10" cellspacing="0" style="margin-bottom: 20px; border:1px solid #ccc;">
             <tr valign="top">
                 {{-- Order Information --}}
                 <td width="50%" style="border-right: 1px solid #ccc;">
@@ -117,9 +117,10 @@
         </table>
 
         {{-- Order Items --}}
-        <h3>Order Items</h3>
-        <div class="no-break">
-            <table class="table" width="100%">
+        
+        
+            <h3>Order Items</h3>
+            <table class="table" width="100%" style="border:1px solid #ccc;">
                 <thead>
                     <tr>
                         <th width="20%">Collection</th>
