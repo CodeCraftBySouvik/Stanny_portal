@@ -136,7 +136,8 @@ class ProductionOrderIndex extends Component
 
     public function downloadOrderPdf($orderid){
        $order = Order::with('items','customer')->findOrFail($orderid);
-       $previousOrder = Order::where('id','<',$orderid)
+       $previousOrder = Order::where('customer_id',$order->customer_id)
+       ->where('id','<',$orderid)
        ->orderBy('id','desc')
        ->first();
        $orderItems = $order->items->map(function ($item) use($order) {

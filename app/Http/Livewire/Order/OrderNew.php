@@ -312,7 +312,6 @@ class OrderNew extends Component
                 ->where('fabrics.title', 'LIKE', "%{$searchTerm}%")
                 ->select('fabrics.id', 'fabrics.title', \DB::raw('COALESCE(SUM(stock_fabrics.qty_in_meter),0) as available_stock'))
                  ->groupBy('fabrics.id', 'fabrics.title')
-                ->limit(10)
                 ->get();
         } else {
             $this->items[$index]['searchResults'] = [];
@@ -917,10 +916,9 @@ class OrderNew extends Component
                                                         ->toArray();
          // Initialize get_measurements array for the current item
         $this->initializeMeasurements($index);
-        // Get previous measurements if user ordered this product before
+        
         $this->populatePreviousOrderMeasurements($index, $id);
-        // dd($this->populatePreviousOrderMeasurements($index, $id));
-        // Clear measurement error message if it was previously set
+       
         session()->forget('measurements_error.' . $index);
 
         // If no measurements exist, show an error message
