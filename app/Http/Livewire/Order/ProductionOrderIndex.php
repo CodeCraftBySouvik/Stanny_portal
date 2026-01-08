@@ -133,7 +133,7 @@ class ProductionOrderIndex extends Component
     public function CollectedBy($staff_id){
         $this->created_by = $staff_id;
     }
-
+ 
     public function downloadOrderPdf($orderid){
        $order = Order::with('items','customer')->findOrFail($orderid);
        $previousOrder = Order::where('customer_id',$order->customer_id)

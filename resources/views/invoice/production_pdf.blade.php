@@ -87,7 +87,7 @@
     </style>
 </head>
 
-<body>
+<body> 
     <div class="container">
         <div class="no-break">
         {{-- Order Info + Customer Info in One Row --}}

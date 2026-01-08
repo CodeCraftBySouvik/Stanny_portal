@@ -598,7 +598,7 @@ class AddOrderSlip extends Component
             foreach ($this->order_item as $key => $itemData) {
                 $item = OrderItem::find($itemData['id']);
                 if (!$item) continue;
-        
+         
                 // Update TL approval
                 $item->priority_level = $itemData['priority_level'] ?? null;
         

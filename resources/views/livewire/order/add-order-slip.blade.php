@@ -2,7 +2,7 @@
     <section class="admin__title">
         <h5>Confirm Order</h5>
     </section>
-    <section>
+    <section> 
         <ul class="breadcrumb_menu">
             <li><a href="{{ route('admin.order.index') }}">Orders</a></li>
             <li>Order No:- <span>#{{ $order->order_number }}</span></li>

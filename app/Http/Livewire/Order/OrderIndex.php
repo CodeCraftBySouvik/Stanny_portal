@@ -22,7 +22,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class OrderIndex extends Component
 {
     use WithPagination;
-    
+     
     public $branch_id;
     public $customer_id;
     public $created_by, $search,$status,$start_date,$end_date;

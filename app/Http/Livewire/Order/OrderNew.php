@@ -295,7 +295,7 @@ class OrderNew extends Component
     }
 
 
-
+ 
 
     public function searchFabrics($index)
     {

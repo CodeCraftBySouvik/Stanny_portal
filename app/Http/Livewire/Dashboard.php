@@ -162,7 +162,7 @@ class Dashboard extends Component
     }
 
     public function selectBranch()
-  {
+  { 
       if ($this->branch_id) {
           $staffIds = User::where('branch_id', $this->branch_id)
                           ->where('user_type', 0)
