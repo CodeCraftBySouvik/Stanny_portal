@@ -368,21 +368,24 @@ class OrderNew extends Component
 
         //  Add dynamic rules based on extra measurement per index
         foreach ($this->items as $index => $item) {
-            $extra = $this->extra_measurement[$index] ?? null;
+            $extra = $this->extra_measurement[$index] ?? [];
             
-            if ($extra === 'mens_jacket_suit') {
+            // MEN JACKET
+            if (in_array('mens_jacket_suit',$extra)) {
                 $rules["items.$index.vents"] = 'required';
                 $rules["items.$index.shoulder_type"] = 'required';
             }
 
-            if ($extra === 'ladies_jacket_suit') {
+            // LADIES JACKET
+            if (in_array('ladies_jacket_suit',$extra)) {
                 $rules["items.$index.vents_required"] = 'required';
                 $rules["items.$index.vents_count"]    = 'required_if:items.'.$index.'.vents_required,Yes|nullable|integer|min:1';
                 $rules["items.$index.shoulder_type"] = 'required';
 
             }
 
-            if ($extra === 'trouser') {
+             // TROUSER
+            if (in_array('trouser',$extra)) {
                 $rules["items.$index.fold_cuff_required"]   = 'required';
                 $rules["items.$index.fold_cuff_size"]       = 'required_if:items.'.$index.'.fold_cuff_required,Yes|nullable|numeric|min:1';
                 $rules["items.$index.pleats_required"]      = 'required';
@@ -393,7 +396,9 @@ class OrderNew extends Component
                 $rules["items.$index.suspender_button"]     = 'required';
                 $rules["items.$index.trouser_position"]     = 'required';
             }
-            if ($extra === 'shirt') {
+
+            // SHIRT
+            if (in_array('shirt',$extra)) {
                 $rules["items.$index.sleeves"] = 'required';
                 $rules["items.$index.collar"]  = 'required';
                 $rules["items.$index.pocket"]  = 'required';
@@ -401,7 +406,9 @@ class OrderNew extends Component
                 $rules["items.$index.collar_style"] = 'required_if:items.'.$index.'.collar,Other';
                 $rules["items.$index.cuff_style"]   = 'required_if:items.'.$index.'.cuffs,Other';
             }
-            if ($extra === 'ladies_jacket_suit' || $extra === 'shirt' || $extra === 'mens_jacket_suit') {
+
+             // CLIENT NAME (common)
+            if (in_array('ladies_jacket_suit',$extra) || in_array('shirt',$extra) || in_array('mens_jacket_suit',$extra)) {
                 $rules["items.$index.client_name_required"] = 'required';
                 $rules["items.$index.client_name_place"] = 'required_if:items.'.$index.'.client_name_required,Yes';
             }
@@ -742,7 +749,7 @@ class OrderNew extends Component
         // Reset products for the selected item
         $this->items[$index]['products'] = [];
         $this->items[$index]['product_id'] = null;
-
+        
         if ($categoryId) {
             // Fetch products based on the selected category and collection
             $this->items[$index]['products'] = Product::where('category_id', $categoryId)

@@ -262,7 +262,7 @@ class OrderEdit extends Component
 
 
         foreach ($this->items as $index => $item) {
-            $this->extra_measurement[$index] = Helper::ExtraRequiredMeasurement(trim($item['searchproduct']));
+            $this->extra_measurement[$index] = Helper::ExtraRequiredMeasurement(trim($item['searchproduct'] ?? $item['product_name'] ?? ''));
 
             if(!empty($item['page_item'])){
                 $this->catalogue_page_item[$index] = $item['page_item'];
@@ -424,22 +424,22 @@ class OrderEdit extends Component
             'items.*.item_status' => 'required',
             'customer_image' => $hasGarment ? 'required|image|mimes:jpg,jpeg,png,webp|max:2048' : 'nullable',
         ];
-        // ✅ Add dynamic rules based on extra measurement per index
+        //  Add dynamic rules based on extra measurement per index
         foreach ($this->items as $index => $item) {
-            $extra = $this->extra_measurement[$index] ?? null;
+            $extra = $this->extra_measurement[$index] ?? [];
 
-            if ($extra === 'mens_jacket_suit') {
+            if (in_array('mens_jacket_suit',$extra)) {
                 $rules["items.$index.vents"] = 'required';
                 $rules["items.$index.shoulder_type"] = 'required';
             }
 
-            if ($extra === 'ladies_jacket_suit') {
+            if (in_array('ladies_jacket_suit',$extra)) {
                 $rules["items.$index.shoulder_type"] = 'required';
                 $rules["items.$index.vents_required"] = 'required';
                 $rules["items.$index.vents_count"]    = 'required_if:items.'.$index.'.vents_required,Yes|nullable|integer|min:1';
             }
 
-            if ($extra === 'trouser') {
+            if (in_array('trouser',$extra)) {
                 $rules["items.$index.fold_cuff_required"]   = 'required';
                 $rules["items.$index.fold_cuff_size"]       = 'required_if:items.'.$index.'.fold_cuff_required,Yes|nullable|numeric|min:1';
                 $rules["items.$index.pleats_required"]      = 'required';
@@ -450,7 +450,7 @@ class OrderEdit extends Component
                 $rules["items.$index.suspender_button"]     = 'required';
                 $rules["items.$index.trouser_position"]     = 'required';
             }
-            if ($extra === 'shirt') {
+            if (in_array('shirt',$extra)) {
                 $rules["items.$index.sleeves"] = 'required';
                 $rules["items.$index.collar"]  = 'required';
                 $rules["items.$index.pocket"]  = 'required';
@@ -458,7 +458,7 @@ class OrderEdit extends Component
                 $rules["items.$index.collar_style"] = 'required_if:items.'.$index.'.collar,Other';
                 $rules["items.$index.cuff_style"]   = 'required_if:items.'.$index.'.cuffs,Other';
             }
-            if ($extra === 'ladies_jacket_suit' || $extra === 'shirt' || $extra === 'mens_jacket_suit') {
+            if (in_array('ladies_jacket_suit',$extra) || in_array('shirt',$extra) || in_array('mens_jacket_suit',$extra)) {
                 $rules["items.$index.client_name_required"] = 'required';
                 $rules["items.$index.client_name_place"] = 'required_if:items.'.$index.'.client_name_required,Yes';
             }

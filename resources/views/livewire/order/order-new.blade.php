@@ -1009,16 +1009,16 @@
                                             @error("items.$index.item_status")
                                             <div class="text-danger">{{ $message }}</div>
                                             @enderror
-                                            {{--<span class="tooltip-text">
-                                                Define the current item state: <br>
-                                                <strong>Process</strong> – Actively being worked on <br>
-                                                <strong>Hold</strong> – Temporarily paused
-                                            </span> --}}
+                                           
                                         </div>
                                     </div>
-                                    @if(count($extra_measurement)>0)
+                                    @php
+                                        $extras = $extra_measurement[$index] ?? [];
+                                    @endphp
+                                    @if(count($extras)>0)
                                     <div class="row mb-4">
-                                        @if($extra_measurement[$index] == 'mens_jacket_suit')
+                                        {{-- ================= MEN JACKET ================= --}}
+                                        @if(in_array('mens_jacket_suit',$extras))
                                         <div class="col-md-3 tooltip-wrapper">
                                             <label class="form-label"><strong>Vents</strong></label>
                                             <select class="form-control form-control-sm border border-1"
@@ -1080,8 +1080,10 @@
                                             <div class="text-danger">{{ $message }}</div>
                                             @enderror
                                         </div>
+                                        @endif
 
-                                        @elseif($extra_measurement[$index] == 'ladies_jacket_suit')
+                                        {{-- ================= LADIES JACKET ================= --}}
+                                        @if(in_array('ladies_jacket_suit',$extras))
                                         <div class="col-md-3">
                                             <label><strong>Shoulder Type</strong></label>
                                             <select class="form-control form-control-sm"
@@ -1163,7 +1165,10 @@
                                             @enderror
                                         </div>
                                         @endif
-                                        @elseif($extra_measurement[$index] == 'trouser')
+                                        @endif
+
+                                        {{-- ================= TROUSER ================= --}}
+                                        @if(in_array('trouser', $extras))
                                         <!-- Fold Cuff -->
                                         <div class="col-md-3 tooltip-wrapper">
                                             <label class="form-label"><strong>Fold Cuff</strong></label>
@@ -1320,7 +1325,9 @@
                                             {{-- <span class="tooltip-text">Select waist position for trousers.</span>
                                             --}}
                                         </div>
-                                        @elseif($extra_measurement[$index] == 'shirt')
+                                        @endif
+                                          {{-- ================= SHIRT ================= --}}
+                                        @if(in_array('shirt', $extras))
                                         <!-- Sleeves -->
                                         <div class="col-md-3 tooltip-wrapper">
                                             <label class="form-label"><strong>Sleeves</strong></label>
