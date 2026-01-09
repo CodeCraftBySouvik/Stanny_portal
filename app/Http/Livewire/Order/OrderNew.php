@@ -343,6 +343,7 @@ class OrderNew extends Component
     public function rules()
     {
         $auth = Auth::guard('admin')->user();
+        $hasGarment = collect($this->items)->contains('collection',1);
         $rules = [
             'items' => 'required|min:1',
             'items.*.collection' => 'required|string',
@@ -358,6 +359,8 @@ class OrderNew extends Component
             'items.*.item_status' => 'required',
             'items.*.searchTerm' => 'required_if:items.*.collection,1',
             'order_number' => 'required|string|not_in:000|unique:orders,order_number',
+            // Customer image only required when garment select 
+            'customer_image' => $hasGarment ? 'required|image|mimes:jpg,jpeg,png,webp|max:2048' : 'nullable',
             'air_mail' => 'nullable|numeric',
             'imageUploads.*.*'  => 'nullable|image|mimes:jpg,jpeg,png,webp', 
             'voiceUploads.*.*' => 'nullable|mimes:mp3,wav,ogg,m4a,wma,webm,mpga', 
@@ -1719,14 +1722,14 @@ protected function fillMatchingMeasurements($currentIndex, $sourceIndex)
             }
 
 
-            // validate customer image
-            if (empty($this->customer_image)) {
-                $this->errorClass['customer_image'] = 'border-danger';
-                $this->errorMessage['customer_image'] = 'Please choose customer image';
-            } else {
-                $this->errorClass['customer_image'] = null;
-                $this->errorMessage['customer_image'] = null;
-            }
+            // // validate customer image
+            // if (empty($this->customer_image)) {
+            //     $this->errorClass['customer_image'] = 'border-danger';
+            //     $this->errorMessage['customer_image'] = 'Please choose customer image';
+            // } else {
+            //     $this->errorClass['customer_image'] = null;
+            //     $this->errorMessage['customer_image'] = null;
+            // }
 
 
            // Validate Phone Number

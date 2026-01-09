@@ -186,7 +186,7 @@
                                 </div>
                             </div>
 
-                            <div class="mb-2 col-md-3">
+                            {{-- <div class="mb-2 col-md-3">
                                 <label for="customer_image" class="form-label">Client Image <span
                                         class="small text-danger">*</span></label>
                                 <input type="file" wire:model="customer_image" id="customer_image"
@@ -199,7 +199,7 @@
                                     <img src="{{ asset($customer_image) }}" alt="" class="img-thumbnail" width="100">
                                 </div>
                                 @endif
-                            </div>
+                            </div> --}}
                         </div>
 
 
@@ -291,6 +291,42 @@
                         </div>
                     </div>
                     <div class="{{ $activeTab == 2 ? 'd-block' : 'd-none' }}" id="tab2">
+                        {{-- Customer Image only for garment --}}
+                        @php
+                            $hasGarment = collect($items)->contains('selected_collection', 1);
+                        @endphp
+
+                        @if($hasGarment)
+                        <div class="row mb-4 bg-light p-3 border-radius-lg border border-1 mx-1">
+                            <div class="col-12 col-md-4">
+                                <label for="customer_image" class="form-label"><strong>Client Profile Image (For Garments)</strong> <span class="text-danger">*</span></label>
+                                <input type="file" wire:model="customer_image" id="customer_image"
+                                    class="form-control form-control-sm border border-1 p-2 @error('customer_image') border-danger @enderror">
+                                
+                                <div wire:loading wire:target="customer_image" class="text-info small mt-1">Uploading image...</div>
+                                
+                                @error('customer_image')
+                                    <div class="text-danger error-message small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-4">
+                            <div class="mt-2">
+                                <p class="small mb-1 text-bold">Current / New Profile:</p>
+                                @if ($customer_image && is_string($customer_image))
+                                    {{-- Showing existing image from database path --}}
+                                    <img src="{{ asset($customer_image) }}" style="width: 100px; height: 100px; object-fit: cover;" class="img-thumbnail shadow-sm">
+                                @elseif($customer_image && !is_string($customer_image))
+                                    {{-- Showing temporary preview of new upload --}}
+                                    <img src="{{ $customer_image->temporaryUrl() }}" style="width: 100px; height: 100px; object-fit: cover;" class="img-thumbnail shadow-sm">
+                                @else
+                                    <div class="text-muted small">No image uploaded</div>
+                                @endif
+                            </div>
+                        </div>
+                           
+                        </div>
+                        @endif
+                        {{-- Customer Image only for garment end --}}
                         <div class="row">
                             <div class="col-12 col-md-12 mb-2">
                                 <h6 class="badge bg-danger custom_danger_badge">Product Information</h6>
@@ -1621,35 +1657,7 @@
         });
     }
 
-    // function initIntlTelInput(selector, phoneModel, codeModel) {
-    //     var input = $(selector);
-    //     var codeInput = $("#" + codeModel);
-    //     var phoneInput = $("#" + phoneModel);
-    //     var selected_dial_code = codeInput.val(); // only digits
-    //     var selected_phone_number = phoneInput.val(); // only digits
-    //     var defaultCountry = loadDialCodes(selected_dial_code);
-    //     input.intlTelInput({
-    //         initialCountry: defaultCountry,  // Central African Republic by default
-    //         preferredCountries: ["us", "gb", "in", "cf"],
-    //         separateDialCode: true
-    //     });
-    //     input.val(selected_phone_number);
-    //     // On input change (number typing)
-    //     input.on("input", function () {
-    //         let number = input.val().replace(/\D/g, ''); // only digits
-    //         @this.set(phoneModel, number);
-    //     });
-
-    //     // On country change
-    //     input.on("countrychange", function () {
-    //         let code = "+" + input.intlTelInput("getSelectedCountryData").dialCode;
-    //         @this.set(codeModel, code);
-    //         @this.call('CountryCodeSet', selector, code);
-    //     });
-
-    //     @this.set(codeModel, selected_dial_code);
-    //     @this.call('CountryCodeSet', selector, selected_dial_code);
-    // }
+   
 
     // Already existing
     window.addEventListener('update_input_max_length', function (event) {

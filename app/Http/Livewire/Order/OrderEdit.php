@@ -409,6 +409,7 @@ class OrderEdit extends Component
     public function rules()
     {
         $auth = Auth::guard('admin')->user();
+        $hasGarment = collect($this->items)->contains('selected_collection',1);
         $rules = [
             'items.*.selected_collection' => 'required',
             'items.*.selected_category' => 'required',
@@ -421,6 +422,7 @@ class OrderEdit extends Component
             // 'items.*.priority' => 'required',
             'items.*.expected_delivery_date' => 'required',
             'items.*.item_status' => 'required',
+            'customer_image' => $hasGarment ? 'required|image|mimes:jpg,jpeg,png,webp|max:2048' : 'nullable',
         ];
         // ✅ Add dynamic rules based on extra measurement per index
         foreach ($this->items as $index => $item) {
@@ -773,45 +775,7 @@ class OrderEdit extends Component
 }
 
 
-    // public function selectProduct($index, $name, $id)
-    // {
-    //     $this->items[$index]['searchproduct'] = $name;
-    //     $this->items[$index]['product_id'] = $id;
-    //     $this->items[$index]['products'] = [];
-    //     $this->extra_measurement[$index] = Helper::ExtraRequiredMeasurement(trim($name));
-    //     $this->items[$index]['measurements'] = Measurement::where('product_id', $id)
-    //                                                         ->where('status', 1)
-    //                                                         ->orderBy('position','ASC')
-    //                                                         ->get()
-    //                                                         ->toArray();
-
-       
-        
-    //     $this->items[$index]['fabrics'] = Fabric::join('product_fabrics', 'fabrics.id', '=', 'product_fabrics.fabric_id')
-    //                                         ->where('product_fabrics.product_id', $id)
-    //                                         ->where('fabrics.status', 1)
-    //                                         ->get(['fabrics.*']);
-
-    //     $product = Product::find($id);
-    //     if (empty($this->items[$index]['selected_collection'])) {
-    //         $this->items[$index]['selected_collection'] = $product && $product->collection->isNotEmpty()
-    //             ? $product->collection->first()->id
-    //             : null;
-    //     }
-    //     $this->items[$index]['catalogues'] = $this->items[$index]['selected_collection'] == 1 ? $this->catalogues : [];
-
-    //     session()->forget('measurements_error.' . $index);
-    //     if (count($this->items[$index]['measurements']) == 0) {
-    //         session()->flash('measurements_error.' . $index, 'Oops! Measurement data not added for this product.');
-    //         return;
-    //     }
-        
-
-    //      // ✅ If copy checkbox is already ticked → apply it immediately
-    //     if (!empty($this->items[$index]['copy_previous_measurements'])) {
-    //         $this->copyMeasurements($index);
-    //     }
-    // }
+  
 
     public function CategoryWiseProduct($categoryId, $index)
     {
@@ -859,120 +823,7 @@ class OrderEdit extends Component
     }
 
 
-//        public function copyMeasurements($index)
-// {
-//     $currentProductId = $this->items[$index]['product_id'] ?? null;
 
-//     if (empty($this->items[$index]['copy_previous_measurements'])) {
-//         // Checkbox unchecked → revert to original/preloaded values
-//         if ($currentProductId) {
-//             // Reload measurements for this product
-//             $measurements = Measurement::where('product_id', $currentProductId)
-//                 ->where('status', 1)
-//                 ->orderBy('position', 'ASC')
-//                 ->get();
-
-//             // Fetch previous customer order values if exists
-//             $previousValues = OrderMeasurement::whereHas('orderItem', function ($q) use ($currentProductId) {
-//                     $q->where('product_id', $currentProductId)
-//                       ->whereHas('order', function ($qq) {
-//                           $qq->where('customer_id', $this->customer_id);
-//                       });
-//                 })
-//                 ->pluck('measurement_value', 'measurement_name')
-//                 ->toArray();
-
-//             $this->items[$index]['measurements'] = $measurements->map(function ($m) use ($previousValues) {
-//                 return [
-//                     'id' => $m->id,
-//                     'title' => $m->title,
-//                     'short_code' => $m->short_code,
-//                     'value' => $previousValues[$m->title] ?? ''
-//                 ];
-//             })->toArray();
-//         }
-//         return;
-//     }
-
-//     // Checkbox checked → copy previous measurements logic
-//     // 1️⃣ Look backward for the same product in previous items
-//     for ($i = $index - 1; $i >= 0; $i--) {
-//         if (($this->items[$i]['product_id'] ?? null) === $currentProductId) {
-//             if (!isset($this->items[$i]['measurements'])) {
-//                 $this->items[$i]['measurements'] = Measurement::where('product_id', $currentProductId)
-//                     ->where('status', 1)
-//                     ->orderBy('position', 'ASC')
-//                     ->get()
-//                     ->toArray();
-//             }
-//             $this->items[$index]['measurements'] = $this->items[$i]['measurements'];
-//             return;
-//         }
-//     }
-
-//     // 2️⃣ Forward search
-//     for ($i = $index + 1; $i < count($this->items); $i++) {
-//         if (($this->items[$i]['product_id'] ?? null) === $currentProductId) {
-//             if (!isset($this->items[$i]['measurements'])) {
-//                 $this->items[$i]['measurements'] = Measurement::where('product_id', $currentProductId)
-//                     ->where('status', 1)
-//                     ->orderBy('position', 'ASC')
-//                     ->get()
-//                     ->toArray();
-//             }
-//             $this->items[$index]['measurements'] = $this->items[$i]['measurements'];
-//             return;
-//         }
-//     }
-
-//     // 3️⃣ If no same product found, copy only matching measurements from nearest item
-//     $found = false;
-
-//     // Backward search
-//     for ($i = $index - 1; $i >= 0; $i--) {
-//         if (!empty($this->items[$i]['measurements'])) {
-//             $this->fillMatchingMeasurements($index, $i);
-//             $found = true;
-//             break;
-//         }
-//     }
-
-//     // Forward search
-//     if (!$found) {
-//         for ($i = $index + 1; $i < count($this->items); $i++) {
-//             if (!empty($this->items[$i]['measurements'])) {
-//                 $this->fillMatchingMeasurements($index, $i);
-//                 break;
-//             }
-//         }
-//     }
-// }
-
-
-//     /**
-//      * Fill only matching measurements (by title or short_code) from a source item.
-//      */
-//    protected function fillMatchingMeasurements($currentIndex, $sourceIndex)
-// {
-//     foreach ($this->items[$currentIndex]['measurements'] as $key => &$measurement) {
-//         $measurementTitle = strtolower(trim($measurement['title'] ?? ''));
-//         $measurementShortCode = strtolower(trim($measurement['short_code'] ?? ''));
-
-//         foreach ($this->items[$sourceIndex]['measurements'] as $prev) {
-//             $prevTitle = strtolower(trim($prev['title'] ?? ''));
-//             $prevShortCode = strtolower(trim($prev['short_code'] ?? ''));
-//             $prevValue = $prev['value'] ?? null;
-
-//             // Match by title OR short_code (even if product is different)
-//             if (
-//                 (!empty($measurementTitle) && $measurementTitle === $prevTitle) ||
-//                 (!empty($measurementShortCode) && $measurementShortCode === $prevShortCode)
-//             ) {
-//                 $measurement['value'] = $prevValue;
-//             }
-//         }
-//     }
-// }
 
 public function copyMeasurements($index)
 {
@@ -1117,11 +968,7 @@ protected function resetMeasurements($index)
          if (empty($this->phone)) {
             $this->errorClass['phone'] = 'border-danger';
             $this->errorMessage['phone'] = 'Please enter customer phone number';
-        // } elseif (!preg_match('/^\d{'. $this->mobileLengthPhone .'}$/', $this->phone)) {
-        // } elseif (!empty($this->mobileLengthPhone) && strlen($this->phone) != $this->mobileLengthPhone) {
-        //     $this->errorClass['phone'] = 'border-danger';
-        //     $this->errorMessage['phone'] = "Phone number must be exactly ".$this->mobileLengthPhone." digits";
-        // } 
+        
           } else {
             $this->errorClass['phone'] = null;
             $this->errorMessage['phone'] = null;
@@ -1297,22 +1144,7 @@ protected function resetMeasurements($index)
         $this->voiceUploads[$index] = array_values($this->voiceUploads[$index]);
     }
 
-    // public function validateMeasurement($itemIndex, $measurementKey)
-    // {
-    //     $value = trim($this->items[$itemIndex]['measurements'][$measurementKey]['value'] ?? '');
-
-    //     $errorKey = "items.$itemIndex.measurements.$measurementKey.value";
-
-    //     if ($value === '') {
-    //         $this->addError($errorKey, 'Measurement value is required.');
-    //     } elseif (!is_numeric($value)) {
-    //         $this->addError($errorKey, 'Measurement must be numeric.');
-    //     } elseif (floatval($value) < 1) {
-    //         $this->addError($errorKey, 'Measurement must be a number greater than 0.');
-    //     } else {
-    //          $this->resetValidation([$errorKey]);   // clears the error when it becomes valid
-    //     }
-    // }
+    
 
 
     public function update(OrderRepository $orderRepo)
@@ -1672,14 +1504,7 @@ protected function resetMeasurements($index)
                             session()->flash('measurements_error.' . $key, "🚨 Oops! All measurement data should be mandatory.");
                             return;
                         }
-                        // elseif (!is_numeric($measurement['value'])) {
-                        //     session()->flash('measurements_error.' . $key, "🚨 Oops! Measurement must be numeric.");
-                        //     return;
-                        // } elseif (floatval($measurement['value']) < 1) {
-                        //     session()->flash('measurements_error.' . $key, "🚨 Oops! Measurement must be greater than 0.");
-                        //     return;
-                        // }
-
+                        
                         $measurementValue = $measurement['value'] ?? null;
                         $measurementName = $measurement['title'] ?? null;
                         $measurementShortCode = $measurement['short_code'] ?? null;
@@ -1743,24 +1568,7 @@ protected function resetMeasurements($index)
                         }
                     }
 
-                    // if ($loggedInAdmin->designation == 2) {
-
-                    //     // If any item was changed Hold → Process
-                    //     $itemChangedToProcess = $order->items->contains(function ($item) {
-                    //         return $item->original['status'] === 'Hold' && $item->status === 'Process';
-                    //     });
-
-                    //     if ($itemChangedToProcess) {
-
-                    //         if ($order->status === 'On Hold') {
-
-                    //             $order->status = 'Approval Pending';
-                    //             $order->save();
-
-                              
-                    //         }
-                    //     }
-                    // }
+                    
 
                     // Save the updated order status
                     $order->save();

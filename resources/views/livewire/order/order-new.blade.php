@@ -399,7 +399,7 @@
                                 </div>
                             </div>
 
-                            <div class="mb-2 col-md-3">
+                            {{-- <div class="mb-2 col-md-3">
                                 <label for="customer_image" class="form-label">Client Image <span
                                         class="small text-danger">*</span></label>
                                 <input type="file" wire:model="customer_image" id="customer_image"
@@ -407,7 +407,7 @@
                                 @if(isset($errorMessage['customer_image']))
                                 <div class="text-danger error-message">{{ $errorMessage['customer_image'] }}</div>
                                 @endif
-                            </div>
+                            </div> --}}
 
 
                         </div>
@@ -531,7 +531,33 @@
                                     disabled value="{{$order_number}}" readonly>
                             </div>
                         </div>
+                        @php
+                            $hasGarment = collect($items)->contains('collection', 1);
+                        @endphp
 
+                        @if($hasGarment)
+                        <div class="row mb-4 bg-light p-3 border-radius-lg border border-1 mx-1">
+                            <div class="col-12 col-md-4">
+                                <label for="customer_image" class="form-label"><strong>Client Profile Image (For Garments)</strong> <span class="text-danger">*</span></label>
+                                <input type="file" wire:model="customer_image" id="customer_image"
+                                    class="form-control form-control-sm border border-1 p-2 @error('customer_image') border-danger @enderror">
+                                
+                                <div wire:loading wire:target="customer_image" class="text-info small mt-1">Uploading image...</div>
+                                
+                                @error('customer_image')
+                                    <div class="text-danger error-message small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-4">
+                                @if ($customer_image)
+                                    <div class="mt-2">
+                                        <p class="small mb-1 text-bold">Profile Preview:</p>
+                                        <img src="{{ $customer_image->temporaryUrl() }}" style="width: 100px; height: 100px; object-fit: cover;" class="img-thumbnail shadow-sm">
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                        @endif
                         <!-- Loop through items -->
                         @foreach($items as $index => $item)
                         <div class="row align-items-top mt-3">
