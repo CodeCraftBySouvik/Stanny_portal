@@ -215,15 +215,21 @@ class Helper
     public static function ExtraRequiredMeasurement($product_name)
     {
         $map = [
-            "3 PCS SUIT"     => "mens_jacket_suit",
-            "MEN'S SUIT"     => "mens_jacket_suit",
-            "LADIES SUIT"    => "ladies_jacket_suit",
-            "LADIES JACKET/BLAZER"    => "ladies_jacket_suit",
+            "MEN'S JACKET"     => "mens_jacket_suit",
+            "MEN'S 2 PC SUIT (JKT+TRS)"     => "mens_jacket_suit",
+            "MEN'S 3 PC SUIT (JKT+TRS+W/C)"     => "mens_jacket_suit",
+            "LADIES JACKET"    => "ladies_jacket_suit",
+            "LADIES 2 PC SUIT (L.JKT+L.TRS)"    => "ladies_jacket_suit",
+            "LADIES 2 PC SUIT (L.JKT+L.SKIRT)"    => "ladies_jacket_suit",
+            "LADIES 3 PC SUIT (L.JKT+L.TRS+L.W/C)"    => "ladies_jacket_suit",
+            "LADIES 3 PC SUIT(L.JKT+L.SKT+L.W/C)"    => "ladies_jacket_suit",
             "MEN'S TROUSER"  => "trouser",
             "LADIES TROUSER" => "trouser",
             "MEN'S SHIRT" => "shirt",
-            "HUNTING SHIRT" => "shirt",
+            "MEN'S HUNTING SHIRT" => "shirt",
+            "MEN'S SAFARI SHIRT" => "shirt",
             "LADIES SHIRT" => "shirt",
+            "LADIES HUNTING SHIRT" => "shirt",
         ];
 
         $name = strtoupper(trim($product_name));
