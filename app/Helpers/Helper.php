@@ -219,10 +219,10 @@ class Helper
             "MEN'S 2 PC SUIT (JKT+TRS)"     => ["mens_jacket_suit","trouser"],
             "MEN'S 3 PC SUIT (JKT+TRS+W/C)"     => ["mens_jacket_suit","trouser"],
             "LADIES JACKET"    => ["ladies_jacket_suit"],
-            "LADIES 2 PC SUIT (L.JKT+L.TRS)"    => ["ladies_jacket_suit","trouser"],
-            "LADIES 2 PC SUIT (L.JKT+L.SKIRT)"    => ["ladies_jacket_suit"],
+            "LADIES SUIT (L.JKT+L.TRS)"    => ["ladies_jacket_suit","trouser"],
+            "LADIES SUIT (L.JKT+L.SKT)"    => ["ladies_jacket_suit"],
+            "LADIES SUIT (L.JKT+L.SKT+L.W/C)" => ["ladies_jacket_suit"],
             "LADIES 3 PC SUIT (L.JKT+L.TRS+L.W/C)"    => ["ladies_jacket_suit","trouser"],
-            "LADIES 3 PC SUIT(L.JKT+L.SKT+L.W/C)"    => ["ladies_jacket_suit"],
             "MEN'S TROUSER"  => ["trouser"],
             "LADIES TROUSER" => ["trouser"],
             "MEN'S KURTA" => ["trouser"],
@@ -232,8 +232,8 @@ class Helper
             "MEN'S HUNTING SHIRT" => ["shirt"],
             "MEN'S SAFARI SHIRT" => ["shirt"],
             "LADIES SHIRT" => ["shirt"],
+            "LADIES SAFARI SHIRT" => ["shirt"],
             "LADIES HUNTING SHIRT" => ["shirt"],
-
         ];
 
         $name = strtoupper(trim($product_name));
