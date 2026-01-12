@@ -591,12 +591,12 @@ class OrderEdit extends Component
             if ($this->remaining_amount < 0) {
                 $this->remaining_amount = 0;
                 $this->paid_amount = $this->billing_amount;
-                session()->flash('errorAmount', 'ðŸš¨ The paid amount exceeds the billing amount.');
+                session()->flash('errorAmount', 'The paid amount exceeds the billing amount.');
             }
         } else {
             $this->paid_amount = 0;
 
-            session()->flash('errorAmount', 'ðŸš¨ Please add item amount first.');
+            session()->flash('errorAmount', 'Please add item amount first.');
         }
     }
 

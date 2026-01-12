@@ -702,41 +702,7 @@ class OrderNew extends Component
 
 
 
-    // public function validateMeasurement($itemIndex, $measurementId)
-    // {
-    //     $measurement = $this->items[$itemIndex]['get_measurements'][$measurementId] ?? null;
-
-    //     if ($measurement) {
-    //         $value = trim($measurement['value'] ?? '');
-
-    //         if ($value === '') {
-    //             $this->addError("items.$itemIndex.get_measurements.$measurementId.value", 'Measurement value is required.');
-    //         } elseif (!is_numeric($value) || floatval($value) < 1) {
-    //             $this->addError("items.$itemIndex.get_measurements.$measurementId.value", 'Measurement must be a number greater than 0.');
-    //         } else {
-    //             $this->resetErrorBag("items.$itemIndex.get_measurements.$measurementId.value");
-    //         }
-
-    //         // Check if all required measurements for the product are present
-    //         $productId = $this->items[$itemIndex]['product_id'] ?? null;
-
-    //         if ($productId) {
-    //             $expectedMeasurementIds = Measurement::where('product_id', $productId)->pluck('id')->toArray();
-
-    //             $enteredMeasurementIds = array_keys(array_filter($this->items[$itemIndex]['get_measurements'] ?? [], function ($m) {
-    //                 return isset($m['value']) && is_numeric($m['value']) && floatval($m['value']) > 0;
-    //             }));
-
-    //             $missing = array_diff($expectedMeasurementIds, $enteredMeasurementIds);
-
-    //             if (!empty($missing)) {
-    //                 session()->flash("measurements_error.$itemIndex", '🚨 Oops! All measurement data should be mandatory.');
-    //             } else {
-    //                 session()->forget("measurements_error.$itemIndex");
-    //             }
-    //         }
-    //     }
-    // }
+   
 
     
 
@@ -850,16 +816,7 @@ class OrderNew extends Component
         $this->updateBillingAmount(); // Update billing after validation
     }
 
-    // public function updateBillingAmount()
-    // {
-    //     // Recalculate the total billing amount
-    //     $itemTotal = array_sum(array_column($this->items, 'price'));
-    //     $airMail = floatval($this->air_mail);
-    //     $this->billing_amount = $airMail > 0 ? ($itemTotal + $airMail) : $itemTotal;
-    //     $this->paid_amount = $this->billing_amount;
-    //     $this->GetRemainingAmount($this->paid_amount);
-    //     return;
-    // }
+    
 
     public function updateBillingAmount()
     {
@@ -1002,17 +959,7 @@ class OrderNew extends Component
             $this->items[$index]['existing_measurements'] = [];
         }
     }
-    // public function copyMeasurements($index){
-    //     if ($index > 0) {
-    //         if (!empty($this->items[$index]['copy_previous_measurements'])) {
-    //             if (!empty($this->items[$index - 1]['get_measurements'])) {
-    //                 $this->items[$index]['get_measurements'] = $this->items[$index - 1]['get_measurements'];
-    //             }
-    //         } else {
-    //             $this->items[$index]['get_measurements'] = [];
-    //         }
-    //     }
-    // }
+   
     public function copyMeasurements($index)
 {
     if (empty($this->items[$index]['copy_previous_measurements'])) {
@@ -1480,12 +1427,7 @@ protected function fillMatchingMeasurements($currentIndex, $sourceIndex)
 
                         $value = trim($measurement['value']);
 
-                        // if ($value === '' || !is_numeric($value) || floatval($value) < 1) {
-                        //     $measurement_data = Measurement::find($mindex);
-                        //     $title = $measurement_data->title ?? 'Unknown';
-                        //     session()->flash('measurements_error.' . $k, '🚨 Oops! Measurement "' . $title . '" must be numeric and greater than 0.');
-                        //     return;
-                        // }
+                       
 
                         // Now store only validated value
                         $measurement_data = Measurement::find($mindex);
@@ -1740,14 +1682,7 @@ protected function fillMatchingMeasurements($currentIndex, $sourceIndex)
             }
 
 
-            // // validate customer image
-            // if (empty($this->customer_image)) {
-            //     $this->errorClass['customer_image'] = 'border-danger';
-            //     $this->errorMessage['customer_image'] = 'Please choose customer image';
-            // } else {
-            //     $this->errorClass['customer_image'] = null;
-            //     $this->errorMessage['customer_image'] = null;
-            // }
+            
 
 
            // Validate Phone Number
