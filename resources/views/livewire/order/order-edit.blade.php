@@ -186,20 +186,7 @@
                                 </div>
                             </div>
 
-                            {{-- <div class="mb-2 col-md-3">
-                                <label for="customer_image" class="form-label">Client Image <span
-                                        class="small text-danger">*</span></label>
-                                <input type="file" wire:model="customer_image" id="customer_image"
-                                    class="form-control form-control-sm border border-1 p-2 {{ $errorClass['customer_image'] ?? '' }}">
-                                @if(isset($errorMessage['customer_image']))
-                                <div class="text-danger error-message">{{ $errorMessage['customer_image'] }}</div>
-                                @endif
-                                @if ($customer_image)
-                                <div class="mt-2">
-                                    <img src="{{ asset($customer_image) }}" alt="" class="img-thumbnail" width="100">
-                                </div>
-                                @endif
-                            </div> --}}
+                           
                         </div>
 
 
@@ -697,14 +684,7 @@
                                                 class="form-control form-control-sm border border-2 @error('items.'.$index.'.page_number') border-danger @enderror"
                                                 min="1"
                                                 max="{{ isset($item['selectedCatalogue']) && isset($maxPages[$index][$item['selectedCatalogue']]) ? $maxPages[$index][$item['selectedCatalogue']] : '' }}"
-                                                @if($isDisabled) disabled @endif {{-- @if($orders->status != 'On Hold'
-                                            && isset($item['selectedCatalogue'])
-                                            && isset($item['catalogues'])
-                                            && collect($item['catalogues'])->firstWhere('id',
-                                            $item['selectedCatalogue'])['catalogue_title']['title'] === 'No Catalogue
-                                            Images')
-                                            disabled
-                                            @endif --}}
+                                                @if($isDisabled) disabled @endif 
                                             @if(
                                             $orders->status !== 'On Hold'
                                             && isset($item['selectedCatalogue'])
@@ -725,8 +705,7 @@
                                         </div>
                                         {{-- Page item --}}
                                         <div class="mb-3 col-md-5">
-                                            {{-- @if(isset($catalogue_page_item) &&
-                                            !empty($catalogue_page_item[$index])) --}}
+                                           
                                             @if(!empty($items[$index]['pageItems']))
                                             <label class="form-label"><strong>Page Item</strong></label>
                                             <select wire:model="items.{{$index}}.page_item"

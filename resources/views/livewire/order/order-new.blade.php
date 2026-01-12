@@ -398,18 +398,6 @@
                                     <label for="is_whatsapp3" class="form-check-label ms-1">Is Whatsapp</label>
                                 </div>
                             </div>
-
-                            {{-- <div class="mb-2 col-md-3">
-                                <label for="customer_image" class="form-label">Client Image <span
-                                        class="small text-danger">*</span></label>
-                                <input type="file" wire:model="customer_image" id="customer_image"
-                                    class="form-control form-control-sm border border-1 p-2 {{ $errorClass['customer_image'] ?? '' }}">
-                                @if(isset($errorMessage['customer_image']))
-                                <div class="text-danger error-message">{{ $errorMessage['customer_image'] }}</div>
-                                @endif
-                            </div> --}}
-
-
                         </div>
 
                         <div class="">

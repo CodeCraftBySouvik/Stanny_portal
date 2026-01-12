@@ -1362,18 +1362,24 @@ protected function fillMatchingMeasurements($currentIndex, $sourceIndex)
 
                 // Extra Fields
                 if ($item['collection'] == 1) {
-                    $extra = $this->extra_measurement[$k] ?? null;
+                    $extra = $this->extra_measurement[$k] ?? [];    
 
-                    if ($extra == 'mens_jacket_suit') {
+                     /* ================= MEN JACKET ================= */
+                    if (in_array('mens_jacket_suit',$extra)) {
                         $orderItem->vents = $item['vents'] ?? null;
                         $orderItem->shoulder_type = $item['shoulder_type'] ?? null;
-                    } elseif ($extra == 'ladies_jacket_suit') {
+                    } 
+                        /* ================= LADIES JACKET ================= */
+                    if ($extra == 'ladies_jacket_suit') {
                         $orderItem->shoulder_type = $item['shoulder_type'] ?? null;
                         $orderItem->vents_required = $item['vents_required'] ?? null;
                         if ($orderItem->vents_required) {
                             $orderItem->vents_count = $item['vents_count'] ?? null;
                         }
-                    } elseif ($extra == 'trouser') {
+                    } 
+
+                      /* ================= TROUSER ================= */
+                    if (in_array('trouser',$extra)) {
                         $orderItem->fold_cuff_required   = $item['fold_cuff_required'] ?? null;
                         if ($orderItem->fold_cuff_required=="Yes") {
                             $orderItem->fold_cuff_size  = $item['fold_cuff_size'] ?? null;
@@ -1395,7 +1401,10 @@ protected function fillMatchingMeasurements($currentIndex, $sourceIndex)
                         $orderItem->adjustable_belt      = $item['adjustable_belt'] ?? null;
                         $orderItem->suspender_button     = $item['suspender_button'] ?? null;
                         $orderItem->trouser_position     = $item['trouser_position'] ?? null;
-                    }elseif ($extra == 'shirt') {
+                    }
+
+                    /* ================= SHIRT ================= */
+                    if (in_array('shirt',$extra)) {
                         $orderItem->sleeves       = $item['sleeves'] ?? null;          // L/S or H/S
                         $orderItem->collar        = $item['collar'] ?? null;           // Normal or Other
                         $orderItem->collar_style  = $item['collar_style'] ?? null;     // If "Other"
@@ -1403,7 +1412,9 @@ protected function fillMatchingMeasurements($currentIndex, $sourceIndex)
                         $orderItem->cuffs         = $item['cuffs'] ?? null;            // Regular / French / Other
                         $orderItem->cuff_style    = $item['cuff_style'] ?? null;       // If "Other"
                     }
-                    if ($extra === 'ladies_jacket_suit' || $extra === 'shirt' || $extra === 'mens_jacket_suit') {
+
+                     /* ================= CLIENT NAME (COMMON) ================= */
+                    if (in_array('ladies_jacket_suit',$extra) || in_array('shirt',$extra) || in_array('mens_jacket_suit',$extra)) {
                         $orderItem->client_name_required = $item['client_name_required'] ?? null;
                         if ($orderItem->client_name_required=="Yes") {
                             $orderItem->client_name_place = $item['client_name_place'] ?? null;
