@@ -1181,7 +1181,7 @@ protected function resetMeasurements($index)
                     'company_name' => $this->company_name,
                     'employee_rank' => $this->employee_rank,
                     'email' => $this->email,
-                    'dob' => $this->dob,
+                    'dob' => !empty($this->dob) ? $this->dob : null,
                     'phone' => $this->phone,
                     'user_type' => 1, // Customer
                     'alternative_phone_number_1' => $this->alternative_phone_number_1,
@@ -1198,7 +1198,7 @@ protected function resetMeasurements($index)
                     'company_name' => $this->company_name,
                     'employee_rank' => $this->employee_rank,
                     'email' => $this->email,
-                    'dob' => $this->dob,
+                    'dob' => !empty($this->dob) ? $this->dob : null,
                     'business_type' => $this->selectedBusinessType,
                     'country_id' => $this->selectedCountryId,
                     'country_code' => $this->country_code,
