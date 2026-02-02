@@ -111,151 +111,7 @@ class OrderLog extends Component
             'order'=>$this->order
         ]);
     }
-    // private function renderDiff($data)
-    // {
-    //     $label="";
-    //     foreach($data as $key =>$val)
-    //     {
-
-    //       if($key=='items')
-    //       {
-
-    //         if($this->isAssoc($val))
-    //         {
-    //             $label.='Item>>'.$this->fetchItem($val['id']);
-    //             foreach($val as $key=> $sub_val)
-    //             {
-    //                 //$label.=$sub_val;
-    //              if(is_array($sub_val))
-    //              {
-    //                 $label.='>>'.$this->subObject($sub_val,$key);
-
-    //                 //$label.=$this->subObject($sub_val,$key);exit;
-    //              }
-    //              else{
-    //                 if(!in_array($key,$this->ignore_fields))
-    //                 {
-    //                     if($key=='expected_delivery_date')
-    //                     {
-    //                         $sub_val= Date('Y-m-d',strtotime($sub_val));
-    //                     }
-    //                     $title=Str::title(value: $key);
-    //                     if(!empty($this->fields[$key]))
-    //                     {
-    //                         $title=$this->fields[$key];
-    //                     }
-    //                     if(empty($sub_val))
-    //                     {
-    //                         $sub_val="N/A";
-    //                     }
-    //                     $label.='>>'.$title.'>>'.$sub_val;
-
-    //                 }
-    //              }
-    //             }
-    //         }
-    //         else{
-    //             foreach($val as $key=> $sub_val)
-    //             {
-    //             $label.='Item>>'.$this->fetchItem($sub_val['id']);
-    //             foreach($sub_val as $sub_key=> $sub_sub_val)
-    //             {
-    //                 //$label.=$sub_val;
-    //                 if(is_array($sub_sub_val))
-    //                 {
-    //                 $label.='>>'.$this->subObject($sub_sub_val,$sub_key);
-
-    //                 //$label.=$this->subObject($sub_val,$key);exit;
-    //                 }
-    //                 else{
-    //                 if(!in_array($sub_key,$this->ignore_fields))
-    //                 {
-    //                     $title=Str::title(value: $sub_key);
-    //                     if(!empty($this->fields[$sub_key]))
-    //                     {
-    //                         $title=$this->fields[$sub_key];
-    //                     }
-    //                     if($sub_key=='expected_delivery_date')
-    //                     {
-    //                         $sub_sub_val= Date('Y-m-d',strtotime($sub_sub_val));
-    //                         $label.='>>'.$title.'>>'.$sub_sub_val;
-
-
-    //                     }
-    //                     else if(in_array($sub_key,$this->relational_tables))
-    //                     {
-    //                         if(empty($sub_sub_val))
-    //                         {
-    //                             $sub_sub_val="N/A";
-    //                         }
-    //                         $label.='>>'.$this->subObject(['id'=>$sub_sub_val],$sub_key);
-
-    //                     }
-
-    //                     else{
-    //                         if(empty($sub_sub_val))
-    //                         {
-    //                             $sub_sub_val="N/A";
-    //                         }
-    //                         $label.='>>'.$title.'>>'.$sub_sub_val;
-
-    //                     }
-
-    //                 }
-    //                 }
-    //                 $label.='<br>';
-    //             }
-
-    //             }
-
-    //         }
-    //       }
-    //       else{
-    //          if($key=='customer')
-    //          {
-    //             $label.='Customer>>';
-    //          }
-    //         foreach($val as $key=> $sub_val)
-    //         {
-
-    //             foreach($sub_val as $sub_key=> $sub_sub_val)
-    //             {
-    //                  $title=Str::title($sub_key);
-
-    //                  if(!empty($this->fields[$sub_key]))
-    //                  {
-
-    //                     $title=$this->fields[$sub_key];
-    //                  }
-    //                 if(!in_array($sub_key,$this->ignore_fields))
-    //                 {
-    //                     if ($sub_key=='dob')
-    //                     {
-    //                         $sub_sub_val= Date('Y-m-d',strtotime($sub_sub_val));
-    //                     }
-    //                     else if($sub_key=='customer_image'){
-    //                         if(!empty($sub_sub_val))
-    //                         {
-    //                             $sub_sub_val='<img src="'.asset($sub_sub_val).'" alt="" class="img-thumbnail" width="100">';
-
-    //                         }
-    //                     }
-    //                     if(empty($sub_sub_val))
-    //                     {
-    //                         $sub_sub_val="N/A";
-    //                     }
-    //                     $label.=$title.'>>'.$sub_sub_val;
-    //                 }
-    //                 $label.="<br>";
-    //             }
-
-    //         }
-    //       }
-
-    //     }
-    //     //echo $label;
-    //     return  preg_replace('/\s*>>\s*/', '>>', $label);
-    // }
+   
 
     private function renderDiff($data)
 {
@@ -367,6 +223,8 @@ class OrderLog extends Component
 
     private function subObject($arr,$sub_label)
     {
+         $label = "";
+         
         if($sub_label=='measurements')
         {
 
