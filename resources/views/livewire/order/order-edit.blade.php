@@ -111,7 +111,7 @@
                                     class="form-control form-control-sm border border-1 p-2 {{ $errorClass['email'] ?? '' }}"
                                     placeholder="Enter Email">
                                 @if(isset($errorMessage['email']))
-                                <div class="text-danger">{{ $errorMessage['email'] }}</div>
+                                <div class="text-danger error-message">{{ $errorMessage['email'] }}</div>
                                 @endif
                             </div>
 
@@ -448,7 +448,7 @@
                                         value="{{ optional(collect($items[$index]['fabrics'])->firstWhere('id', $items[$index]['selected_fabric']))->title }}"
                                         autocomplete="off" @if($isDisabled) disabled @endif>
                                     @error("items.". $index .".searchTerm")
-                                    <div class="text-danger">{{ $message }}</div>
+                                    <div class="text-danger error-message">{{ $message }}</div>
                                     @enderror
 
                                     @if(!empty($items[$index]['searchResults']))
