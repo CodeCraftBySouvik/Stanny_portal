@@ -112,145 +112,145 @@ class OrderController extends Controller
 
     }
 
-    public function cashbookModule(Request $request)
-{
-    try {
-            $user = Auth::guard('api')->user();
+//     public function cashbookModule(Request $request)
+// {
+//     try {
+//             $user = Auth::guard('api')->user();
 
-        if (!$user) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Unauthorized access. Please login first.'
-            ], 401);
-        }
+//         if (!$user) {
+//             return response()->json([
+//                 'status' => false,
+//                 'message' => 'Unauthorized access. Please login first.'
+//             ], 401);
+//         }
 
-        //  Only designation 1 or super_admin can view all data
-        $isAdmin = ($user->designation == 1) || ($user->is_super_admin ?? false);
+//         //  Only designation 1 or super_admin can view all data
+//         $isAdmin = ($user->designation == 1) || ($user->is_super_admin ?? false);
 
-        $startDate = Carbon::parse($request->start_date)->startOfDay();
-        $endDate = Carbon::parse($request->end_date)->endOfDay();
+//         $startDate = Carbon::parse($request->start_date)->startOfDay();
+//         $endDate = Carbon::parse($request->end_date)->endOfDay();
 
-        // Opening balance calculations
-        $pastCollections = PaymentCollection::where('is_approve', 1)
-            ->when(!$isAdmin, fn($q) => $q->where('user_id', $user->id))
-            ->whereDate('created_at', '<', $startDate)
-            ->sum('collection_amount');
+//         // Opening balance calculations
+//         $pastCollections = PaymentCollection::where('is_approve', 1)
+//             ->when(!$isAdmin, fn($q) => $q->where('user_id', $user->id))
+//             ->whereDate('created_at', '<', $startDate)
+//             ->sum('collection_amount');
 
-        $pastExpenses = Journal::where('is_debit', 1)
-            ->whereDate('created_at', '<', $startDate)
-            ->when(!$isAdmin, fn($q) =>
-                $q->whereHas('payment', fn($p) => $p->where('stuff_id', $user->id))
-            )
-            ->sum('transaction_amount');
+//         $pastExpenses = Journal::where('is_debit', 1)
+//             ->whereDate('created_at', '<', $startDate)
+//             ->when(!$isAdmin, fn($q) =>
+//                 $q->whereHas('payment', fn($p) => $p->where('stuff_id', $user->id))
+//             )
+//             ->sum('transaction_amount');
 
-        $openingBalance = $pastCollections - $pastExpenses;
+//         $openingBalance = $pastCollections - $pastExpenses;
 
-        // Helper closure for date filtering
-        $applyDateFilter = fn($q) => $q->whereBetween('created_at', [$startDate, $endDate]);
+//         // Helper closure for date filtering
+//         $applyDateFilter = fn($q) => $q->whereBetween('created_at', [$startDate, $endDate]);
 
-        //  COLLECTIONS
-        $collectionQuery = PaymentCollection::where('is_approve', 1)
-            ->when(!$isAdmin, fn($q) => $q->where('user_id', $user->id))
-            ->when($request->staff_id, fn($q) => $q->where('user_id', $request->staff_id))
-            ->where(function ($query) {
-                $query->where('payment_type', '!=', 'cheque')
-                      ->orWhere(fn($sub) => $sub->where('payment_type', 'cheque')->whereNotNull('credit_date'));
-            });
-        $applyDateFilter($collectionQuery);
-        $totalCollections = $collectionQuery->sum('collection_amount') + $collectionQuery->sum('withdrawal_charge');
+//         //  COLLECTIONS
+//         $collectionQuery = PaymentCollection::where('is_approve', 1)
+//             ->when(!$isAdmin, fn($q) => $q->where('user_id', $user->id))
+//             ->when($request->staff_id, fn($q) => $q->where('user_id', $request->staff_id))
+//             ->where(function ($query) {
+//                 $query->where('payment_type', '!=', 'cheque')
+//                       ->orWhere(fn($sub) => $sub->where('payment_type', 'cheque')->whereNotNull('credit_date'));
+//             });
+//         $applyDateFilter($collectionQuery);
+//         $totalCollections = $collectionQuery->sum('collection_amount') + $collectionQuery->sum('withdrawal_charge');
 
-        //  COLLECTION BY TYPE
-        $types = ['cash', 'neft', 'digital_payment', 'cheque'];
-        $totals = [];
-        foreach ($types as $type) {
-            $query = PaymentCollection::where('is_approve', 1)
-                ->where('payment_type', $type)
-                ->when(!$isAdmin, fn($q) => $q->where('user_id', $user->id))
-                ->when($request->staff_id, fn($q) => $q->where('user_id', $request->staff_id));
+//         //  COLLECTION BY TYPE
+//         $types = ['cash', 'neft', 'digital_payment', 'cheque'];
+//         $totals = [];
+//         foreach ($types as $type) {
+//             $query = PaymentCollection::where('is_approve', 1)
+//                 ->where('payment_type', $type)
+//                 ->when(!$isAdmin, fn($q) => $q->where('user_id', $user->id))
+//                 ->when($request->staff_id, fn($q) => $q->where('user_id', $request->staff_id));
 
-            if ($type === 'cheque') {
-                $query->whereNotNull('credit_date');
-            }
+//             if ($type === 'cheque') {
+//                 $query->whereNotNull('credit_date');
+//             }
 
-            $applyDateFilter($query);
-            $totals[$type] = $query->sum('collection_amount');
-        }
+//             $applyDateFilter($query);
+//             $totals[$type] = $query->sum('collection_amount');
+//         }
 
-        //  EXPENSES
-        $expenseQuery = Journal::where('is_debit', 1)
-            ->whereNotNull('payment_id')
-            ->when(!$isAdmin, fn($q) =>
-                $q->whereHas('payment', fn($p) => $p->where('stuff_id', $user->id))
-            )
-            ->when($request->staff_id, fn($q) =>
-                $q->whereHas('payment', fn($p) => $p->where('stuff_id', $request->staff_id))
-            );
-        $applyDateFilter($expenseQuery);
-        $totalExpenses = $expenseQuery->sum('transaction_amount');
+//         //  EXPENSES
+//         $expenseQuery = Journal::where('is_debit', 1)
+//             ->whereNotNull('payment_id')
+//             ->when(!$isAdmin, fn($q) =>
+//                 $q->whereHas('payment', fn($p) => $p->where('stuff_id', $user->id))
+//             )
+//             ->when($request->staff_id, fn($q) =>
+//                 $q->whereHas('payment', fn($p) => $p->where('stuff_id', $request->staff_id))
+//             );
+//         $applyDateFilter($expenseQuery);
+//         $totalExpenses = $expenseQuery->sum('transaction_amount');
 
-        //  WALLET GIVEN
-        $walletCredits = Journal::where('is_debit', 1)
-            ->when(!$isAdmin, function ($query) use ($user) {
-                $query->where(function ($sub) use ($user) {
-                    $sub->whereHas('payment', fn($p) => $p->where('stuff_id', $user->id))
-                        ->orWhereNull('payment_id');
-                });
-            })
-            ->when($request->staff_id, fn($q) =>
-                $q->whereHas('payment', fn($p) => $p->where('stuff_id', $request->staff_id))
-            );
-        $applyDateFilter($walletCredits);
-        $totalWalletGiven = $walletCredits->sum('transaction_amount');
+//         //  WALLET GIVEN
+//         $walletCredits = Journal::where('is_debit', 1)
+//             ->when(!$isAdmin, function ($query) use ($user) {
+//                 $query->where(function ($sub) use ($user) {
+//                     $sub->whereHas('payment', fn($p) => $p->where('stuff_id', $user->id))
+//                         ->orWhereNull('payment_id');
+//                 });
+//             })
+//             ->when($request->staff_id, fn($q) =>
+//                 $q->whereHas('payment', fn($p) => $p->where('stuff_id', $request->staff_id))
+//             );
+//         $applyDateFilter($walletCredits);
+//         $totalWalletGiven = $walletCredits->sum('transaction_amount');
 
-        $totalWallet = $openingBalance + ($totalCollections + $totalWalletGiven - $totalExpenses);
+//         $totalWallet = $openingBalance + ($totalCollections + $totalWalletGiven - $totalExpenses);
 
-        //  PAYMENT COLLECTIONS (detailed list)
-        $paymentCollections = PaymentCollection::where('is_approve', 1)
-            ->when(!$isAdmin, fn($q) => $q->where('user_id', $user->id))
-            ->when($request->staff_id, fn($q) => $q->where('user_id', $request->staff_id))
-            ->where(function ($query) {
-                $query->where('payment_type', '!=', 'cheque')
-                      ->orWhere(fn($sub) => $sub->where('payment_type', 'cheque')->whereNotNull('credit_date'));
-            });
-        $applyDateFilter($paymentCollections);
-        $paymentCollections = $paymentCollections->orderByDesc('created_at')
-            ->where('collection_amount', '>', 0)
-            ->get();
+//         //  PAYMENT COLLECTIONS (detailed list)
+//         $paymentCollections = PaymentCollection::where('is_approve', 1)
+//             ->when(!$isAdmin, fn($q) => $q->where('user_id', $user->id))
+//             ->when($request->staff_id, fn($q) => $q->where('user_id', $request->staff_id))
+//             ->where(function ($query) {
+//                 $query->where('payment_type', '!=', 'cheque')
+//                       ->orWhere(fn($sub) => $sub->where('payment_type', 'cheque')->whereNotNull('credit_date'));
+//             });
+//         $applyDateFilter($paymentCollections);
+//         $paymentCollections = $paymentCollections->orderByDesc('created_at')
+//             ->where('collection_amount', '>', 0)
+//             ->get();
 
-        //  PAYMENT EXPENSES (detailed list)
-        $validPaymentIds = Journal::whereNotNull('payment_id')->pluck('payment_id');
-        $paymentExpenses = Payment::where('payment_for', 'debit')
-            ->whereIn('id', $validPaymentIds)
-            ->when(!$isAdmin, fn($q) => $q->where('stuff_id', $user->id))
-            ->when($request->staff_id, fn($q) => $q->where('stuff_id', $request->staff_id));
-        $applyDateFilter($paymentExpenses);
-        $paymentExpenses = $paymentExpenses->orderByDesc('created_at')->get();
+//         //  PAYMENT EXPENSES (detailed list)
+//         $validPaymentIds = Journal::whereNotNull('payment_id')->pluck('payment_id');
+//         $paymentExpenses = Payment::where('payment_for', 'debit')
+//             ->whereIn('id', $validPaymentIds)
+//             ->when(!$isAdmin, fn($q) => $q->where('stuff_id', $user->id))
+//             ->when($request->staff_id, fn($q) => $q->where('stuff_id', $request->staff_id));
+//         $applyDateFilter($paymentExpenses);
+//         $paymentExpenses = $paymentExpenses->orderByDesc('created_at')->get();
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Cash Book Summary fetched successfully',
-            'data' => [
-                'opening_balance' => $openingBalance,
-                'total_collections' => $totalCollections,
-                'total_cash' => $totals['cash'] ?? 0,
-                'total_neft' => $totals['neft'] ?? 0,
-                'total_digital' => $totals['digital_payment'] ?? 0,
-                'total_cheque' => $totals['cheque'] ?? 0,
-                'total_expenses' => $totalExpenses,
-                'wallet_given' => $totalWalletGiven,
-                'final_wallet_balance' => $totalWallet,
-                'payment_collections' => $paymentCollections,
-                'payment_expenses' => $paymentExpenses
-            ]
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => false,
-            'message' => 'Error fetching Cash Book Summary',
-            'error' => $e->getMessage()
-        ], 500);
-    }
-}
+//         return response()->json([
+//             'status' => true,
+//             'message' => 'Cash Book Summary fetched successfully',
+//             'data' => [
+//                 'opening_balance' => $openingBalance,
+//                 'total_collections' => $totalCollections,
+//                 'total_cash' => $totals['cash'] ?? 0,
+//                 'total_neft' => $totals['neft'] ?? 0,
+//                 'total_digital' => $totals['digital_payment'] ?? 0,
+//                 'total_cheque' => $totals['cheque'] ?? 0,
+//                 'total_expenses' => $totalExpenses,
+//                 'wallet_given' => $totalWalletGiven,
+//                 'final_wallet_balance' => $totalWallet,
+//                 'payment_collections' => $paymentCollections,
+//                 'payment_expenses' => $paymentExpenses
+//             ]
+//         ]);
+//     } catch (\Exception $e) {
+//         return response()->json([
+//             'status' => false,
+//             'message' => 'Error fetching Cash Book Summary',
+//             'error' => $e->getMessage()
+//         ], 500);
+//     }
+// }
 
     
     
@@ -1123,152 +1123,152 @@ class OrderController extends Controller
      * Store Payment Collection API
      */
     
-        public function paymentReceiptSave(Request $request)
-    {
-        // Base rules
-        $rules = [
-            'customer_id'       => 'required|exists:users,id',
-            'staff_id'          => 'required|exists:users,id',
-            'collection_amount' => 'required|numeric|min:0.01',
-            'payment_type'      => 'required|in:cash,cheque,digital_payment,neft',
-            'voucher_no'        => 'nullable|string',
-            'payment_date'      => 'required|date',
-            'next_payment_date' => 'nullable|date',
-            'deposit_date'      => 'nullable|date',
-            'payment_collection_id' => 'nullable|integer|exists:payment_collections,id',
-        ];
+    //     public function paymentReceiptSave(Request $request)
+    // {
+    //     // Base rules
+    //     $rules = [
+    //         'customer_id'       => 'required|exists:users,id',
+    //         'staff_id'          => 'required|exists:users,id',
+    //         'collection_amount' => 'required|numeric|min:0.01',
+    //         'payment_type'      => 'required|in:cash,cheque,digital_payment,neft',
+    //         'voucher_no'        => 'nullable|string',
+    //         'payment_date'      => 'required|date',
+    //         'next_payment_date' => 'nullable|date',
+    //         'deposit_date'      => 'nullable|date',
+    //         'payment_collection_id' => 'nullable|integer|exists:payment_collections,id',
+    //     ];
 
-        // add conditional rules
-        if ($request->payment_type === 'cheque') {
-            $rules['cheque_number'] = 'required|string|max:255';
-            // deposit_date may be required depending on business rules; include as needed
-            $rules['deposit_date'] = 'required|date';
-            $rules['cheque_file'] = 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120';
-        } elseif ($request->payment_type === 'digital_payment') {
-            $rules['transaction_no'] = 'required|string|max:255';
-            $rules['withdrawal_charge'] = 'required|numeric|min:0';
-        } elseif ($request->payment_type === 'neft') {
-            $rules['cheque_number'] = 'required|string|max:255';
-        }
+    //     // add conditional rules
+    //     if ($request->payment_type === 'cheque') {
+    //         $rules['cheque_number'] = 'required|string|max:255';
+    //         // deposit_date may be required depending on business rules; include as needed
+    //         $rules['deposit_date'] = 'required|date';
+    //         $rules['cheque_file'] = 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120';
+    //     } elseif ($request->payment_type === 'digital_payment') {
+    //         $rules['transaction_no'] = 'required|string|max:255';
+    //         $rules['withdrawal_charge'] = 'required|numeric|min:0';
+    //     } elseif ($request->payment_type === 'neft') {
+    //         $rules['cheque_number'] = 'required|string|max:255';
+    //     }
 
-        // If updating an existing collection, avoid voucher duplicate rule on same record
-        if ($request->filled('payment_collection_id')) {
-            $rules['voucher_no'] .= ',voucher_no,' . $request->payment_collection_id . ',id';
-        } else {
-            $rules['voucher_no'] .= '|unique:payment_collections,voucher_no';
-        }
+    //     // If updating an existing collection, avoid voucher duplicate rule on same record
+    //     if ($request->filled('payment_collection_id')) {
+    //         $rules['voucher_no'] .= ',voucher_no,' . $request->payment_collection_id . ',id';
+    //     } else {
+    //         $rules['voucher_no'] .= '|unique:payment_collections,voucher_no';
+    //     }
 
-        $validator = Validator::make($request->all(), $rules);
+    //     $validator = Validator::make($request->all(), $rules);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
-        }
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'errors' => $validator->errors(),
+    //         ], 422);
+    //     }
 
-        try {
-            DB::beginTransaction();
-            $customer = User::find($request->customer_id);
-            if(!$customer){
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Customer not found in users table.'
-                ],422);
-            }
-            // Prepare data mapping exactly as repository expects
-            $data = [
-                'customer_id'           => $customer->id,
-                'staff_id'              => $request->staff_id,        
-                'amount'                => $request->collection_amount,
-                'payment_mode'          => $request->payment_type,    // repository expects 'payment_mode'
-                'voucher_no'            => 'PAYRECEIPT'.time(),
-                'payment_date'          => $request->payment_date,
-                'receipt_for'           => $request->input('receipt_for', 'Customer'), // default
-                'payment_collection_id' => $request->payment_collection_id ?? null,
-                'credit_date'           => $request->credit_date ?? null, // optional
-                'next_payment_date'     => $request->next_payment_date ?? null,
-                'deposit_date'          => $request->deposit_date ?? null,
-            ];
-            // dd($data);
+    //     try {
+    //         DB::beginTransaction();
+    //         $customer = User::find($request->customer_id);
+    //         if(!$customer){
+    //             return response()->json([
+    //                 'status' => false,
+    //                 'message' => 'Customer not found in users table.'
+    //             ],422);
+    //         }
+    //         // Prepare data mapping exactly as repository expects
+    //         $data = [
+    //             'customer_id'           => $customer->id,
+    //             'staff_id'              => $request->staff_id,        
+    //             'amount'                => $request->collection_amount,
+    //             'payment_mode'          => $request->payment_type,    // repository expects 'payment_mode'
+    //             'voucher_no'            => 'PAYRECEIPT'.time(),
+    //             'payment_date'          => $request->payment_date,
+    //             'receipt_for'           => $request->input('receipt_for', 'Customer'), // default
+    //             'payment_collection_id' => $request->payment_collection_id ?? null,
+    //             'credit_date'           => $request->credit_date ?? null, // optional
+    //             'next_payment_date'     => $request->next_payment_date ?? null,
+    //             'deposit_date'          => $request->deposit_date ?? null,
+    //         ];
+    //         // dd($data);
 
-            // Payment-mode specific fields
-            if ($request->payment_type === 'cheque') {
-                $data['chq_utr_no'] = $request->cheque_number;
-                $data['bank_name']  = $request->bank_name ?? null;
-                // file upload
-                if ($request->hasFile('cheque_file')) {
-                    $ext = $request->file('cheque_file')->getClientOriginalExtension();
-                    $filename = Str::random(10) . '.' . $ext;
-                    $path = $request->file('cheque_file')->storeAs('uploads/cheque', $filename, 'public');
-                    $data['cheque_photo'] = 'storage/' . $path;
-                } elseif ($request->filled('cheque_photo')) {
-                    // accept pre-uploaded path if provided by client
-                    $data['cheque_photo'] = $request->cheque_photo;
-                }
-            } elseif ($request->payment_type === 'digital_payment') {
-                $data['transaction_no'] = $request->transaction_no;
-                $data['withdrawal_charge'] = $request->withdrawal_charge ?? 0;
-                $data['bank_name'] = $request->bank_name ?? null; 
-                $data['chq_utr_no'] = $request->cheque_number;
-            }
-            elseif ($request->payment_type === 'neft') {
-                $data['bank_name'] = $request->bank_name ?? null; 
-                $data['chq_utr_no'] = $request->cheque_number;
-            } else { // cash
-                // ensure bank fields are empty for cash (repository uses bank_name/chq_utr_no optionally)
-                $data['bank_name'] = null;
-                $data['chq_utr_no'] = null;
-                $data['transaction_no'] = null;
-                $data['withdrawal_charge'] = null;
-            }
+    //         // Payment-mode specific fields
+    //         if ($request->payment_type === 'cheque') {
+    //             $data['chq_utr_no'] = $request->cheque_number;
+    //             $data['bank_name']  = $request->bank_name ?? null;
+    //             // file upload
+    //             if ($request->hasFile('cheque_file')) {
+    //                 $ext = $request->file('cheque_file')->getClientOriginalExtension();
+    //                 $filename = Str::random(10) . '.' . $ext;
+    //                 $path = $request->file('cheque_file')->storeAs('uploads/cheque', $filename, 'public');
+    //                 $data['cheque_photo'] = 'storage/' . $path;
+    //             } elseif ($request->filled('cheque_photo')) {
+    //                 // accept pre-uploaded path if provided by client
+    //                 $data['cheque_photo'] = $request->cheque_photo;
+    //             }
+    //         } elseif ($request->payment_type === 'digital_payment') {
+    //             $data['transaction_no'] = $request->transaction_no;
+    //             $data['withdrawal_charge'] = $request->withdrawal_charge ?? 0;
+    //             $data['bank_name'] = $request->bank_name ?? null; 
+    //             $data['chq_utr_no'] = $request->cheque_number;
+    //         }
+    //         elseif ($request->payment_type === 'neft') {
+    //             $data['bank_name'] = $request->bank_name ?? null; 
+    //             $data['chq_utr_no'] = $request->cheque_number;
+    //         } else { // cash
+    //             // ensure bank fields are empty for cash (repository uses bank_name/chq_utr_no optionally)
+    //             $data['bank_name'] = null;
+    //             $data['chq_utr_no'] = null;
+    //             $data['transaction_no'] = null;
+    //             $data['withdrawal_charge'] = null;
+    //         }
 
-            // keep backward compatibility: repository sometimes uses 'payment_id' when updating — allow passing it
-            if ($request->filled('payment_id')) {
-                $data['payment_id'] = $request->payment_id;
-            }
+    //         // keep backward compatibility: repository sometimes uses 'payment_id' when updating — allow passing it
+    //         if ($request->filled('payment_id')) {
+    //             $data['payment_id'] = $request->payment_id;
+    //         }
 
-            // call repository (it will insert/update payment, ledger, journals & invoice payments)
-            $this->accountingRepository->StorePaymentReceipt($data);
+    //         // call repository (it will insert/update payment, ledger, journals & invoice payments)
+    //         $this->accountingRepository->StorePaymentReceipt($data);
 
-            // create todos if required (mirrors your Livewire logic)
-            $admin_id = Auth::guard('admin')->check() ? Auth::guard('admin')->id() : Auth::id();
-            if (!empty($data['next_payment_date'])) {
-                TodoList::create([
-                    'user_id' => $data['staff_id'],
-                    'customer_id' => $data['customer_id'],
-                    'created_by' => $admin_id,
-                    'todo_type' => 'Payment',
-                    'todo_date' => $data['next_payment_date'],
-                    'remark' => 'Next Payment Schedule on ' . $data['next_payment_date'],
-                ]);
-            }
-            if (!empty($data['deposit_date'])) {
-                TodoList::create([
-                    'user_id' => $data['staff_id'],
-                    'customer_id' => $data['customer_id'],
-                    'created_by' => $admin_id,
-                    'todo_type' => 'Cheque Deposit',
-                    'todo_date' => $data['deposit_date'],
-                    'remark' => 'Deposit Date ' . $data['deposit_date'],
-                ]);
-            }
+    //         // create todos if required (mirrors your Livewire logic)
+    //         $admin_id = Auth::guard('admin')->check() ? Auth::guard('admin')->id() : Auth::id();
+    //         if (!empty($data['next_payment_date'])) {
+    //             TodoList::create([
+    //                 'user_id' => $data['staff_id'],
+    //                 'customer_id' => $data['customer_id'],
+    //                 'created_by' => $admin_id,
+    //                 'todo_type' => 'Payment',
+    //                 'todo_date' => $data['next_payment_date'],
+    //                 'remark' => 'Next Payment Schedule on ' . $data['next_payment_date'],
+    //             ]);
+    //         }
+    //         if (!empty($data['deposit_date'])) {
+    //             TodoList::create([
+    //                 'user_id' => $data['staff_id'],
+    //                 'customer_id' => $data['customer_id'],
+    //                 'created_by' => $admin_id,
+    //                 'todo_type' => 'Cheque Deposit',
+    //                 'todo_date' => $data['deposit_date'],
+    //                 'remark' => 'Deposit Date ' . $data['deposit_date'],
+    //             ]);
+    //         }
 
-            DB::commit();
+    //         DB::commit();
 
-            return response()->json([
-                'status' => true,
-                'message' => 'Payment collection stored successfully.',
-            ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'status' => false,
-                'message' => 'Failed to store payment collection.',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
+    //         return response()->json([
+    //             'status' => true,
+    //             'message' => 'Payment collection stored successfully.',
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Failed to store payment collection.',
+    //             'error' => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
 
    public function skipOrderBill(Request $request)
 {

@@ -84,10 +84,9 @@ class AuthController extends Controller
             'country_code' => 'required',
             'mobile' => [
             'required',
-            'numeric',
             function ($attribute, $value, $fail) {
                 $exists = User::where('phone', $value)
-                            ->where('user_type', 1)
+                            ->where('user_type', 0)
                             ->exists();
 
                 if (! $exists) {

@@ -10,7 +10,8 @@ use App\Http\Controllers\Api\FabricController;
 use App\Http\Controllers\Api\BusinessTypeController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\OrderController;
-
+use App\Http\Controllers\Api\CashBookController;
+use App\Http\Controllers\Api\AddPaymentController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -34,7 +35,6 @@ Route::post('/forgot-mpin', [AuthController::class, 'forgotMpin']);
 Route::post('/verify-otp-mpin', [AuthController::class, 'verifyOtpMpin']);
 Route::post('/reset-mpin', [AuthController::class, 'resetMpin']);
 
-
 // Route::middleware('auth:sanctum', 'token.expiry')->group(function () {
 Route::middleware('auth:sanctum', 'token.session')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -49,9 +49,8 @@ Route::middleware('auth:sanctum', 'token.session')->group(function () {
     Route::post('/customer/update/{id}', [AuthController::class, 'customer_update']);
     Route::get('/customer/order/list', [OrderController::class, 'customer_order_list']);
     Route::get('/customer/order/detail', [OrderController::class, 'customer_order_detail']);
-
-
-
+    Route::get('/cashbook',[CashBookController::class,'cashbook']);
+    Route::post('/add-payment-receipt', [AddPaymentController::class, 'addPaymentReceipt']);
 
     Route::prefix('user')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('user.index');
@@ -68,8 +67,6 @@ Route::middleware('auth:sanctum', 'token.session')->group(function () {
     
     Route::get('/collection', [CollectionController::class, 'index']);
     
-    
-   
     Route::prefix('product')->group(function () {
         Route::get('/products-category-collection-wise', [ProductController::class, 'getProductsByCategoryAndCollection']);
         Route::get('/products-collection-wise', [ProductController::class, 'getProductsByCollection']);
@@ -84,10 +81,7 @@ Route::middleware('auth:sanctum', 'token.session')->group(function () {
         Route::get('/pages', [ProductController::class, 'pages']);
         Route::get('/page/item', [ProductController::class, 'pageItem']);
         Route::get('/products-collection-wise', [ProductController::class, 'getProductsByCollection']);
-       
-        
     });
-    
     
     Route::prefix('order')->group(function () { 
         Route::post('/store', [OrderController::class, 'createOrder']);
@@ -95,7 +89,7 @@ Route::middleware('auth:sanctum', 'token.session')->group(function () {
         Route::get('/list', [OrderController::class, 'index']);
         Route::get('/detail', [OrderController::class, 'detail']);
         Route::get('/ledger-view', [OrderController::class, 'ledgerView']);
-        Route::post('/payment-receipt-save', [OrderController::class, 'paymentReceiptSave']);
+        // Route::post('/payment-receipt-save', [OrderController::class, 'paymentReceiptSave']);
     });
     
     // More routes related to products can be added here
