@@ -93,7 +93,7 @@ class Order extends Model
         "Received by Sales Team"           => ["Received by Sales Team", "received_by_sales_team"],
         "Delivered to Customer"            =>["Delivered to Customer","delivered_to_customer"],
         "Partial Delivered to Customer"    =>["Partial Delivered to Customer","partial_delivered_to_customer"],
-        "Approval Pending"                 => ["Approval Pending", "approval_pending"],
+        "Approval Pending from TL"         => ["Approval Pending from TL", "approval_pending_from_tl"],
         "Received at Production"           => ["Received at Production", "received_at_production"],
         "Partial Delivered By Production"  => ["Partial Delivered By Production", "partial_delivered_by_production"],
         "Fully Delivered By Production"    => ["Fully Delivered By Production", "fully_delivered_by_production"],

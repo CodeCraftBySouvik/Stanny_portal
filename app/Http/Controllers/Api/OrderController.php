@@ -790,7 +790,7 @@ class OrderController extends Controller
                     $order->status = match (true) {
                         $approvedItems == $totalItems => 'Fully Approved By TL',
                         $approvedItems > 0 => 'Partial Approved By TL',
-                        default => 'Approval Pending',
+                        default => 'Approval Pending from TL',
                     };
 
                     $order->save();

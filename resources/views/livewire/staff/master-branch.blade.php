@@ -61,6 +61,9 @@
                                                 Name</th>
                                             <th
                                                 class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">
+                                                Country</th>
+                                            <th
+                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">
                                                 Email</th>
                                             <th
                                                 class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">
@@ -79,6 +82,14 @@
                                             </td>
                                             <td>
                                                 <p class="text-xs font-weight-bold mb-0">{{ $branchName->name }}</p>
+                                            </td>
+                                            <td>
+                                                @if (!empty($branchName->country))
+                                                    <p class="text-xs font-weight-bold mb-0">{{ $branchName->country ? $branchName->country->title : ""}}</p>
+                                                @else
+                                                    <p class="text-xs font-weight-bold mb-0">N/A</p>
+                                                @endif
+                                              
                                             </td>
                                             <td>
                                                 <p class="text-xs font-weight-bold mb-0">{{ $branchName->email }}</p>
@@ -132,10 +143,29 @@
                                     @error('name')
                                     <p class='text-danger inputerror'>{{ $message }}</p>
                                     @enderror
+
+                                   <label class="form-label mt-3">Country</label>
+
+                                        <div wire:ignore>
+                                            <select id="countrySelect" class="form-select form-select-sm border border-2 p-2" wire:model="country_id">
+                                                <option value="">Select Country</option>
+                                                @foreach($countries as $country)
+                                                    <option value="{{ $country->id }}"
+                                                     >
+                                                        {{ $country->title }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        @error('country_id')
+                                        <p class='text-danger inputerror'>{{ $message }}</p>
+                                        @enderror
+
                                     <!-- Email -->
                                     <label class="form-label mt-3">Email</label>
                                     <div class="ms-md-auto pe-md-3 d-flex align-items-center mb-2">
-                                        <input type="email" wire:model="email"
+                                        <input type="email" wire:model="email" autocomplete="new-email"
                                             class="form-control form-control-sm border border-2 p-2"
                                             placeholder="Enter Email">
                                     </div>
@@ -168,7 +198,7 @@
                                     <!-- City -->
                                     <label class="form-label mt-3">City</label>
                                     <div class="ms-md-auto pe-md-3 d-flex align-items-center mb-2">
-                                        <input type="text" wire:model="city"
+                                        <input type="text" wire:model="city" autocomplete="new-city"
                                             class="form-control form-control-sm border border-2 p-2"
                                             placeholder="Enter City">
                                     </div>
@@ -179,7 +209,7 @@
                                     <!-- Address -->
                                     <label class="form-label mt-3">Address</label>
                                     <div class="ms-md-auto pe-md-3 d-flex align-items-center mb-2">
-                                        <textarea type="text" wire:model="address"
+                                        <textarea type="text" wire:model="address" autocomplete="new-address"
                                             class="form-control form-control-sm border border-2 p-2"
                                             placeholder="Enter Address"></textarea>
                                     </div>
@@ -208,3 +238,88 @@
         </div>
     </div>
 </div>
+@push('js')
+<!-- Chosen CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.min.css"/>
+
+<!-- jQuery + Chosen JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js"></script>
+  {{-- <script>
+    function initChosen() {
+        $('.chosen-select').chosen({
+            width: '100%',
+            no_results_text: "No result found"
+        }).off('change').on('change', function (e) {
+            let model = $(this).attr('wire:model');
+            if (model) {
+                @this.set(model, $(this).val());
+            }
+        });
+    }
+
+    document.addEventListener("livewire:navigated", () => {
+        initChosen();
+    });
+
+    Livewire.hook('morph.updated', ({ el, component }) => {
+        initChosen();
+    });
+
+    $(document).ready(function () {
+        initChosen();
+    });
+
+    
+</script> --}}
+
+<script>
+    var jq = $.noConflict();
+
+    function initChosen() {
+
+        let select = jq("#countrySelect");
+
+        // Destroy if already initialized
+        if (select.data('chosen')) {
+            select.chosen("destroy");
+        }
+
+        select.chosen({
+            width: "100%",
+            no_results_text: "No result found"
+        });
+
+        // JS → Livewire
+        select.off('change').on('change', function () {
+            @this.set('country_id', jq(this).val());
+        });
+
+        // 🔥 Set initial value (for Create page)
+        let initialValue = @this.get('country_id');
+        if (initialValue) {
+            select.val(initialValue).trigger("chosen:updated");
+        }
+    }
+
+    // First page load
+    document.addEventListener("DOMContentLoaded", function () {
+        initChosen();
+    });
+
+    // After every Livewire update
+    document.addEventListener("livewire:navigated", function () {
+        initChosen();
+    });
+
+   
+    Livewire.on('refresh-chosen', (event) => {
+        let select = jq("#countrySelect");
+        select.val(event.country).trigger("chosen:updated");
+    });
+
+</script>
+
+
+
+@endpush

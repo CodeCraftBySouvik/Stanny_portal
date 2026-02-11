@@ -1375,7 +1375,7 @@ protected function resetMeasurements($index)
                                 }
 
                                 // Let system know order still needs admin review
-                                $order->status = 'Approval Pending';
+                                $order->status = 'Approval Pending from TL';
                             }
 
                         } else {
@@ -1387,7 +1387,7 @@ protected function resetMeasurements($index)
 
                         if ($loggedInAdmin && $loggedInAdmin->designation == 2 && ($previousStatus === 'Hold' || $newStatus === 'Process')) {
                             if ($order->status === 'On Hold') {
-                                $order->status = 'Approval Pending';
+                                $order->status = 'Approval Pending from TL';
                                 $order->save();
                                 
                             }

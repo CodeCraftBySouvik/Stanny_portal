@@ -310,7 +310,7 @@ class AddInvoice extends Component
                 'paid_amount' => $this->amount,
                 'due_amount' => $this->due_amount - $this->amount,
                 'invoice_type' => 'manual',
-                'status' => ($this->amount >= $this->due_amount) ? 'Fully Approved By Admin' : 'Approval Pending',
+                'status' => ($this->amount >= $this->due_amount) ? 'Fully Approved By Admin' : 'Approval Pending from TL',
             ]);
 
             // Create Order Items

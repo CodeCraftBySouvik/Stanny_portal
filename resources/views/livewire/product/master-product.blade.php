@@ -127,7 +127,7 @@
                                                 @if ($product->product_image)
                                                     <img src="{{ asset('storage/'.$product->product_image) }}" alt="" style="width: 50px; height: 50px;">
                                                 @else
-                                                    <img src="{{asset('assets/img/cubes.png')}}" alt="no-img" style="width: 50px; height: 50px;">    
+                                                    <img src="{{asset('assets/img/placeholder.jfif')}}" alt="no-img" style="width: 50px; height: 50px;">    
                                                 @endif
                                             </span>
                                         </td>

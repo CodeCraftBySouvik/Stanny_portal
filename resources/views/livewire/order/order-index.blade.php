@@ -17,12 +17,24 @@
                             <input type="date" wire:model="end_date" wire:change="AddEndDate($event.target.value)"
                                 class="form-control select-md bg-white" placeholder="End Date">
                         </div>
+                        @php
+                           $auth = Auth::guard('admin')->user();
+                        @endphp
                         <div class="col-auto" style="margin-top: -27px;">
                             <label for="" class="date_lable">Status</label>
+                            @if ($auth->is_super_admin)
+                                
+                            
                             <select class="form-control select-md bg-white"
                                 wire:change="setStatus($event.target.value)">
+                                <option value="all_orders" {{ $status == 'all_orders' ? 'selected' : '' }}>All Orders</option>''
+                                <option value="approval_pending_from_admin" {{ $status == 'approval_pending_from_admin' ? 'selected' : '' }}>Approval Pending from Admin</option>
+                            </select>
+                            @else
+                            <select class="form-control select-md bg-white" wire:model="status"
+                                wire:change="setStatus($event.target.value)">
                                 <option value="">Status</option>
-                                <option value="Approval Pending">Approval Pending</option>
+                                <option value="Approval Pending from TL">Approval Pending from TL</option>
                                 <option value="Approved">Approved</option>
                                 <option value="Ready for Delivery">Ready for Delivery</option>
                                 <option value="Partial Delivered By Production">Partial Delivered By Production</option>
@@ -32,9 +44,8 @@
                                 <option value="Delivered to Customer">Delivered to Customer</option>
                                 <option value="Partial Delivered to Customer">Partial Delivered to Customer</option>
                                 <option value="Approved By TL">Approved By TL</option>
-
-
                             </select>
+                            @endif
                         </div>
                         <div class="col-md-auto mt-3">
                             <a href="{{route('admin.order.new')}}" class="btn btn-outline-success select-md">Place New
@@ -178,7 +189,7 @@
                                 @endif
 
                                 {{-- (Optional) TL Approve button --}}
-                                @if($userDesignationId == 4 && in_array($order->status, ['Approval Pending', 'Partial Approved By TL','On Hold']) && $order->created_by != $userId)
+                                @if($userDesignationId == 4 && in_array($order->status, ['Approval Pending from TL', 'Partial Approved By TL','On Hold']) && $order->created_by != $userId)
                                 <a href="{{ route('admin.order.add_order_slip', $order->id) }}"
                                     class="btn btn-outline-success select-md btn_outline">
                                     Approve Order
@@ -196,7 +207,7 @@
 
                                 {{-- Designation 2(Sales Person): Show only Edit and Cancel if status is Approval
                                 Pending --}}
-                                @if($userDesignationId == 2 && ($order->status == 'Approval Pending' || $order->status == 'On Hold'))
+                                @if($userDesignationId == 2 && ($order->status == 'Approval Pending from TL' || $order->status == 'On Hold'))
                                 <a href="{{ route('admin.order.edit', $order->id) }}"
                                     class="btn btn-outline-success select-md btn_outline">
                                     Edit

@@ -8,6 +8,7 @@ class Branch extends Model
 {
     protected $table = "branches";
     protected $fillable = [
+        'country_id',
         'name',
         'address',
         'email',
@@ -15,4 +16,10 @@ class Branch extends Model
         'whatsapp',
         'city'
     ];
+
+    public function country()
+    {
+        return $this->belongsTo(Country::class,'country_id','id');
+    }
+
 }

@@ -1437,7 +1437,7 @@ protected function fillMatchingMeasurements($currentIndex, $sourceIndex)
                     } elseif ($approvedItems > 0) {
                         $order->status = 'Partial Approved By TL';
                     } else {
-                        $order->status = 'Approval Pending';
+                        $order->status = 'Approval Pending from TL';
                     }
                      $order->save();
                 }

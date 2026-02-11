@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Staff;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Branch;
+use App\Models\Country;
 
 class MasterBranch extends Component
 {
@@ -15,8 +16,11 @@ class MasterBranch extends Component
     public $branchId;
     public $name, $email, $mobile, $whatsapp, $city, $address;
     public $search = '';
+    public $country_id;
+    public $countries = [];
 
     protected $rules = [
+        'country_id' => 'required',
         'name' => 'required|unique:branches,name',
         'email'=> 'required|email|unique:branches,email',
         'mobile' => 'required|numeric|unique:branches,mobile',
@@ -24,6 +28,30 @@ class MasterBranch extends Component
         'city' => 'required',
         'address' => 'required',
     ];
+
+    protected $messages = [
+        'country_id.required' => 'Please select a country.',
+        'name.required' => 'Branch name is required.',
+        'name.unique' => 'This branch name already exists.',
+        'email.required' => 'Email is required.',
+        'email.email' => 'Please enter a valid email address.',
+        'email.unique' => 'This email is already used.',
+        'mobile.required' => 'Mobile number is required.',
+        'mobile.numeric' => 'Mobile number must be numeric.',
+        'mobile.unique' => 'This mobile number is already used.',
+        'whatsapp.required' => 'WhatsApp number is required.',
+        'whatsapp.numeric' => 'WhatsApp number must be numeric.',
+        'whatsapp.unique' => 'This WhatsApp number is already used.',
+        'city.required' => 'City is required.',
+        'address.required' => 'Address is required.',
+    ];
+
+    public function mount()
+    {
+        $this->countries = Country::orderBy('title')->where('status',1)->get();
+    }
+
+
     public function FindBranch($keywords){
         $this->search = $keywords;
     }
@@ -35,6 +63,7 @@ class MasterBranch extends Component
     public function resetFields()
     {
         $this->search = '';
+        $this->country_id = null;
         $this->branchId = null;
         $this->name = '';
         $this->email = '';
@@ -45,9 +74,10 @@ class MasterBranch extends Component
     }
 
     public function storeBranch()
-    {
+    {      
         $this->validate();     
         Branch::create([
+            'country_id' => $this->country_id,
             'name' => $this->name,
             'email' => $this->email,
             'mobile' => $this->mobile,
@@ -70,11 +100,15 @@ class MasterBranch extends Component
         $this->whatsapp = $branch->whatsapp;
         $this->city = $branch->city;
         $this->address = $branch->address;
+        $this->country_id = $branch->country_id; 
+          $this->dispatch('refresh-chosen', country: $this->country_id);
     }
 
     public function updateBranch()
     {
+        // dd($this->all());
         $this->validate([
+            'country_id' => 'required',
             'name' => 'required|unique:branches,name,' . $this->branchId,
             'email'=> 'required|email|unique:branches,email,' . $this->branchId,
             'mobile' => 'required|numeric|unique:branches,mobile,' . $this->branchId,
@@ -84,6 +118,7 @@ class MasterBranch extends Component
         ]);
 
         Branch::findOrFail($this->branchId)->update([
+            'country_id' => $this->country_id,
             'name' => $this->name,
             'email' => $this->email,
             'mobile' => $this->mobile,

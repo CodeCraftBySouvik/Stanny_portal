@@ -41,8 +41,26 @@ class UserAddressForm extends Component
     public $badge_type = 'general';
 
 
-    public function mount(){
+    public function mount()
+    {
+        $user = Auth::guard('admin')->user();
+        
+        // Only if the user is staff (user_type = 0)
+        if ($user && $user->user_type == 0) {
+            // Fetch the branch country code
+            $branch = $user->branch; // assuming relation exists: user->branch
+            if ($branch && $branch->country_id) {
+                $country = Country::find($branch->country_id);
+                if ($country) {
+                    $this->phone_code = $country->country_code;  // Set default code
+                    $this->selectedCountryWhatsapp = $country->country_code;
+                    $this->alt_phone_code_1 = $country->country_code;
+                    $this->alt_phone_code_2 = $country->country_code;
+                }
+            }
+        }
     }
+
     public function CountryCodeSet($selector, $Code, $number = null)
     {
         $mobile_length = Country::where('country_code', $Code)->value('mobile_length') ?? '';
@@ -91,11 +109,11 @@ class UserAddressForm extends Component
             'billing_pin' => 'nullable|string',
             'alternative_phone_number_1' => [
                 'nullable',
-                'regex:/^\d{'. $this->mobileLengthAlt1 .'}$/',
+                // 'regex:/^\d{'. $this->mobileLengthAlt1 .'}$/',
             ],
             'alternative_phone_number_2' => [
                 'nullable',
-                'regex:/^\d{'. $this->mobileLengthAlt2 .'}$/',
+                // 'regex:/^\d{'. $this->mobileLengthAlt2 .'}$/',
             ],  
         ];
     

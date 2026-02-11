@@ -25,7 +25,7 @@ class OrderIndex extends Component
     
     public $branch_id;
     public $customer_id;
-    public $created_by, $search,$status,$start_date,$end_date;
+    public $created_by, $search, $status = 'approval_pending_from_admin',$start_date,$end_date;
     public $invoiceId;
     public $orderId;
     public $totalPrice;
@@ -63,6 +63,14 @@ class OrderIndex extends Component
     {
         $this->customer_id = $customer_id; // Store the customer_id if provided
         $this->branch_id = request()->query('branch_id');
+         $auth = Auth::guard('admin')->user();
+    
+        // Set default status based on user type
+        if ($auth->is_super_admin) {
+            $this->status = 'approval_pending_from_admin';
+        } else {
+            $this->status = 'all_orders';
+        }
     }
     public function FindCustomer($keywords){
         $this->search = $keywords;
@@ -140,10 +148,18 @@ class OrderIndex extends Component
 
         ->when($this->created_by, fn($query) => $query->where('created_by', $this->created_by)) // Filter by creator
         ->when($this->start_date, fn($query) => $query->whereDate('created_at', '>=', $this->start_date)) // Start date filter
-        ->when($this->end_date, fn($query) => $query->whereDate('created_at', '<=', $this->end_date)) // End date filter
-        // ->when(!$auth->is_super_admin, fn($query) => $query->where('created_by', $auth->id)) // Restrict non-admins
-        ->when($this->status, fn($query) => $query->where('status', $this->status)) // Filter by creator
-
+        ->when($this->end_date, fn($query) => $query->whereDate('created_at', '<=', $this->end_date)) // 
+        // ->when($this->status, fn($query) => $query->where('status', $this->status)) // Filter by creator
+        ->when($this->status && $this->status !== 'all_orders', function ($query) use ($auth) {
+        if ($auth->is_super_admin && $this->status === 'approval_pending_from_admin') {
+                $query->whereIn('status', [
+                    'Partial Approved By TL',
+                    'Fully Approved By TL'
+                ]);
+            } else {
+                $query->where('status', $this->status);
+            }
+        })
         ->when(!$auth->is_super_admin, function ($query) use ($auth) {
             $query->where(function ($subQuery) use ($auth) {
                 $subQuery->where('created_by', $auth->id)

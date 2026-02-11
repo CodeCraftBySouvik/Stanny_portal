@@ -71,7 +71,7 @@ class OrderRepository
                 } elseif ($approvedItems > 0 || $holdItems > 0) {
                     $orderStatus = 'Partial Approved By Admin';
                 } else {
-                    $orderStatus = 'Approval Pending';
+                    $orderStatus = 'Approval Pending from TL';
                 }
             $order->update([
                 'status' => $orderStatus,

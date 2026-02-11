@@ -23,7 +23,7 @@
                             <select class="form-control select-md bg-white" wire:model="status"
                                 wire:change="setStatus($event.target.value)">
                                 <option value="">Status</option>
-                                <option value="Approval Pending">Approval Pending</option>
+                                <option value="Approval Pending from TL">Approval Pending from TL</option>
                                 <option value="Approved">Approved</option>
                                 <option value="Ready for Delivery">Ready for Delivery</option>
                                 <option value="Partial Delivered By Production">Partial Delivered By Production</option>
