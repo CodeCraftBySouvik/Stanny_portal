@@ -110,7 +110,7 @@ class AddOrderSlip extends Component
         return false;
     }
 
-   /*  public function setTeamAndSubmit()
+     public function setTeamAndSubmit()
     {
         if (!$this->hasTeamSelected()) {
             session()->flash('error', 'Please select at least one team before submitting.');
@@ -124,7 +124,17 @@ class AddOrderSlip extends Component
                 $item->admin_status = 'Approved';
                 $item->save();
 
-               
+                // Auto deliver logic for sales team
+                // if ($itemData['team'] === 'sales') {
+                  
+                //     $this->autoDeliverItem($item);
+                //        //  Update delivery status to 'Received by Sales Team'
+                //        $delivery = Delivery::where('order_item_id',$item->id)->latest()->first();
+                //        if($delivery){
+                //             $delivery->status = "Received by Sales Team";
+                //             $delivery->save();
+                //        }
+                // }
                if ($itemData['team'] === 'sales') {
                 // dd('hi');
                     // Try auto delivery first
@@ -145,7 +155,7 @@ class AddOrderSlip extends Component
                     elseif (!$delivery) {
                         // Create a new delivery depending on collection type
                         if ($item->collection == 1) {
-                            // ðŸ§µ Fabric Collection
+                            // 🧵 Fabric Collection
                             Delivery::create([
                                 'order_id'                  => (int) $item->order_id,
                                 'order_item_id'             => (int) $item->id,
@@ -159,7 +169,7 @@ class AddOrderSlip extends Component
                                 'delivered_at'              => now(),
                             ]);
                         } elseif ($item->collection == 2) {
-                            // ðŸ“¦ Product Collection
+                            // 📦 Product Collection
                            $delivery =  Delivery::create([
                                 'order_id'                  => (int) $item->order_id,
                                 'order_item_id'             => (int) $item->id,
@@ -173,7 +183,7 @@ class AddOrderSlip extends Component
                             ]);
                         }
                     } else {
-                        // âœ… Update existing delivery if found
+                        // ✅ Update existing delivery if found
                         $delivery->update([
                             'status'       => 'Received by Sales Team',
                             'remarks'      => 'Auto-updated as delivered to Sales Team',
@@ -197,112 +207,7 @@ class AddOrderSlip extends Component
 
         // Call the final submit function
         return $this->submitForm();
-    } */
-    
-      public function setTeamAndSubmit()
-{
-    if (!$this->hasTeamSelected()) {
-        session()->flash('error', 'Please select at least one team before submitting.');
-        return;
     }
-
-    $userDesignationId = auth()->guard('admin')->user()->designation;
-
-    foreach ($this->order_item as $key => $itemData) {
-
-        $item = OrderItem::find($itemData['id']);
-        if (!$item) continue;
-
-        /* ------------------------------
-         | 1. Assign Team
-         ------------------------------ */
-        if (!empty($itemData['team'])) {
-            $item->assigned_team = $itemData['team'];
-        }
-
-       
-    
-        /* ------------------------------
-         | 3. Admin Approval (designation = 1)
-         ------------------------------ */
-        if ($userDesignationId == 1) {
-            // Admin can only approve if TL has approved
-            if (!empty($itemData['admin_approved']) && $item->tl_approved) {
-                $item->admin_status = 'Approved';
-            } else {
-                $item->admin_status = 'Hold';
-            }
-        }
-
-        $item->save();
-
-        /* ------------------------------
-         | 4. Auto Delivery for Sales Team
-         ------------------------------ */
-        if (!empty($itemData['team']) && $itemData['team'] === 'sales') {
-
-            $this->autoDeliverItem($item);
-
-            $delivery = Delivery::where('order_item_id', $item->id)->latest()->first();
-
-            if ($delivery) {
-                if ($delivery->status !== 'Delivered') {
-                    $delivery->update([
-                        'status'       => 'Received by Sales Team',
-                        'remarks'      => 'Auto-updated as received by Sales Team',
-                        'delivered_at' => now(),
-                    ]);
-                }
-            } else {
-                if ($item->collection == 1) {
-                    Delivery::create([
-                        'order_id'           => (int) $item->order_id,
-                        'order_item_id'      => (int) $item->id,
-                        'fabric_id'          => is_numeric($item->fabrics) ? (int) $item->fabrics : null,
-                        'fabric_quantity'    => (float) $item->quantity,
-                        'delivered_quantity' => (float) $item->quantity,
-                        'unit'               => 'meters',
-                        'status'             => 'Received by Sales Team',
-                        'delivered_by'       => auth()->guard('admin')->id(),
-                        'remarks'            => 'Auto-delivered to Sales Team (Fabric)',
-                        'delivered_at'       => now(),
-                    ]);
-                }
-
-                if ($item->collection == 2) {
-                    Delivery::create([
-                        'order_id'           => (int) $item->order_id,
-                        'order_item_id'      => (int) $item->id,
-                        'product_id'         => is_numeric($item->product_id) ? (int) $item->product_id : null,
-                        'delivered_quantity' => (float) $item->quantity,
-                        'unit'               => 'pieces',
-                        'status'             => 'Received by Sales Team',
-                        'delivered_by'       => auth()->guard('admin')->id(),
-                        'remarks'            => 'Auto-delivered to Sales Team (Product)',
-                        'delivered_at'       => now(),
-                    ]);
-                }
-            }
-        }
-    }
-
-    /* ------------------------------
-     | 5. Update Order Status if Fully Approved
-     ------------------------------ */
-    $allApproved = OrderItem::where('order_id', $this->order->id)
-        ->where('admin_status', '!=', 'Approved')
-        ->doesntExist();
-
-    if ($allApproved) {
-        Order::where('id', $this->order->id)
-            ->update(['status' => 'Fully Approved By Admin']);
-    }
-
-    return $this->submitForm();
-}
-
-
-
 
 
  
@@ -361,7 +266,7 @@ class AddOrderSlip extends Component
 
 
 
-  /* public function updateTlStatus($key)
+   public function updateTlStatus($key)
     {
         $isApproved = !empty($this->order_item[$key]['tl_approved'])
                     && $this->order_item[$key]['tl_approved'] == true;
@@ -374,53 +279,53 @@ class AddOrderSlip extends Component
         // Update the database
         OrderItem::where('id', $this->order_item[$key]['id'])
             ->update(['tl_status' => $newStatus]);
-    } */
+    }
 
 
 
-   // public function updateAdminStatus($key)
-   // {
+    public function updateAdminStatus($key)
+    {
         // Was the checkbox just CHECKED?
-      //  $isApproved = !empty($this->order_item[$key]['admin_approved'])
-       //         && $this->order_item[$key]['admin_approved'] == true;
+        $isApproved = !empty($this->order_item[$key]['admin_approved'])
+                && $this->order_item[$key]['admin_approved'] == true;
 
         // Load the row once so we can inspect / save it
-     //   $item = OrderItem::find($this->order_item[$key]['id']);
-      //  if (!$item) {
-      //      return;            // no record â€“Â exit early
-     //   }
+        $item = OrderItem::find($this->order_item[$key]['id']);
+        if (!$item) {
+            return;            // no record – exit early
+        }
 
         /* -----------------------------------------------------------------
-        |  1. SPECIAL CASE â€• the line is still on HOLD and the Admin has
+        |  1. SPECIAL CASE ― the line is still on HOLD and the Admin has
         |  checked the box. Promote it straight to production (Process)
         |  and mark both TL + Admin approvals.
         * -----------------------------------------------------------------*/
-      //  if ($item->status === 'Hold' && $isApproved) {
-       //     $item->status       = 'Process';   // ready to be produced
-        //    $item->tl_status    = 'Approved';  // TL step bypassed
-      //      $item->admin_status = 'Approved';  // Superâ€‘Admin approval
-       //     $item->save();
+        if ($item->status === 'Hold' && $isApproved) {
+            $item->status       = 'Process';   // ready to be produced
+            $item->tl_status    = 'Approved';  // TL step bypassed
+            $item->admin_status = 'Approved';  // Super‑Admin approval
+            $item->save();
 
-            // keep Livewireâ€™s array in sync
-         //   $this->order_item[$key]['status']       = 'Process';
-         //   $this->order_item[$key]['tl_status']    = 'Approved';
-           // $this->order_item[$key]['admin_status'] = 'Approved';
-//
-        //    return;             // nothing else to do
-      //  }
+            // keep Livewire’s array in sync
+            $this->order_item[$key]['status']       = 'Process';
+            $this->order_item[$key]['tl_status']    = 'Approved';
+            $this->order_item[$key]['admin_status'] = 'Approved';
+
+            return;             // nothing else to do
+        }
 
         /* -----------------------------------------------------------------
-        | 2. ORIGINAL BEHAVIOUR â€• for normal Process rows just flip
+        | 2. ORIGINAL BEHAVIOUR ― for normal Process rows just flip
         |    admin_status between Approved / Hold
         * -----------------------------------------------------------------*/
-       // $newStatus = $isApproved ? 'Approved' : 'Hold';
+        $newStatus = $isApproved ? 'Approved' : 'Hold';
 
         // Update Livewire state
-       // $this->order_item[$key]['admin_status'] = $newStatus;
+        $this->order_item[$key]['admin_status'] = $newStatus;
 
         // Update DB
-        //$item->update(['admin_status' => $newStatus]);
-    //}
+        $item->update(['admin_status' => $newStatus]);
+    }
 
 
 
@@ -440,8 +345,8 @@ class AddOrderSlip extends Component
         }
     }
 
-   /* public function submitForm(){
-       //  dd($this->all());
+    public function submitForm(){
+        // dd($this->all());
         $this->reset(['errorMessage']);
         $this->errorMessage = array();
         foreach ($this->order_item as $key => $item) {
@@ -471,8 +376,17 @@ class AddOrderSlip extends Component
                 // new
                 if ($userDesignationId == 1) {
 
-                
+                //  new – auto‑approve any remaining TL‑approved rows
+                // OrderItem::where('order_id', $this->order->id)
+                //     ->where('status', 'Process')
+                //     ->where('tl_status', 'Approved')
+                //     ->where(function($q){           // not yet approved by Admin
+                //         $q->whereNull('admin_status')
+                //         ->orWhere('admin_status', '!=', 'Approved');
+                //     })
+                //     ->update(['admin_status' => 'Approved']);
                     
+                // now re‑run your guard
                 $hasProcessItem = OrderItem::where('order_id', $this->order->id)
                     ->where('status', 'Process')
                     ->where('tl_status', 'Approved')
@@ -520,139 +434,7 @@ class AddOrderSlip extends Component
             }
         }
 
-    } */
-    
-    public function submitForm()
-{
-   // dd($this->all());
-    $this->reset(['errorMessage']);
-    $this->errorMessage = [];
-
-    // -----------------------------
-    // 1. Validate order items
-    // -----------------------------
-    foreach ($this->order_item as $key => $item) {
-        if (!isset($item['air_mail'])) $item['air_mail'] = 0;
-        if (empty($item['quantity'])) {
-            $this->errorMessage["order_item.$key.quantity"] = 'Please enter quantity.';
-        }
     }
-
-    // Validate customer
-    if (empty($this->customer_id)) $this->errorMessage['customer_id'] = 'Please select a customer.';
-
-    // Validate collected by
-    if (empty($this->staff_id)) $this->errorMessage['staff_id'] = 'Please select a staff member.';
-
-    if (count($this->errorMessage) > 0) return $this->errorMessage;
-
-    DB::beginTransaction();
-
-    try {
-        $userDesignationId = auth()->guard('admin')->user()->designation;
-
-        // -----------------------------
-        // 2. TL Approval Logic
-        // -----------------------------
-       if ($userDesignationId == 4) {
-            foreach ($this->order_item as $key => $itemData) {
-                $item = OrderItem::find($itemData['id']);
-                if (!$item) continue;
-        
-                // Update TL approval
-                $item->priority_level = $itemData['priority_level'] ?? null;
-        
-                if ($itemData['tl_approved'] ?? false) {
-                    $item->tl_status = 'Approved';
-                    $item->status = 'Process'; // promote if needed
-                } else {
-                    $item->tl_status = 'Pending';
-                    // Keep current status
-                }
-        
-                $item->save();
-        
-                // Keep Livewire array in sync
-                $this->order_item[$key]['tl_status'] = $item->tl_status;
-                $this->order_item[$key]['priority_level'] = $item->priority_level;
-            }
-        
-            $hasProcessItem = OrderItem::where('order_id', $this->order->id)
-                ->where('status', 'Process')
-                ->where('tl_status', 'Approved')
-                ->whereNotNull('priority_level')
-                ->exists();
-        
-            if (!$hasProcessItem) {
-                DB::rollBack();
-                session()->flash('error', 'Cannot approve order. No items are approved by Team Leader.');
-                return redirect()->route('admin.order.add_order_slip', $this->order->id);
-            }
-        }
-
-
-        // -----------------------------
-        // 3. Admin Approval Logic
-        // -----------------------------
-        if ($userDesignationId == 1) {
-            foreach ($this->order_item as $key => $itemData) {
-                $item = OrderItem::find($itemData['id']);
-                if (!$item) continue;
-        
-                // Update TL approval
-                $item->priority_level = $itemData['priority_level'] ?? null;
-        
-                if ($itemData['admin_approved'] ?? false) {
-                    $item->admin_status = 'Approved';
-                    $item->status = 'Process'; // promote if needed
-                } else {
-                    $item->admin_status = 'Pending';
-                    // Keep current status
-                }
-        
-                $item->save();
-        
-                // Keep Livewire array in sync
-                $this->order_item[$key]['tl_status'] = $item->tl_status;
-                 $this->order_item[$key]['admin_status'] = $item->admin_status;
-                $this->order_item[$key]['priority_level'] = $item->priority_level;
-            }
-            $hasProcessItem = OrderItem::where('order_id', $this->order->id)
-                ->where('status', 'Process')
-                ->where('tl_status', 'Approved')
-                ->where('admin_status', 'Approved')
-                ->exists();
-
-            if (!$hasProcessItem) {
-                DB::rollBack();
-                session()->flash('error', 'Cannot approve order. No items are approved by Admin.');
-                return redirect()->route('admin.order.add_order_slip', $this->order->id);
-            }
-        }
-
-        // -----------------------------
-        // 4. Update Order and Items
-        // -----------------------------
-        $this->updateOrder();
-        $this->updateOrderItems();
-
-        // -----------------------------
-        // 5. Create Packing Slip
-        // -----------------------------
-        $this->createPackingSlip();
-
-        DB::commit();
-        session()->flash('success', 'Order approved successfully.');
-        return redirect()->route('admin.order.index');
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        session()->flash('error', $e->getMessage());
-        return redirect()->route('admin.order.add_order_slip', $this->order->id);
-    }
-}
-
-    
     // public function updateOrder()
     // {
     //     $this->validate([

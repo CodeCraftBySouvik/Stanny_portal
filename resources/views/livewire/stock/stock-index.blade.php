@@ -91,8 +91,8 @@
                                     <tr class="text-center">
                                         <td>{{ $index + 1 }}</td>
                                         <td>{{ $product->product->name ?? 'N/A' }}</td>
-                                        <td>{{ intval($product->qty_while_grn) }}</td>
-                                        <td>{{ intval($product->qty_in_pieces) }}</td>
+                                        <td>{{ $product->qty_while_grn }}</td>
+                                        <td>{{ $product->qty_in_pieces }}</td>
                                         <td>Rs. {{ number_format($product->piece_price, 2) }}</td>
                                         <td>Rs. {{ number_format($product->total_price, 2) }}</td>
                                         <td> {{ date('d-m-Y',strtotime($product->created_at))}}</td>

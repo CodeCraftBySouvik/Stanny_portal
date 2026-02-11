@@ -30,6 +30,6 @@ class Delivery extends Model
     }
 
     public function user(){
-        return $this->belongsTo(related: User::class, foreignKey: 'delivered_by'); // ✅ Also correct    }
+        return $this->belongsTo(related: User::class, foreignKey: 'delivered_by'); 
 }
 }

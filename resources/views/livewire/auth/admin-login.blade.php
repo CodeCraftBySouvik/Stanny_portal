@@ -61,7 +61,7 @@
             </div>
         </div>
     </div>
-    {{-- <div class="loader-container" wire:target>
-        <div class="loader"></div>
-    </div> --}}
+    <!--<div class="loader-container" wire:target="login">-->
+    <!--    <div class="loader"></div>-->
+    <!--</div>-->
 </div>

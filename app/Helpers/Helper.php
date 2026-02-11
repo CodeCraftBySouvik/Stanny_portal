@@ -212,7 +212,8 @@ class Helper
 
         return null;
     }
-    public static function ExtraRequiredMeasurement($product_name)
+    
+     public static function ExtraRequiredMeasurement($product_name)
     {
         $map = [
             "MEN'S JACKET"     => ["mens_jacket_suit"],

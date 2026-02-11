@@ -747,7 +747,7 @@
                         </thead>
                         <tbody>
                             @foreach($branchReports as $index => $report)
-                            <tr  style="cursor:pointer;" wire:click="openBranchOrders({{$report['branch_id']}})">
+                            <tr>
                                 <td>{{ $index + 1 }}</td>
                                 <td>{{ $report['branch_name'] }}</td>
                                 <td>

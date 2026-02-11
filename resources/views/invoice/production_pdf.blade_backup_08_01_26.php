@@ -103,7 +103,7 @@
                         </tr>
                         <tr>
                             <td><strong>Previous Order Id:</strong></td>
-                            <td>{{ $previousOrder->order_number ?? 'N/A'}}</td>
+                            <td>{{ $previousOrder->order_number ?? ''}}</td>
                         </tr>
                         <tr>
                             <td><strong>Order Time:</strong></td>

@@ -13,10 +13,6 @@
         </ul>
     </section>
     <form wire:submit.prevent="submitForm">
-        @php
-            $air_mail_price = $order->air_mail > 0 ? round($order->air_mail) : 0;
-        @endphp
-
         <div class="card shadow-sm mb-2">
             <div class="card-body">
                 <div class="row">
@@ -413,13 +409,13 @@
                                 {{-- Admin checkbox when TL has approved --}}
                                 @if ($user->designation == 1 && $isApprovedByTL)
                                 <input type="checkbox" wire:model="order_item.{{ $key }}.admin_approved"
-                                     {{ $isApprovedByAdmin
+                                    wire:change="updateAdminStatus({{ $key }})" {{ $isApprovedByAdmin
                                     ? 'disabled checked' : '' }}>
                                 @elseif($user->designation == 4)
                                 {{-- TL checkbox for approving Process items --}}
                                 @if ($order_item->status == 'Process')
                                 <input type="checkbox" wire:model="order_item.{{ $key }}.tl_approved"
-                                     {{ $isApprovedByAdmin ? 'disabled checked'
+                                    wire:change="updateTlStatus({{ $key }})" {{ $isApprovedByAdmin ? 'disabled checked'
                                     : '' }}>
                                 @else
                                 <span class="badge bg-secondary">N/A</span>
@@ -619,7 +615,9 @@
 
                             {{-- Air mail --}}
                             @if ($order->air_mail > 0)
-                             
+                            @php
+                            $air_mail_price = round($order->air_mail);
+                            @endphp
                             <div class="col-sm-6">
                                 <table>
                                     <tr>
@@ -656,13 +654,7 @@
 
                 <div class="row">
                     <div class="form-group text-end">
-                        <span>ORDER AMOUNT <span class="text-danger">
-                           @if($air_mail_price > 0)
-                                ({{ number_format($actual_amount + $air_mail_price, 2) }})
-                            @else
-                                ({{ number_format($actual_amount, 2) }})
-                            @endif
-                        </span></span>
+                        <span>ORDER AMOUNT <span class="text-danger">({{ $actual_amount }})</span></span>
                         @if ($user && $user->designation == 1)
                         <button wire:click.prevent="setTeamAndSubmit" class="btn btn-sm btn-success">Approve
                             Order</button>

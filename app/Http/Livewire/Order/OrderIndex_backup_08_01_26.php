@@ -22,8 +22,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class OrderIndex extends Component
 {
     use WithPagination;
-    
-    public $branch_id;
+
     public $customer_id;
     public $created_by, $search,$status,$start_date,$end_date;
     public $invoiceId;
@@ -62,7 +61,6 @@ class OrderIndex extends Component
     public function mount($customer_id = null)
     {
         $this->customer_id = $customer_id; // Store the customer_id if provided
-        $this->branch_id = request()->query('branch_id');
     }
     public function FindCustomer($keywords){
         $this->search = $keywords;
@@ -116,13 +114,7 @@ class OrderIndex extends Component
 
         $this->usersWithOrders = $wonOrders;
         $orders = Order::query()
-        ->when($this->branch_id, function ($query) {
-            $staffIds = User::where('branch_id', $this->branch_id)
-                            ->where('user_type', 0)
-                            ->pluck('id');
-    
-            $query->whereIn('created_by', $staffIds);
-        })
+        // ->where('status', '!=' , 'Cancelled') // Uncomment if needed
         ->when($this->customer_id, fn($query) => $query->where('customer_id', $this->customer_id)) // Filter by customer ID
         ->when($this->search, function ($query) {
             $query->where(function ($q) {

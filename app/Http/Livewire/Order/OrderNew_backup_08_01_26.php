@@ -295,7 +295,7 @@ class OrderNew extends Component
     }
 
 
- 
+
 
     public function searchFabrics($index)
     {
@@ -312,6 +312,7 @@ class OrderNew extends Component
                 ->where('fabrics.title', 'LIKE', "%{$searchTerm}%")
                 ->select('fabrics.id', 'fabrics.title', \DB::raw('COALESCE(SUM(stock_fabrics.qty_in_meter),0) as available_stock'))
                  ->groupBy('fabrics.id', 'fabrics.title')
+                ->limit(10)
                 ->get();
         } else {
             $this->items[$index]['searchResults'] = [];
@@ -343,7 +344,6 @@ class OrderNew extends Component
     public function rules()
     {
         $auth = Auth::guard('admin')->user();
-        $hasGarment = collect($this->items)->contains('collection',1);
         $rules = [
             'items' => 'required|min:1',
             'items.*.collection' => 'required|string',
@@ -359,8 +359,6 @@ class OrderNew extends Component
             'items.*.item_status' => 'required',
             'items.*.searchTerm' => 'required_if:items.*.collection,1',
             'order_number' => 'required|string|not_in:000|unique:orders,order_number',
-            // Customer image only required when garment select 
-            'customer_image' => $hasGarment ? 'required|image|mimes:jpg,jpeg,png,webp|max:2048' : 'nullable',
             'air_mail' => 'nullable|numeric',
             'imageUploads.*.*'  => 'nullable|image|mimes:jpg,jpeg,png,webp', 
             'voiceUploads.*.*' => 'nullable|mimes:mp3,wav,ogg,m4a,wma,webm,mpga', 
@@ -368,24 +366,21 @@ class OrderNew extends Component
 
         //  Add dynamic rules based on extra measurement per index
         foreach ($this->items as $index => $item) {
-            $extra = $this->extra_measurement[$index] ?? [];
+            $extra = $this->extra_measurement[$index] ?? null;
             
-            // MEN JACKET
-            if (in_array('mens_jacket_suit',$extra)) {
+            if ($extra === 'mens_jacket_suit') {
                 $rules["items.$index.vents"] = 'required';
                 $rules["items.$index.shoulder_type"] = 'required';
             }
 
-            // LADIES JACKET
-            if (in_array('ladies_jacket_suit',$extra)) {
+            if ($extra === 'ladies_jacket_suit') {
                 $rules["items.$index.vents_required"] = 'required';
                 $rules["items.$index.vents_count"]    = 'required_if:items.'.$index.'.vents_required,Yes|nullable|integer|min:1';
                 $rules["items.$index.shoulder_type"] = 'required';
 
             }
 
-             // TROUSER
-            if (in_array('trouser',$extra)) {
+            if ($extra === 'trouser') {
                 $rules["items.$index.fold_cuff_required"]   = 'required';
                 $rules["items.$index.fold_cuff_size"]       = 'required_if:items.'.$index.'.fold_cuff_required,Yes|nullable|numeric|min:1';
                 $rules["items.$index.pleats_required"]      = 'required';
@@ -396,9 +391,7 @@ class OrderNew extends Component
                 $rules["items.$index.suspender_button"]     = 'required';
                 $rules["items.$index.trouser_position"]     = 'required';
             }
-
-            // SHIRT
-            if (in_array('shirt',$extra)) {
+            if ($extra === 'shirt') {
                 $rules["items.$index.sleeves"] = 'required';
                 $rules["items.$index.collar"]  = 'required';
                 $rules["items.$index.pocket"]  = 'required';
@@ -406,9 +399,7 @@ class OrderNew extends Component
                 $rules["items.$index.collar_style"] = 'required_if:items.'.$index.'.collar,Other';
                 $rules["items.$index.cuff_style"]   = 'required_if:items.'.$index.'.cuffs,Other';
             }
-
-             // CLIENT NAME (common)
-            if (in_array('ladies_jacket_suit',$extra) || in_array('shirt',$extra) || in_array('mens_jacket_suit',$extra)) {
+            if ($extra === 'ladies_jacket_suit' || $extra === 'shirt' || $extra === 'mens_jacket_suit') {
                 $rules["items.$index.client_name_required"] = 'required';
                 $rules["items.$index.client_name_place"] = 'required_if:items.'.$index.'.client_name_required,Yes';
             }
@@ -749,7 +740,7 @@ class OrderNew extends Component
         // Reset products for the selected item
         $this->items[$index]['products'] = [];
         $this->items[$index]['product_id'] = null;
-        
+
         if ($categoryId) {
             // Fetch products based on the selected category and collection
             $this->items[$index]['products'] = Product::where('category_id', $categoryId)
@@ -926,9 +917,10 @@ class OrderNew extends Component
                                                         ->toArray();
          // Initialize get_measurements array for the current item
         $this->initializeMeasurements($index);
-        
+        // Get previous measurements if user ordered this product before
         $this->populatePreviousOrderMeasurements($index, $id);
-       
+        // dd($this->populatePreviousOrderMeasurements($index, $id));
+        // Clear measurement error message if it was previously set
         session()->forget('measurements_error.' . $index);
 
         // If no measurements exist, show an error message
@@ -1362,24 +1354,18 @@ protected function fillMatchingMeasurements($currentIndex, $sourceIndex)
 
                 // Extra Fields
                 if ($item['collection'] == 1) {
-                    $extra = $this->extra_measurement[$k] ?? [];    
+                    $extra = $this->extra_measurement[$k] ?? null;
 
-                     /* ================= MEN JACKET ================= */
-                    if (in_array('mens_jacket_suit',$extra)) {
+                    if ($extra == 'mens_jacket_suit') {
                         $orderItem->vents = $item['vents'] ?? null;
                         $orderItem->shoulder_type = $item['shoulder_type'] ?? null;
-                    } 
-                        /* ================= LADIES JACKET ================= */
-                    if ($extra == 'ladies_jacket_suit') {
+                    } elseif ($extra == 'ladies_jacket_suit') {
                         $orderItem->shoulder_type = $item['shoulder_type'] ?? null;
                         $orderItem->vents_required = $item['vents_required'] ?? null;
                         if ($orderItem->vents_required) {
                             $orderItem->vents_count = $item['vents_count'] ?? null;
                         }
-                    } 
-
-                      /* ================= TROUSER ================= */
-                    if (in_array('trouser',$extra)) {
+                    } elseif ($extra == 'trouser') {
                         $orderItem->fold_cuff_required   = $item['fold_cuff_required'] ?? null;
                         if ($orderItem->fold_cuff_required=="Yes") {
                             $orderItem->fold_cuff_size  = $item['fold_cuff_size'] ?? null;
@@ -1401,10 +1387,7 @@ protected function fillMatchingMeasurements($currentIndex, $sourceIndex)
                         $orderItem->adjustable_belt      = $item['adjustable_belt'] ?? null;
                         $orderItem->suspender_button     = $item['suspender_button'] ?? null;
                         $orderItem->trouser_position     = $item['trouser_position'] ?? null;
-                    }
-
-                    /* ================= SHIRT ================= */
-                    if (in_array('shirt',$extra)) {
+                    }elseif ($extra == 'shirt') {
                         $orderItem->sleeves       = $item['sleeves'] ?? null;          // L/S or H/S
                         $orderItem->collar        = $item['collar'] ?? null;           // Normal or Other
                         $orderItem->collar_style  = $item['collar_style'] ?? null;     // If "Other"
@@ -1412,9 +1395,7 @@ protected function fillMatchingMeasurements($currentIndex, $sourceIndex)
                         $orderItem->cuffs         = $item['cuffs'] ?? null;            // Regular / French / Other
                         $orderItem->cuff_style    = $item['cuff_style'] ?? null;       // If "Other"
                     }
-
-                     /* ================= CLIENT NAME (COMMON) ================= */
-                    if (in_array('ladies_jacket_suit',$extra) || in_array('shirt',$extra) || in_array('mens_jacket_suit',$extra)) {
+                    if ($extra === 'ladies_jacket_suit' || $extra === 'shirt' || $extra === 'mens_jacket_suit') {
                         $orderItem->client_name_required = $item['client_name_required'] ?? null;
                         if ($orderItem->client_name_required=="Yes") {
                             $orderItem->client_name_place = $item['client_name_place'] ?? null;
@@ -1740,14 +1721,14 @@ protected function fillMatchingMeasurements($currentIndex, $sourceIndex)
             }
 
 
-            // // validate customer image
-            // if (empty($this->customer_image)) {
-            //     $this->errorClass['customer_image'] = 'border-danger';
-            //     $this->errorMessage['customer_image'] = 'Please choose customer image';
-            // } else {
-            //     $this->errorClass['customer_image'] = null;
-            //     $this->errorMessage['customer_image'] = null;
-            // }
+            // validate customer image
+            if (empty($this->customer_image)) {
+                $this->errorClass['customer_image'] = 'border-danger';
+                $this->errorMessage['customer_image'] = 'Please choose customer image';
+            } else {
+                $this->errorClass['customer_image'] = null;
+                $this->errorMessage['customer_image'] = null;
+            }
 
 
            // Validate Phone Number

@@ -10,7 +10,6 @@ use App\Http\Controllers\Api\FabricController;
 use App\Http\Controllers\Api\BusinessTypeController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\OrderController;
-use App\Http\Controllers\Api\TodoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,7 +38,7 @@ Route::post('/reset-mpin', [AuthController::class, 'resetMpin']);
 // Route::middleware('auth:sanctum', 'token.expiry')->group(function () {
 Route::middleware('auth:sanctum', 'token.session')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
-        
+
     // profile
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::get('/dashboard', [AuthController::class, 'dashboard']);
@@ -85,28 +84,22 @@ Route::middleware('auth:sanctum', 'token.session')->group(function () {
         Route::get('/pages', [ProductController::class, 'pages']);
         Route::get('/page/item', [ProductController::class, 'pageItem']);
         Route::get('/products-collection-wise', [ProductController::class, 'getProductsByCollection']);
+       
+        
     });
     
     
     Route::prefix('order')->group(function () { 
-        // Route::post('/store', [OrderController::class, 'createOrder']);
-        Route::post('/store', [OrderController::class, 'store']);
+        Route::post('/store', [OrderController::class, 'createOrder']);
         Route::post('/video/store', [OrderController::class, 'createVideo']);
         Route::get('/list', [OrderController::class, 'index']);
         Route::get('/detail', [OrderController::class, 'detail']);
         Route::get('/ledger-view', [OrderController::class, 'ledgerView']);
         Route::post('/payment-receipt-save', [OrderController::class, 'paymentReceiptSave']);
-        Route::post('/skip-order', [OrderController::class, 'skipOrderBill']);
-        Route::post('/cashbook-module', [OrderController::class, 'cashbookModule']);
-    });
-
-    Route::prefix('todo')->group(function () { 
-        Route::get('/list', [TodoController::class, 'todoList']);
     });
     
-    Route::prefix('notes')->group(function () { 
-        Route::post('/store', [TodoController::class, 'noteStore']);
-    });
-    
-   
+    // More routes related to products can be added here
+    // Route::get('/products', [ProductController::class, 'index']);
+    // Route::put('/products/{id}', [ProductController::class, 'update']);
+    // Route::delete('/products/{id}', [ProductController::class, 'destroy']);
 });

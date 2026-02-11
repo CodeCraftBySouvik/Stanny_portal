@@ -463,7 +463,7 @@
                                         value="{{ optional(collect($items[$index]['fabrics'])->firstWhere('id', $items[$index]['selected_fabric']))->title }}"
                                         autocomplete="off" @if($isDisabled) disabled @endif>
                                     @error("items.". $index .".searchTerm")
-                                    <div class="text-danger error-message">{{ $message }}</div>
+                                    <div class="text-danger">{{ $message }}</div>
                                     @enderror
 
                                     @if(!empty($items[$index]['searchResults']))
@@ -533,11 +533,11 @@
                                     </div>
                                     <!-- Error Messages -->
                                     @if(session()->has('errorPrice.' . $index))
-                                    <div class="text-danger error-message">{{ session('errorPrice.' . $index) }}</div>
+                                    <div class="text-danger">{{ session('errorPrice.' . $index) }}</div>
                                     @endif
 
                                     @error('items.' . $index . '.price')
-                                    <div class="text-danger error-message">{{ $message }}</div>
+                                    <div class="text-danger">{{ $message }}</div>
                                     @enderror
 
                                 </div>
@@ -550,7 +550,7 @@
                                             min="{{ \Carbon\Carbon::today()->format('Y-m-d') }}" @if($isDisabled)
                                             disabled @endif>
                                         @error("items.$index.expected_delivery_date")
-                                        <div class="text-danger error-message">{{ $message }}</div>
+                                        <div class="text-danger">{{ $message }}</div>
                                         @enderror
                                     </div>
                                     @if ($priority_level)
@@ -563,7 +563,7 @@
                                             <option value="Non Priority">Non Priority</option>
                                         </select>
                                         @error("items.$index.priority")
-                                        <div class="text-danger error-message">{{ $message }}</div>
+                                        <div class="text-danger">{{ $message }}</div>
                                         @enderror
                                     </div>
                                     @endif
@@ -683,8 +683,8 @@
                                                 </option>
                                                 @endforeach
                                             </select>
-                                            @error("items.$index.selectedCatalogue")
-                                            <div class="text-danger">{{ $message }}</div>
+                                            @error("items." .$index. ".selectedCatalogue")
+                                            <div class="text-danger inputerror">{{ $message }}</div>
                                             @enderror
                                         </div>
 
@@ -719,8 +719,8 @@
                                             @endif
 
                                             >
-                                            @error("items.$index.page_number")
-                                            <div class="text-danger">{{ $message }}</div>
+                                            @error("items.".$index.".page_number")
+                                            <div class="text-danger inputerror">{{ $message }}</div>
                                             @enderror
                                         </div>
                                         {{-- Page item --}}
@@ -754,7 +754,7 @@
                                                 @endforeach
                                                 {{-- @endif --}}
                                             </select>
-                                            @error("items.$index.page_item")
+                                            @error("items.".$index.".page_item")
                                             <div class="text-danger">{{ $message }}</div>
                                             @enderror
                                             @endif
@@ -1573,33 +1573,6 @@
 
     input.dispatchEvent(new Event('change', { bubbles: true }));
 }
-
- window.addEventListener('error_message', event => {
-        setTimeout(() => {
-            let errorElement = document.querySelector(".error-message");
-            if (errorElement) {
-                errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
-            }
-        }, 100);
-    });
-
-document.addEventListener("DOMContentLoaded", function() {
-  document.addEventListener("click", function(event) {
-    if (event.target.closest("#nextTab")) {
-      setTimeout(function () {
-        const scrollContainer = document.querySelector('#sales_order_data'); // Replace with real selector
-        if (scrollContainer) {
-          scrollContainer.scrollTo({
-            top: 0,
-            behavior: "smooth"
-          });
-        } else {
-          console.log("Scroll container not found");
-        }
-      }, 300);
-    }
-  });
-});
 
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>

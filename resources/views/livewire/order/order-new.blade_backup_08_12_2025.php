@@ -73,8 +73,8 @@
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                                         aria-label="Close"></button>
                                 </div>
-                                <div class="modal-body p-5">
-                                    <div class="row g-4">
+                                <div class="modal-body">
+                                    <div class="row">
                                         <!-- Bill Number -->
                                         <div class="col-md-6">
                                             <label class="form-label"><strong>Bill Number</strong></label>
@@ -85,29 +85,7 @@
                                             <p class="text-danger small">{{$message}}</p>
                                             @enderror
                                         </div>
-                                         <!--  Status Selection Radio Buttons -->
-                                            <div class="col-md-6">
-                                                <label class="form-label"><strong>Choose Action Type <span class="text-danger">*</span></strong></label>
-                                                <div class="d-flex rounded-lg h-100 align-items-center bg-white">
-                                                    <!-- Option: Cancelled -->
-                                                    <div class="form-check form-check-inline">
-                                                        <input class="form-check-input text-red-500" type="radio" name="selectedStatus"
-                                                            id="statusCancelled" value="Cancelled" wire:model.live="selected_status" required>
-                                                        <label class="form-check-label font-medium text-danger" for="statusCancelled">
-                                                            Cancelled
-                                                        </label>
-                                                    </div>
-                                                    <!-- Option: Hold -->
-                                                    <div class="form-check form-check-inline">
-                                                        <input class="form-check-input text-yellow-500" type="radio" name="selectedStatus"
-                                                            id="statusHold" value="On Hold" wire:model.live="selected_status" required>
-                                                        <label class="form-check-label font-medium text-success" for="statusHold">
-                                                            Hold
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        <div class="col-12">
+                                        <div class="col-md-6">
                                             <label class="form-label"><strong>Reason <span
                                                         class="text-danger">*</span></strong></label>
                                             <textarea class="form-control form-control-sm border border-1"
@@ -399,7 +377,7 @@
                                 </div>
                             </div>
 
-                            {{-- <div class="mb-2 col-md-3">
+                            <div class="mb-2 col-md-3">
                                 <label for="customer_image" class="form-label">Client Image <span
                                         class="small text-danger">*</span></label>
                                 <input type="file" wire:model="customer_image" id="customer_image"
@@ -407,7 +385,7 @@
                                 @if(isset($errorMessage['customer_image']))
                                 <div class="text-danger error-message">{{ $errorMessage['customer_image'] }}</div>
                                 @endif
-                            </div> --}}
+                            </div>
 
 
                         </div>
@@ -531,33 +509,7 @@
                                     disabled value="{{$order_number}}" readonly>
                             </div>
                         </div>
-                        @php
-                            $hasGarment = collect($items)->contains('collection', 1);
-                        @endphp
 
-                        @if($hasGarment)
-                        <div class="row mb-4 bg-light p-3 border-radius-lg border border-1 mx-1">
-                            <div class="col-12 col-md-4">
-                                <label for="customer_image" class="form-label"><strong>Client Profile Image (For Garments)</strong> <span class="text-danger">*</span></label>
-                                <input type="file" wire:model="customer_image" id="customer_image"
-                                    class="form-control form-control-sm border border-1 p-2 @error('customer_image') border-danger @enderror">
-                                
-                                <div wire:loading wire:target="customer_image" class="text-info small mt-1">Uploading image...</div>
-                                
-                                @error('customer_image')
-                                    <div class="text-danger error-message small mt-1">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="col-md-4">
-                                @if ($customer_image)
-                                    <div class="mt-2">
-                                        <p class="small mb-1 text-bold">Profile Preview:</p>
-                                        <img src="{{ $customer_image->temporaryUrl() }}" style="width: 100px; height: 100px; object-fit: cover;" class="img-thumbnail shadow-sm">
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                        @endif
                         <!-- Loop through items -->
                         @foreach($items as $index => $item)
                         <div class="row align-items-top mt-3">
@@ -1009,16 +961,16 @@
                                             @error("items.$index.item_status")
                                             <div class="text-danger">{{ $message }}</div>
                                             @enderror
-                                           
+                                            {{--<span class="tooltip-text">
+                                                Define the current item state: <br>
+                                                <strong>Process</strong> – Actively being worked on <br>
+                                                <strong>Hold</strong> – Temporarily paused
+                                            </span> --}}
                                         </div>
                                     </div>
-                                    @php
-                                        $extras = $extra_measurement[$index] ?? [];
-                                    @endphp
-                                    @if(count($extras)>0)
+                                    @if(count($extra_measurement)>0)
                                     <div class="row mb-4">
-                                        {{-- ================= MEN JACKET ================= --}}
-                                        @if(in_array('mens_jacket_suit',$extras))
+                                        @if($extra_measurement[$index] == 'mens_jacket_suit')
                                         <div class="col-md-3 tooltip-wrapper">
                                             <label class="form-label"><strong>Vents</strong></label>
                                             <select class="form-control form-control-sm border border-1"
@@ -1080,10 +1032,8 @@
                                             <div class="text-danger">{{ $message }}</div>
                                             @enderror
                                         </div>
-                                        @endif
 
-                                        {{-- ================= LADIES JACKET ================= --}}
-                                        @if(in_array('ladies_jacket_suit',$extras))
+                                        @elseif($extra_measurement[$index] == 'ladies_jacket_suit')
                                         <div class="col-md-3">
                                             <label><strong>Shoulder Type</strong></label>
                                             <select class="form-control form-control-sm"
@@ -1165,10 +1115,7 @@
                                             @enderror
                                         </div>
                                         @endif
-                                        @endif
-
-                                        {{-- ================= TROUSER ================= --}}
-                                        @if(in_array('trouser', $extras))
+                                        @elseif($extra_measurement[$index] == 'trouser')
                                         <!-- Fold Cuff -->
                                         <div class="col-md-3 tooltip-wrapper">
                                             <label class="form-label"><strong>Fold Cuff</strong></label>
@@ -1325,9 +1272,7 @@
                                             {{-- <span class="tooltip-text">Select waist position for trousers.</span>
                                             --}}
                                         </div>
-                                        @endif
-                                          {{-- ================= SHIRT ================= --}}
-                                        @if(in_array('shirt', $extras))
+                                        @elseif($extra_measurement[$index] == 'shirt')
                                         <!-- Sleeves -->
                                         <div class="col-md-3 tooltip-wrapper">
                                             <label class="form-label"><strong>Sleeves</strong></label>

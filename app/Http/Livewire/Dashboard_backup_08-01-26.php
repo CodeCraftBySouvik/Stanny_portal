@@ -143,7 +143,6 @@ class Dashboard extends Component
                           ->pluck('id');
 
               return [
-                 'branch_id'     => $branch->id, 
                 'branch_name'   => $branch->name,
                 'total_orders' => Order::whereIn('created_by',$staffIds)->count(),
                 'total_sale' => Order::join('order_items', 'orders.id', '=', 'order_items.order_id')
@@ -172,7 +171,6 @@ class Dashboard extends Component
 
           $this->branchReports = [
               [
-                  'branch_id' => $branch->id,
                   'branch_name' => $branch->name,
                   'total_orders' => Order::whereIn('created_by', $staffIds)->count(),
                   'total_sale' => Order::join('order_items', 'orders.id', '=', 'order_items.order_id')
@@ -191,12 +189,6 @@ class Dashboard extends Component
         }
        
       }
-  }
-  
-  public function openBranchOrders($branchId){
-      return redirect()->route('admin.order.index', [
-        'branch_id' => $branchId
-    ]);
   }
 
 

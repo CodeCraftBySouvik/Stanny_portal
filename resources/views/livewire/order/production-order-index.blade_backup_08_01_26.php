@@ -223,23 +223,12 @@
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
-                confirmButtonText: 'Continue..',
-                cancelButtonText: 'Print PDF'
+                confirmButtonText: 'Yes, Mark as Received!'
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Livewire.dispatch('markReceivedConfirmed', { orderId: data.orderId });
                     @this.call('markReceivedConfirmed', orderId); // Call Livewire method
                     Swal.fire("Mark As Received!", "The order has been marked as received.", "success");
-                }  else if (result.dismiss === Swal.DismissReason.cancel) {
-                    // Print PDF using route helper
-                    let pdfUrl = "{{ route('production.order.download_pdf', ':id') }}".replace(':id', orderId);
-                    let printWindow = window.open(pdfUrl, '_blank');
-                    printWindow.onload = function() {
-                        printWindow.focus();
-                        printWindow.print();
-                         @this.call('markReceivedConfirmed', orderId); // Call Livewire method
-                      Swal.fire("Mark As Received!", "The order has been marked as received.", "success");
-                    };
                 }
             });
         });
