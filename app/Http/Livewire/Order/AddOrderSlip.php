@@ -732,10 +732,11 @@ class AddOrderSlip extends Component
                     ->count();
 
                 // Check if any remaining Hold or TL-approved but not Admin-approved
-                $hasPending = $allRelevantItems->where(function($item){
-                    return $item->status == 'Hold' || ($item->tl_status == 'Approved' && $item->admin_status != 'Approved') || is_null($item->assigned_team);
-                })->count();
-
+                 $hasPending = $allRelevantItems->contains(function ($item) {
+                    return $item->admin_status !== 'Approved';
+                });
+                // dd($adminApprovedCount,$totalItems,$hasPending);
+                
                 if ($adminApprovedCount == 0) {
                     $status = "Approval Pending from TL";
                 } elseif ($hasPending > 0) {

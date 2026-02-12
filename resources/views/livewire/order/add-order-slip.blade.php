@@ -654,6 +654,12 @@
                     </div>
                 </div>
 
+                @php
+                    $hasTLPending = $order->items->contains(function($item) {
+                        return  $item->tl_status !== 'Approved';
+                    });
+                @endphp
+
                 <div class="row">
                     <div class="form-group text-end">
                         <span>ORDER AMOUNT <span class="text-danger">
@@ -664,8 +670,12 @@
                             @endif
                         </span></span>
                         @if ($user && $user->designation == 1)
-                        <button wire:click.prevent="setTeamAndSubmit" class="btn btn-sm btn-success">Approve
-                            Order</button>
+                            @if (!$hasTLPending)
+                            <button wire:click.prevent="setTeamAndSubmit" class="btn btn-sm btn-success">Approve
+                                Order</button>
+                            @else
+                            <span class="text-danger fw-bold">Waiting for TL approval</span>
+                            @endif
                         @else
                         <button type="submit" id="submit_btn" class="btn btn-sm btn-success"><i
                                 class="material-icons text-white" style="font-size: 15px;">add</i>Confirm

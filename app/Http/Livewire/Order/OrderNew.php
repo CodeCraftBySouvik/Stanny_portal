@@ -114,6 +114,18 @@ class OrderNew extends Component
     public function mount()
     {
         $this->logedin_user = auth()->guard('admin')->user();
+        if ($this->logedin_user && $this->logedin_user->user_type == 0) {
+            $branch = $this->logedin_user->branch; 
+            if ($branch && $branch->country_id) {
+                $country = Country::find($branch->country_id);
+                if ($country) {
+                    $this->phone_code = $country->country_code;  // Set default code
+                    $this->selectedCountryWhatsapp = $country->country_code;
+                    $this->alt_phone_code_1 = $country->country_code;
+                    $this->alt_phone_code_2 = $country->country_code;
+                }
+            }
+        }
         $user_id = request()->query('user_id');
         
         if ($user_id) {
@@ -171,6 +183,10 @@ class OrderNew extends Component
                     ->take(1)
                     ->get();
             }
+
+
+
+
         }
 
         // Load common dropdowns

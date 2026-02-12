@@ -429,8 +429,9 @@
                                         @foreach ($items[$index]['products'] as $product)
                                         <button class="dropdown-item" type="button"
                                             wire:click='selectProduct({{ $index }}, "{{ $product->name }}", {{ $product->id }})'>
-                                            <img src="{{ $product->product_image ? asset($product->product_image) : asset('assets/img/cubes.png') }}"
-                                                alt=""> {{ $product->name }}({{ $product->product_code }})
+                                            {{-- <img src="{{ $product->product_image ? asset($product->product_image) : asset('assets/img/cubes.png') }}"
+                                                alt="">  --}}
+                                                {{ $product->name }}({{ $product->product_code }})
                                         </button>
                                         @endforeach
                                     </div>

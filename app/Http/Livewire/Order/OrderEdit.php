@@ -417,7 +417,7 @@ class OrderEdit extends Component
 
         $rules = [
             'items.*.selected_collection' => 'required',
-            'items.*.searchTerm' => 'required',
+            'items.*.searchTerm' => 'required_if:items.*.selected_collection,1',
             'items.*.selected_category' => 'required',
             'items.*.searchproduct' => 'required',
             'items.*.price' => 'required|numeric|min:1',
@@ -1419,15 +1419,15 @@ protected function resetMeasurements($index)
                     // ------------------------------------------------------------------
                     $previousStatus = $orderItem->getOriginal('status');   // null if new row
                     $newStatus      = $item['item_status'] ?? null;
-                    $statusChanged  = $previousStatus !== $newStatus;
+                    // $statusChanged  = $previousStatus !== $newStatus;
 
                     $orderItem->status = $newStatus;
                 //    dd($orderItem);
-
-                    // New 8-10-2025
-                    if ($statusChanged) {
-
+                // New 8-10-2025
+                // if ($statusChanged) {
+                        // dd($newStatus."hi");
                         if ($newStatus === 'Process') {
+                            // dd('hello');
 
                             // ── Case 1: Brand-new item (previousStatus == null)
                             if (is_null($previousStatus)) {
@@ -1437,7 +1437,7 @@ protected function resetMeasurements($index)
                                     $orderItem->tl_status    = 'Approved';
                                     $orderItem->admin_status = 'Approved';
                                     $orderItem->assigned_team = 'production';
-                                } else {
+                                }  else {
                                     // Non-admin create → no auto approve
                                     $orderItem->tl_status    = 'Pending';
                                     $orderItem->admin_status = 'Pending';
@@ -1446,12 +1446,18 @@ protected function resetMeasurements($index)
 
                             // ── Case 2: Existing item changed from Hold → Process
                             } else {
-
                                 if (in_array($loggedInAdmin->designation, [1, 12])  && $order->created_by == 1) {
                                     // Admin re-activates item → approve and assign production
                                     $orderItem->tl_status    = 'Approved';
                                     $orderItem->admin_status = 'Approved';
                                     $orderItem->assigned_team = 'production';
+                                }
+                                //  TL auto approve if TL created order
+                                elseif ($loggedInAdmin->designation == 4 && $order->created_by == $loggedInAdmin->id) {
+                                    $orderItem->tl_status    = 'Approved';
+                                    $orderItem->admin_status = 'Pending';
+                                    $orderItem->assigned_team = null;
+
                                 } else {
                                     // Non-admin (e.g. TL/staff) just updates it → not auto approved
                                     $orderItem->tl_status    = 'Pending';
@@ -1460,7 +1466,7 @@ protected function resetMeasurements($index)
                                 }
 
                                 // Let system know order still needs admin review
-                                $order->status = 'Approval Pending from TL';
+                                // $order->status = 'Approval Pending from TL';
                             }
 
                         } else {
@@ -1477,7 +1483,7 @@ protected function resetMeasurements($index)
                                 
                             }
                         }
-                    }
+                    // }
                     // dd($order);
 
 
@@ -1672,6 +1678,7 @@ protected function resetMeasurements($index)
 
                     // Count Hold items
                     $holdCount = $items->where('status', 'Hold')->count();
+            
                     // dd($processApprovedCount,$totalProcessCount,$holdCount);
                     // Determine order status based on TL designation
                     $loggedInAdmin = auth()->guard('admin')->user();
@@ -1682,6 +1689,7 @@ protected function resetMeasurements($index)
                             $order->status = 'Fully Approved By TL';
                         } elseif ($holdCount == $totalProcessCount) {
                             $order->status = 'Approval Pending from TL';
+                            
                         }
                     }
 

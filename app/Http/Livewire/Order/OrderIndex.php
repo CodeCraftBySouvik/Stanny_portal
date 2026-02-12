@@ -25,7 +25,7 @@ class OrderIndex extends Component
     
     public $branch_id;
     public $customer_id;
-    public $created_by, $search, $status = 'approval_pending_from_admin',$start_date,$end_date;
+    public $created_by, $search,$status = 'approval_pending_from_admin',$start_date,$end_date;
     public $invoiceId;
     public $orderId;
     public $totalPrice;
@@ -148,10 +148,11 @@ class OrderIndex extends Component
 
         ->when($this->created_by, fn($query) => $query->where('created_by', $this->created_by)) // Filter by creator
         ->when($this->start_date, fn($query) => $query->whereDate('created_at', '>=', $this->start_date)) // Start date filter
-        ->when($this->end_date, fn($query) => $query->whereDate('created_at', '<=', $this->end_date)) // 
-        // ->when($this->status, fn($query) => $query->where('status', $this->status)) // Filter by creator
-        ->when($this->status && $this->status !== 'all_orders', function ($query) use ($auth) {
-        if ($auth->is_super_admin && $this->status === 'approval_pending_from_admin') {
+        ->when($this->end_date, fn($query) => $query->whereDate('created_at', '<=', $this->end_date)) // End date filter
+        
+       
+       ->when($this->status && $this->status !== 'all_orders', function ($query) use ($auth) {
+        if ($this->status === 'approval_pending_from_admin') {
                 $query->whereIn('status', [
                     'Partial Approved By TL',
                     'Fully Approved By TL'
@@ -160,10 +161,16 @@ class OrderIndex extends Component
                 $query->where('status', $this->status);
             }
         })
-        ->when(!$auth->is_super_admin, function ($query) use ($auth) {
+
+       ->when(!$auth->is_super_admin, function ($query) use ($auth) {
             $query->where(function ($subQuery) use ($auth) {
                 $subQuery->where('created_by', $auth->id)
                         ->orWhere('team_lead_id', $auth->id);
+                
+                // If user is TL, show all approved orders
+                if ($auth->designation == 4) {
+                    $subQuery->orWhereIn('status', ['Partial Approved By TL', 'Fully Approved By TL']);
+                }
             });
         })
         ->orderBy('created_at', 'desc')

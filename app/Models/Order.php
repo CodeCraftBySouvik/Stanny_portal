@@ -187,9 +187,30 @@ class Order extends Model
         return $hasHold && $hasFullyApproved;
     }
 
+    public function hasProcessAndTLApprovedItems(){
+         return $this->items()
+        ->where('status', 'Process')
+        ->where('tl_status', 'Approved')
+        ->where(function ($q) {
+            $q->whereNull('admin_status')
+              ->orWhere('admin_status', '!=', 'Approved');
+        })
+        ->exists();
+    }
 
 
-
+    // Admin can approve only items that are Process + TL Approved + Admin not approved
+    public function hasProcessAndAdminApprovedItems()
+    {
+        return $this->items()
+            ->where('status', 'Process')           // Only Process items
+            ->where('tl_status', 'Approved')      // TL must have approved
+            ->where(function ($q) {
+                $q->whereNull('admin_status')      // Admin not yet approved
+                ->orWhere('admin_status', '!=', 'Approved');
+            })
+            ->exists();
+    }
 
 
 

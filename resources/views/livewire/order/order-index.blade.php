@@ -23,8 +23,6 @@
                         <div class="col-auto" style="margin-top: -27px;">
                             <label for="" class="date_lable">Status</label>
                             @if ($auth->is_super_admin)
-                                
-                            
                             <select class="form-control select-md bg-white"
                                 wire:change="setStatus($event.target.value)">
                                 <option value="all_orders" {{ $status == 'all_orders' ? 'selected' : '' }}>All Orders</option>''
@@ -67,6 +65,7 @@
                                 style="width: 350px;" wire:keyup="FindCustomer($event.target.value)">
                         </div>
                         <div class="col-auto mt-0">
+                            @if ($auth->is_super_admin)
                             <select wire:model="created_by" class="form-control select-md bg-white"
                                 wire:change="CollectedBy($event.target.value)">
                                 <option value="" hidden="" selected="">Placed By</option>
@@ -76,10 +75,13 @@
                                 @endif
                                 @endforeach
                             </select>
+                            @endif
                         </div>
                         <div class="col-auto mt-3">
+                             @if ($auth->is_super_admin)
                             <button type="button" wire:click="resetForm"
                                 class="btn btn-outline-danger select-md">Clear</button>
+                            @endif
                         </div>
                         <div class="col-auto">
                             <a href="javscript:void(0)" wire:click="export" class="btn btn-outline-success select-md"><i
@@ -194,11 +196,14 @@
                                     class="btn btn-outline-success select-md btn_outline">
                                     Approve Order
                                 </a>
+                                @endif
+                                 @if($userDesignationId == 4 && in_array($order->status, ['Approval Pending from TL', 'Partial Approved By TL','On Hold']))
                                 <a href="{{ route('admin.order.edit', $order->id) }}"
                                     class="btn btn-outline-success select-md btn_outline">
                                     Edit
                                 </a>
-
+                                @endif
+                                 @if($userDesignationId == 4 && in_array($order->status, ['Approval Pending from TL', 'Partial Approved By TL','On Hold']) && $order->created_by != $userId)
                                 <button wire:click="confirmCancelOrder({{ $order->id }})"
                                     class="btn btn-outline-danger select-md btn_outline">
                                     Cancel Order
@@ -208,6 +213,7 @@
                                 {{-- Designation 2(Sales Person): Show only Edit and Cancel if status is Approval
                                 Pending --}}
                                 @if($userDesignationId == 2 && ($order->status == 'Approval Pending from TL' || $order->status == 'On Hold'))
+                               
                                 <a href="{{ route('admin.order.edit', $order->id) }}"
                                     class="btn btn-outline-success select-md btn_outline">
                                     Edit
@@ -249,7 +255,7 @@
                                     Approve Order
                                 </a>
                                 @endif
-                                @if($userDesignationId == 4 && $order->canTLApprove())
+                                @if($userDesignationId != 2 && (($userDesignationId == 4 && $order->canTLApprove()) || $order->status == 'Partial Approved By Admin'))
                                 <a href="{{ route('admin.order.add_order_slip', $order->id) }}"
                                     class="btn btn-outline-success select-md btn_outline">
                                     Approve Order

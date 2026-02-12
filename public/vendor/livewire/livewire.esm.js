@@ -8145,9 +8145,9 @@ async function sendRequest(pool) {
     });
     if (preventDefault)
       return;
-    if (response.status === 419) {
-      handlePageExpiry();
-    }
+    // if (response.status === 419) {
+    //   handlePageExpiry();
+    // }
     return showFailureModal(content);
   }
   if (response.redirected) {
@@ -8166,9 +8166,9 @@ async function sendRequest(pool) {
   await handleSuccess(components2);
   succeed({ status: response.status, json: JSON.parse(content) });
 }
-function handlePageExpiry() {
-  confirm("This page has expired.\nWould you like to refresh the page?") && window.location.reload();
-}
+// function handlePageExpiry() {
+//   confirm("This page has expired.\nWould you like to refresh the page?") && window.location.reload();
+// }
 function showFailureModal(content) {
   let html = content;
   showHtmlModal(html);
