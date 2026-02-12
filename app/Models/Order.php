@@ -50,7 +50,8 @@ class Order extends Model
         'invoice_date',
         'invoice_type',
         'total_product_amount',
-        'air_mail'
+        'air_mail',
+        'physical_order_bill_book'
     ];
     public function items()
     {
