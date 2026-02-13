@@ -48,38 +48,45 @@ class OrderController extends Controller
         if ($user instanceof \Illuminate\Http\JsonResponse) {
             return $user; // Return the response if the user is not authenticated
         }
-       
-        $filter = $request->filter;
-        $start_date = !empty($request->start_date) ? $request->start_date . '' : null;
-        $end_date = !empty($request->end_date) ? $request->end_date . '' : null;
+
+        $request->validate([
+            'start_date' => 'nullable|date',
+            'end_date'   => 'nullable|date|after_or_equal:start_date',
+            'search'     => 'nullable|string|max:255',
+        ]);
+        
         $ordersQuery=Order::where('created_by',$user->id);
-        if (!empty($filter)) {
-            
-            $ordersQuery->where(function ($query) use ($filter) {
-                $query->where('order_number', 'like', "%{$filter}%")
-                ->orWhere('customer_name', 'like', "%{$filter}%");
-            });
+
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $ordersQuery->whereBetween('created_at', [
+                $request->start_date . ' 00:00:00',
+                $request->end_date . ' 23:59:59',
+            ]);
         }
 
-        // Apply date filter (only if both start & end dates are provided)
-        if (!empty($start_date) && !empty($end_date)) {
-            $ordersQuery->whereBetween('created_at', [$start_date, $end_date]);
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $ordersQuery->where(function ($q) use ($search) {
+                $q->where('order_number', 'like', "%{$search}%")
+                ->orWhere('customer_name', 'like', "%{$search}%");
+            });
         }
 
         // Fetch the filtered orders
         $orders = $ordersQuery->orderBy('id', 'DESC')->get();
-        if($orders){
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Order list fetch successfully.',
-                'data' => $orders,
-            ]);
-        }else{
+
+        if ($orders->isEmpty()) {
             return response()->json([
                 'status' => false,
-                'message' => 'No data found!'
-            ]);
+                'message' => 'No orders found',
+            ], 404);
         }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Order list fetched successfully',
+            'data' => $orders,
+        ]);
        
 
     }

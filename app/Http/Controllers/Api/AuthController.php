@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
@@ -515,6 +515,7 @@ class AuthController extends Controller
             'customers' => $customers
         ], 200);
     }
+    
     public function customer_details($id){
         $user = $this->getAuthenticatedUser();
         if ($user instanceof \Illuminate\Http\JsonResponse) {
@@ -624,15 +625,21 @@ class AuthController extends Controller
         $alternative_phone_1_code_length = $request->alternative_phone_1_code_length;
         $alternative_phone_2_code_length = $request->alternative_phone_2_code_length;
         $rules = [
-            'prefix' => 'required|string|max:255',
-            'name' => 'required|string|max:255',
-            'email' => 'nullable|email|unique:users,email',
-            'phone_code' => 'required|string|max:255',
-            'phone' => [
-                'required',
-                'regex:/^\d{'. $phone_code_length .'}$/',
+            'prefix' => 'nullable|string|max:255',
+            'name' => 'nullable|string|max:255',
+            'email' => [
+                'nullable',
+                'email',
+                Rule::unique('users', 'email')->whereNull('deleted_at'),
             ],
-            
+            'phone_code' => 'nullable|string|max:255',
+            'phone' => [
+                'nullable',
+                    Rule::when($phone_code_length, [
+                        'regex:/^\d{'. $phone_code_length .'}$/'
+                    ]),
+                    Rule::unique('users', 'phone')->whereNull('deleted_at'),
+                ],
             'country_code_alt_1' => 'nullable|string|max:255',
             'alternative_phone_number_1' => [
                 'nullable',
@@ -644,23 +651,24 @@ class AuthController extends Controller
                 'nullable',
                 'regex:/^\d{'. $alternative_phone_2_code_length .'}$/',
             ],
-            
             'dob' => 'nullable|date',
             'company_name' => 'nullable|string|max:255',
             'employee_rank' => 'nullable|string|max:255',
-           
-            'billing_address' => 'required|string',
+            // 'gst_number' => 'nullable|string|max:15',
+            'credit_limit' => 'nullable|numeric',
+            'credit_days' => 'nullable|integer',
+            'billing_address' => 'nullable|string',
             'billing_landmark' => 'nullable|string|max:255',
-            'billing_city' => 'required|string|max:255',
-            'billing_country' => 'required|string|max:255',
+            'billing_city' => 'nullable|string|max:255',
+            'billing_state' => 'nullable|string',
+            'billing_country' => 'nullable|string|max:255',
             'billing_pin' => 'nullable|string|max:10',
             'profile_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'verified_video' => 'nullable|file|mimes:mp4,avi,mkv|max:10240',
+            // 'verified_video' => 'nullable|file|mimes:mp4,avi,mkv|max:10240',
+            'customer_badge_type' => 'nullable|in:general,premium',
         ];
-
         // Validate the request
         $validator = Validator::make($request->all(), $rules);
-
         // Return error response if validation fails
         if ($validator->fails()) {
             return response()->json([
@@ -668,17 +676,15 @@ class AuthController extends Controller
                 'message' => $validator->errors()->first(),
             ], 422);
         }
-        
         DB::beginTransaction();
 
         try {
             $profileImagePath = $request->hasFile('profile_image')
                 ? 'storage/' . $request->file('profile_image')->store('profile_images', 'public')
                 : null;
-
-            $verifiedVideoPath = $request->hasFile('verified_video')
-                ? 'storage/' . $request->file('verified_video')->store('verified_videos', 'public')
-                : null;
+            // $verifiedVideoPath = $request->hasFile('verified_video')
+            //     ? 'storage/' . $request->file('verified_video')->store('verified_videos', 'public')
+            //     : null;
             // Create the user
             $user = User::create([
                 'prefix' => $request->prefix,
@@ -688,17 +694,18 @@ class AuthController extends Controller
                 'phone' => $request->phone,
                 'country_code_whatsapp' => $request->whatsapp_code,
                 'whatsapp_no' => $request->whatsapp_no,
-                'country_code_alt_1' => $request->country_code_alternative_1,
+                'country_code_alt_1' => $request->country_code_alt_1,
                 'alternative_phone_number_1' => $request->alternative_phone_number_1,
-                'country_code_alt_2' => $request->country_code_alternative_2,
+                'country_code_alt_2' => $request->country_code_alt_2,
                 'alternative_phone_number_2'  => $request->alternative_phone_number_2,
                 'dob' => $request->dob,
                 'company_name' => $request->company_name,
                 'employee_rank' => $request->employee_rank,
                 'profile_image' => $profileImagePath,
                 'user_type' => 1,
+                'customer_badge' => $request->customer_badge_type,
                 'created_by' => $authUser->id,
-                'verified_video' => $verifiedVideoPath,
+                // 'verified_video' => $verifiedVideoPath,
             ]);
             // Save billing address
             UserAddress::create([
@@ -707,6 +714,7 @@ class AuthController extends Controller
                 'address' => $request->billing_address,
                 'landmark' => $request->billing_landmark,
                 'city' => $request->billing_city,
+                'state' => $request->billing_state,
                 'country' => $request->billing_country,
                 'zip_code' => $request->billing_pin,
             ]);
@@ -719,7 +727,6 @@ class AuthController extends Controller
                 'user' => $user->load('userAddress'),
             ]);
         } catch (\Exception $e) {
-            // Log error and return response
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
@@ -819,9 +826,9 @@ class AuthController extends Controller
                 'phone' => $request->phone,
                 'country_code_whatsapp' => $request->whatsapp_code,
                 'whatsapp_no' => $request->whatsapp_no,
-                'country_code_alt_1' => $request->country_code_alternative_1,
+                'country_code_alt_1' => $request->country_code_alt_1,
                 'alternative_phone_number_1' => $request->alternative_phone_number_1,
-                'country_code_alt_2' => $request->country_code_alternative_2,
+                'country_code_alt_2' => $request->country_code_alt_2,
                 'alternative_phone_number_2'  => $request->alternative_phone_number_2,
                 'dob' => $request->dob,
                 'company_name' => $request->company_name,
