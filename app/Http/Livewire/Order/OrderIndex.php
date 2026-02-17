@@ -169,7 +169,7 @@ class OrderIndex extends Component
                 
                 // If user is TL, show all approved orders
                 if ($auth->designation == 4) {
-                    $subQuery->orWhereIn('status', ['Partial Approved By TL', 'Fully Approved By TL']);
+                    $subQuery->orWhereIn('status', ['Partial Approved By TL', 'Fully Approved By TL','Fully Approved By Admin','Approval Pending from TL','Partial Approved By Admin','Partial Delivered to Customer','Fully Approved By Admin','Ready for Delivery','Cancelled','On Hold','Returned','Received by Sales Team','Received at Production','Partial Delivered By Production','Fully Delivered By Production']);
                 }
             });
         })

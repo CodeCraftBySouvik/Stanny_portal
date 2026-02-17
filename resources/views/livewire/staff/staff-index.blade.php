@@ -86,7 +86,10 @@
                                             Designation</th>
                                         <th
                                             class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">
-                                            Contact</th>
+                                            Email</th>
+                                        <th
+                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">
+                                            Mobile</th>
                                         <th
                                             class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-10">
                                             Status</th>
@@ -108,11 +111,13 @@
                                                 ucwords($member->designationDetails->name ?? 'N/A') }}</p>
                                         </td>
                                         <td>
-                                            <p class="text-xs font-weight-bold mb-0"><span>Mobile:</span><strong> {{
+                                            <p class="text-xs font-weight-bold mb-0">{{
+                                                ucwords($member->email ?? 'N/A') }}</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-xs font-weight-bold mb-0"><strong> {{
                                                     $member->country_code_phone.' '.$member->phone ?? 'N/A' }}</strong>
-                                                <br>
-                                                {{-- <span>WhatsApp:</span><strong> {{ $member->country_code_whatsapp.'
-                                                    '.$member->whatsapp_no ?? 'N/A' }}</strong></p> --}}
+                                              
                                         </td>
                                         <td>
                                             <div class="form-check form-switch">

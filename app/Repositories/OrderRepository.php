@@ -29,37 +29,63 @@ class OrderRepository
                 // }
                  // ✅ Step 1: Update item admin_status based on creation source
                  $loggedInAdmin = auth()->guard('admin')->user();
-                 foreach ($order->items as $item) {
+            //      foreach ($order->items as $item) {
 
+            //     // Only handle Process items
+            //     if ($item->status === 'Process') {
+
+            //         // If admin or super admin is approving
+            //         if (in_array($loggedInAdmin->designation, [1, 12])) {
+            //             $item->tl_status = 'Approved';
+            //             $item->admin_status = 'Approved';
+            //             $item->assigned_team = 'production';
+                      
+            //         }
+            //         // If TL/staff approving
+            //         else {
+            //             $item->tl_status = 'Approved';
+            //             $item->admin_status = 'Pending';
+            //             // keep assigned_team as is (don’t reset)
+            //         }
+
+            //     } else {
+            //         // Not in Process (Hold/Cancel)
+            //         $item->tl_status = 'Pending';
+            //         $item->admin_status = 'Pending';
+            //         $item->assigned_team = null;
+            //     }
+
+            //     $item->save();
+            // }
+            foreach ($order->items as $item) {
                 // Only handle Process items
                 if ($item->status === 'Process') {
-
-                    // If admin or super admin is approving
                     if (in_array($loggedInAdmin->designation, [1, 12])) {
+                        // ✅ Admin auto-approve
                         $item->tl_status = 'Approved';
                         $item->admin_status = 'Approved';
-
-                        // Assign a team only if not already assigned
-                        // if (empty($item->assigned_team)) {
-                        //     $item->assigned_team = 'production'; // or keep existing logic
-                        // }
-                    }
-                    // If TL/staff approving
-                    else {
+            
+                        // ✅ Ensure assigned team is production
+                        $item->assigned_team = 'production';
+                    } else if ($loggedInAdmin->designation == 4) { // TL
                         $item->tl_status = 'Approved';
                         $item->admin_status = 'Pending';
-                        // keep assigned_team as is (don’t reset)
+                        $item->assigned_team = 'production';
+                    } else {
+                        $item->tl_status = 'Pending';
+                        $item->admin_status = 'Pending';
+                        $item->assigned_team = null;
                     }
-
                 } else {
-                    // Not in Process (Hold/Cancel)
+                    // For Hold / Cancel / other statuses
                     $item->tl_status = 'Pending';
                     $item->admin_status = 'Pending';
                     $item->assigned_team = null;
                 }
-
+            
                 $item->save();
             }
+
 
                 // Determine order status based on items
                 $totalItems = $order->items->count();

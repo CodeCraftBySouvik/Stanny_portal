@@ -215,10 +215,11 @@
 
             {{-- Extra Measurements --}}
             <div class="section-title">Extra Requirements</div>
-
             @php
             $extraFields = [
                 // 'Extra Type' => $item['extra_type'] ?? null,
+                'Fittings' => $item['fittings'] ?? null,
+                'Priority Level' => $item['priority'] ?? null,
                 'Shoulder Type' => $item['shoulder_type'] ?? null,
                 'Vents' => $item['vents'] ?? null,
                 'Vents Required' => $item['vents_required'] ?? null,

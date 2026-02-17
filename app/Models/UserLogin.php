@@ -8,7 +8,7 @@ class UserLogin extends Model
 {
     protected $table = "user_logins";
     protected $fillable = [
-       'user_id', 'country_code', 'mobile', 'is_verified', 'otp', 'mpin', 'device_id', 'created_at', 'updated_at'
+       'user_id', 'country_code','email', 'mobile', 'is_verified', 'otp', 'mpin', 'device_id', 'created_at', 'updated_at'
     ];
     public function user()
     {

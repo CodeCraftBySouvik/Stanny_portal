@@ -101,7 +101,7 @@ class MasterBranch extends Component
         $this->city = $branch->city;
         $this->address = $branch->address;
         $this->country_id = $branch->country_id; 
-          $this->dispatch('refresh-chosen', country: $this->country_id);
+        $this->dispatch('refresh-chosen', country: $this->country_id);
     }
 
     public function updateBranch()

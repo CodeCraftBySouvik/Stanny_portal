@@ -26,6 +26,7 @@ use App\Models\Page;
 use App\Models\CataloguePageItem;
 use App\Models\OrderItemCatalogueImage;
 use App\Models\OrderItemVoiceMessage;
+use App\Models\StockFabric;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Helpers\Helper;
@@ -114,6 +115,9 @@ class OrderNew extends Component
     public function mount()
     {
         $this->logedin_user = auth()->guard('admin')->user();
+        
+        // mobile number country code should be configured branch-wise.
+
         if ($this->logedin_user && $this->logedin_user->user_type == 0) {
             $branch = $this->logedin_user->branch; 
             if ($branch && $branch->country_id) {
@@ -126,6 +130,7 @@ class OrderNew extends Component
                 }
             }
         }
+        
         $user_id = request()->query('user_id');
         
         if ($user_id) {
@@ -183,10 +188,6 @@ class OrderNew extends Component
                     ->take(1)
                     ->get();
             }
-
-
-
-
         }
 
         // Load common dropdowns
@@ -350,6 +351,14 @@ class OrderNew extends Component
         // Set the exact selected fabric name
         $this->items[$index]['searchTerm'] = $fabric->title;
         $this->items[$index]['selected_fabric'] = $fabric->id;
+        
+         // Check stock immediately
+        $stock = StockFabric::where('fabric_id', $fabricId)->value('qty_in_meter');
+        if (is_null($stock) || $stock <= 0) {
+            $this->addError("items.$index.searchTerm", "Chosen fabric is out of stock.");
+        }else{
+             $this->resetErrorBag("items.$index.searchTerm");
+        }
 
         // Clear search results to hide the dropdown after selection
         $this->items[$index]['searchResults'] = [];
@@ -373,7 +382,7 @@ class OrderNew extends Component
             'items.*.fitting' => 'required_if:items.*.collection,1',
             'items.*.expected_delivery_date' => 'required',
             'items.*.item_status' => 'required',
-            'items.*.searchTerm' => 'required_if:items.*.collection,1',
+            'items.*.searchTerm' => ['required_if:items.*.collection,1'],
             'order_number' => 'required|string|not_in:000|unique:orders,order_number',
             // Customer image only required when garment select 
             'customer_image' => $hasGarment ? 'required|image|mimes:jpg,jpeg,png,webp|max:2048' : 'nullable',
@@ -433,8 +442,12 @@ class OrderNew extends Component
         if (in_array($auth->designation, [1, 4])) {
             $rules['items.*.priority'] = 'required';
         }
-
+           
          foreach ($this->items as $index => $item) {
+            //  dd($item);
+             // FABRIC STOCK VALIDATION
+           
+
             if (isset($item['selectedCatalogue']) &&
                 isset($this->catalogues[$index][$item['selectedCatalogue']]) &&
                 $this->catalogues[$index][$item['selectedCatalogue']] === 'No Catalogue Images') {
@@ -448,6 +461,22 @@ class OrderNew extends Component
                 $rules["items.$index.page_number"] = 'required_if:items.*.collection,1';
             }
         }
+        
+        foreach ($this->items as $index => $item) {
+
+                if (isset($item['collection']) && $item['collection'] == 1) {
+            
+                    $rules["items.$index.searchTerm"][] = function ($attribute, $value, $fail) use ($item) {
+                        $stock = StockFabric::where('fabric_id', $item['selected_fabric'])
+                                    ->value('qty_in_meter');
+            
+                        if (is_null($stock) || $stock <= 0) {
+                            $fail('Chosen fabric is out of stock.');
+                        }
+                    };
+                }
+            }
+
 
 
         return $rules;
@@ -834,37 +863,75 @@ class OrderNew extends Component
 
         $this->billing_amount = round($total, 2);
     }
-
-
     
-    public function checkproductPrice($value, $index)
+        public function checkproductPrice($index)
     {
+        $value = $this->items[$index]['price'] ?? null;
         $selectedFabricId = $this->items[$index]['selected_fabric'] ?? null;
-        // dd($selectedFabricId);
+    
+        // Sanitize input first
+        $formattedValue = preg_replace('/[^0-9.]/', '', $value);
+    
+        if (!is_numeric($formattedValue) || $formattedValue === '') {
+            $this->items[$index]['price'] = '';
+            session()->flash('errorPrice.' . $index, '🚨 Please enter a valid price.');
+            return;
+        }
+    
+        $formattedValue = floatval($formattedValue);
+    
+        // Threshold check
         if ($selectedFabricId) {
             $fabricData = Fabric::find($selectedFabricId);
-            if ($fabricData && floatval($value) < floatval($fabricData->threshold_price)) {
-                // Show an error message for threshold price violation
-                session()->flash('errorPrice.' . $index,
-                    "🚨 The price for fabric '{$fabricData->title}' cannot be less than its threshold price of {$fabricData->threshold_price}.");
+    
+            if ($fabricData && $formattedValue < floatval($fabricData->threshold_price)) {
+                session()->flash(
+                    'errorPrice.' . $index,
+                    "🚨 The price for fabric '{$fabricData->title}' cannot be less than its threshold price of {$fabricData->threshold_price}."
+                );
+    
                 return;
             }
         }
-
-        // Sanitize and validate input value
-        $formattedValue = preg_replace('/[^0-9.]/', '', $value);
-        if (is_numeric($formattedValue)) {
-            // If valid, format to two decimal places and update
-            $this->items[$index]['price'] =$formattedValue;
-            session()->forget('errorPrice.' . $index);
-        } else {
-            // Reset price and show error for invalid input
-            $this->items[$index]['price'] = '';
-            session()->flash('errorPrice.' . $index, '🚨 Please enter a valid price.');
-        }
-
-        $this->updateBillingAmount(); // Update billing after validation
+    
+        // If everything valid
+        $this->items[$index]['price'] = $formattedValue;
+        session()->forget('errorPrice.' . $index);
+    
+        $this->updateBillingAmount();
     }
+
+
+
+    
+    // public function checkproductPrice($value, $index)
+    // {
+    //     $selectedFabricId = $this->items[$index]['selected_fabric'] ?? null;
+    //     // dd($selectedFabricId);
+    //     if ($selectedFabricId) {
+    //         $fabricData = Fabric::find($selectedFabricId);
+    //         if ($fabricData && floatval($value) < floatval($fabricData->threshold_price)) {
+    //             // Show an error message for threshold price violation
+    //             session()->flash('errorPrice.' . $index,
+    //                 "🚨 The price for fabric '{$fabricData->title}' cannot be less than its threshold price of {$fabricData->threshold_price}.");
+    //             return;
+    //         }
+    //     }
+
+    //     // Sanitize and validate input value
+    //     $formattedValue = preg_replace('/[^0-9.]/', '', $value);
+    //     if (is_numeric($formattedValue)) {
+    //         // If valid, format to two decimal places and update
+    //         $this->items[$index]['price'] =$formattedValue;
+    //         session()->forget('errorPrice.' . $index);
+    //     } else {
+    //         // Reset price and show error for invalid input
+    //         $this->items[$index]['price'] = '';
+    //         session()->flash('errorPrice.' . $index, '🚨 Please enter a valid price.');
+    //     }
+
+    //     $this->updateBillingAmount(); // Update billing after validation
+    // }
 
     // public function updateBillingAmount()
     // {
@@ -1154,6 +1221,7 @@ protected function fillMatchingMeasurements($currentIndex, $sourceIndex)
     {
         // dd($this->all());
         $this->validate();
+        
         DB::beginTransaction(); // Begin transaction
         try{
             // Calculate the total amount
@@ -1306,6 +1374,8 @@ protected function fillMatchingMeasurements($currentIndex, $sourceIndex)
 
             // Save order items and measurements
             foreach ($this->items as $k => $item) {
+                
+
                 if($item['collection']==1 && empty($item['page_item'])){
                     $page = Page::where('catalogue_id', $item['selectedCatalogue'])->where('page_number',$item['page_number'])->first();
                     if($page){

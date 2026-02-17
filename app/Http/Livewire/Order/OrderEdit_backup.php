@@ -228,7 +228,7 @@ class OrderEdit extends Component
             $this->billing_city = trim($billingAddress[2]); // City
             $this->billing_state = trim($billingAddress[3]); // State
             $this->billing_country = trim($billingAddress[4]); // Country and PIN code
-
+        
             // Extract pin code from the country field (assuming it's at the end)
             $countryAndPin = explode('-', $this->billing_country);
             if (count($countryAndPin) > 1) {
@@ -417,14 +417,14 @@ class OrderEdit extends Component
 
         $rules = [
             'items.*.selected_collection' => 'required',
-             'items.*.searchTerm' => 'required',
+            'items.*.searchTerm' => 'required_if:items.*.selected_collection,1',
             'items.*.selected_category' => 'required',
             'items.*.searchproduct' => 'required',
             'items.*.price' => 'required|numeric|min:1',
-            'items.*.selectedCatalogue' => 'required_if:items.*.selected_collection,1',
-            'items.*.page_number' => 'required_if:items.*.selected_collection,1',
+            // 'items.*.selectedCatalogue' => 'required_if:items.*.selected_collection,1',
+            // 'items.*.page_number' => 'required_if:items.*.selected_collection,1',
             'items.*.quantity' => 'required|numeric|min:1',
-            'items.*.fitting' => 'required_if:items.*.collection,1',
+            // 'items.*.fitting' => 'required_if:items.*.selected_collection,1',
             // 'items.*.priority' => 'required',
             'items.*.expected_delivery_date' => 'required',
             'items.*.item_status' => 'required',
@@ -435,6 +435,24 @@ class OrderEdit extends Component
                     : 'required')
                 : 'nullable',
         ];
+            foreach ($this->items as $index => $item) {
+
+                if (($item['selected_collection'] ?? null) == 1) {
+        
+                    // Detect "No Catalogue Images"
+                    $noImages =
+                        isset($item['selectedCatalogue']) &&
+                        isset($this->catalogues[$index][$item['selectedCatalogue']]) &&
+                        $this->catalogues[$index][$item['selectedCatalogue']] === 'No Catalogue Images';
+        
+                    if (!$noImages) {
+                        $rules["items.$index.selectedCatalogue"] = 'required';
+                        $rules["items.$index.page_number"] = 'required|integer|min:1';
+                    }
+        
+                    $rules["items.$index.fitting"] = 'required';
+                }
+            }
         //  Add dynamic rules based on extra measurement per index
         foreach ($this->items as $index => $item) {
             $extra = $this->extra_measurement[$index] ?? [];
@@ -479,20 +497,20 @@ class OrderEdit extends Component
             $rules['items.*.priority'] = 'required';
         }
 
-         foreach ($this->items as $index => $item) {
-            if (isset($item['selectedCatalogue']) &&
-                isset($this->catalogues[$index][$item['selectedCatalogue']]) &&
-                $this->catalogues[$index][$item['selectedCatalogue']] === 'No Catalogue Images') {
+        //  foreach ($this->items as $index => $item) {
+        //     if (isset($item['selectedCatalogue']) &&
+        //         isset($this->catalogues[$index][$item['selectedCatalogue']]) &&
+        //         $this->catalogues[$index][$item['selectedCatalogue']] === 'No Catalogue Images') {
 
-                // Make selectedCatalogue,page_number optional
-                $rules["items.$index.selectedCatalogue"] = 'nullable';
-                $rules["items.$index.page_number"] = 'nullable';
-            } else {
-                // Otherwise required if collection = 1
-                $rules["items.$index.selectedCatalogue"] = 'required_if:items.*.collection,1';
-                $rules["items.$index.page_number"] = 'required_if:items.*.collection,1';
-            }
-        }
+        //         // Make selectedCatalogue,page_number optional
+        //         $rules["items.$index.selectedCatalogue"] = 'nullable';
+        //         $rules["items.$index.page_number"] = 'nullable';
+        //     } else {
+        //         // Otherwise required if collection = 1
+        //         $rules["items.$index.selectedCatalogue"] = 'required_if:items.*.collection,1';
+        //         $rules["items.$index.page_number"] = 'required_if:items.*.collection,1';
+        //     }
+        // }
         return $rules;
     }
 
@@ -504,10 +522,10 @@ class OrderEdit extends Component
             'items.*.selected_category.required'      => 'Please select a category for the item.',
             'items.*.searchproduct.required'          => 'Please select a product for the item.',
             'items.*.price.required'                  => 'Please enter a price for the item.',
-            'items.*.selectedCatalogue.required_if'   => 'Please select a catalogue for the item.',
-            'items.*.page_number.required_if'         => 'Please select a page for the item.',
+            'items.*.selectedCatalogue.required'   => 'Please select a catalogue for the item.',
+            'items.*.page_number.required'         => 'Please select a page for the item.',
             'items.*.quantity.required'               => 'Please select a quantity for the item.',
-            'items.*.fitting.required_if'             => 'Please select fittings for the item.',
+            'items.*.fitting.required'             => 'Please select fittings for the item.',
             'items.*.priority.required'               => 'Please select a priority for the item.',
             'items.*.expected_delivery_date.required' => 'Please select expected delivery date for the item.',
             'items.*.item_status.required'            => 'Please select a status for the item.',
@@ -677,52 +695,119 @@ class OrderEdit extends Component
         }
     }
 
-    public function validatePageNumber($value,$index)
-    {
-        if (!isset($this->items[$index]['page_number']) || !isset($this->items[$index]['selectedCatalogue'])) {
-            return;
-        }
+    // public function validatePageNumber($value,$index)
+    // {
+    //     if (!isset($this->items[$index]['page_number']) || !isset($this->items[$index]['selectedCatalogue'])) {
+    //         return;
+    //     }
 
-        $pageNumber = (int) $this->items[$index]['page_number'];
-        $selectedCatalogue = $this->items[$index]['selectedCatalogue'];
+    //     $pageNumber = (int) $this->items[$index]['page_number'];
+    //     $selectedCatalogue = $this->items[$index]['selectedCatalogue'];
 
-        // Fetch page items dynamically
-         $this->items[$index]['pageItems'] = CataloguePageItem::join('pages', 'catalogue_page_items.page_id', '=', 'pages.id')
-                                        ->where('catalogue_page_items.catalogue_id', $selectedCatalogue)
-                                        ->where('pages.page_number', $pageNumber)
-                                        ->pluck('catalogue_page_items.catalog_item')
-                                        ->toArray();
+    //     // Fetch page items dynamically
+    //      $this->items[$index]['pageItems'] = CataloguePageItem::join('pages', 'catalogue_page_items.page_id', '=', 'pages.id')
+    //                                     ->where('catalogue_page_items.catalogue_id', $selectedCatalogue)
+    //                                     ->where('pages.page_number', $pageNumber)
+    //                                     ->pluck('catalogue_page_items.catalog_item')
+    //                                     ->toArray();
 
-        if(count($this->items[$index]['pageItems']) >0 ){
-             // Keep the current selection only if it exists in new list
-            if (!in_array($this->items[$index]['page_item'] ?? null, $this->items[$index]['pageItems'])) {
-                $this->items[$index]['page_item'] = null;
-            }
-            $this->catalogue_page_item[$index]=  $value;
-        }else{
-            // Reset if no items exist
-             $this->items[$index]['pageItems'] = [];
-            $this->items[$index]['page_item'] = null;
-            $this->catalogue_page_item[$index] = "";
-        }
+    //     if(count($this->items[$index]['pageItems']) >0 ){
+    //          // Keep the current selection only if it exists in new list
+    //         if (!in_array($this->items[$index]['page_item'] ?? null, $this->items[$index]['pageItems'])) {
+    //             $this->items[$index]['page_item'] = null;
+    //         }
+    //         $this->catalogue_page_item[$index]=  $value;
+    //     }else{
+    //         // Reset if no items exist
+    //          $this->items[$index]['pageItems'] = [];
+    //         $this->items[$index]['page_item'] = null;
+    //         $this->catalogue_page_item[$index] = "";
+    //     }
 
-        if (empty($this->items[$index]['pageItems'])) {
-            $this->items[$index]['page_item'] = null;
-        }
+    //     if (empty($this->items[$index]['pageItems'])) {
+    //         $this->items[$index]['page_item'] = null;
+    //     }
 
-        // Ensure we get the correct max page for the selected catalogue
-        $maxPage = $this->maxPages[$index][$selectedCatalogue] ?? null;
+    //     // Ensure we get the correct max page for the selected catalogue
+    //     $maxPage = $this->maxPages[$index][$selectedCatalogue] ?? null;
 
-        if ($maxPage === null) {
-            return; // No catalogue selected, or no max page found
-        }
+    //     if ($maxPage === null) {
+    //         return; // No catalogue selected, or no max page found
+    //     }
 
-        if ($pageNumber < 1 || $pageNumber > $maxPage) {
-            $this->addError("items.$index.page_number", "Page number must be between 1 to $maxPage.");
-        } else {
-            $this->resetErrorBag("items.$index.page_number");
-        }
+    //     if ($pageNumber < 1 || $pageNumber > $maxPage) {
+    //         $this->addError("items.$index.page_number", "Page number must be between 1 to $maxPage.");
+    //     } else {
+    //         $this->resetErrorBag("items.$index.page_number");
+    //     }
+    // }
+    
+    public function validatePageNumber($value, $index)
+{
+    if (
+        !isset($this->items[$index]['page_number']) ||
+        !isset($this->items[$index]['selectedCatalogue'])
+    ) {
+        return;
     }
+
+    $pageNumber = (int) $this->items[$index]['page_number'];
+    $selectedCatalogue = $this->items[$index]['selectedCatalogue'];
+
+    // Fetch page items
+    $this->items[$index]['pageItems'] = CataloguePageItem::join(
+            'pages',
+            'catalogue_page_items.page_id',
+            '=',
+            'pages.id'
+        )
+        ->where('catalogue_page_items.catalogue_id', $selectedCatalogue)
+        ->where('pages.page_number', $pageNumber)
+        ->pluck('catalogue_page_items.catalog_item')
+        ->toArray();
+
+    // ---------- PAGE NUMBER VALIDATION ----------
+    $maxPage = $this->maxPages[$index][$selectedCatalogue] ?? null;
+
+    if ($maxPage && ($pageNumber < 1 || $pageNumber > $maxPage)) {
+        $this->addError(
+            "items.$index.page_number",
+            "Page number must be between 1 and $maxPage."
+        );
+    } else {
+        $this->resetErrorBag("items.$index.page_number");
+    }
+
+    // ---------- PAGE ITEM HANDLING ----------
+    if (!empty($this->items[$index]['pageItems'])) {
+
+        // Reset invalid selection
+        if (
+            !in_array(
+                $this->items[$index]['page_item'] ?? null,
+                $this->items[$index]['pageItems']
+            )
+        ) {
+            $this->items[$index]['page_item'] = null;
+        }
+
+        //  REQUIRED VALIDATION FOR PAGE ITEM
+        if (empty($this->items[$index]['page_item'])) {
+            $this->addError(
+                "items.$index.page_item",
+                "Please select a page item."
+            );
+        } else {
+            $this->resetErrorBag("items.$index.page_item");
+        }
+
+    } else {
+        // No page items → clear selection & error
+        $this->items[$index]['page_item'] = null;
+        $this->resetErrorBag("items.$index.page_item");
+    }
+}
+
 
     public function selectProduct($index, $name, $id)
 {
@@ -986,7 +1071,7 @@ protected function resetMeasurements($index)
             $this->errorMessage['phone'] = null;
         }
         
-        if ($this->email) {
+         if ($this->email) {
                 if (!filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
                     $this->errorMessage['email'] = 'Please enter a valid email address.';
                     $this->errorClass['email'] = 'is-invalid';
@@ -1654,6 +1739,7 @@ protected function resetMeasurements($index)
             //ChangeTracker::clear(); // to prevent accidental leakage into other requests
             return redirect()->route('admin.order.index');
         } catch (\Exception $e) {
+            $this->dispatch('error_message');
             dd($e->getMessage());
             DB::rollBack();
             \Log::error('Error updating order: ' . $e->getMessage());
@@ -1661,7 +1747,7 @@ protected function resetMeasurements($index)
             session()->flash('error', 'Something went wrong. The operation has been rolled back.');
         }
     }
-
+    
 
 
         /**

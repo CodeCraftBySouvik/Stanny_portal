@@ -73,7 +73,7 @@ class Helper
         }
 
         // Extract the first 3 characters of the salesman's name and convert to uppercase
-        $prefix = strtoupper(substr($salesman->name, 0, 3));
+        // $prefix = strtoupper(substr($salesman->name, 0, 3));
 
         // Check for salesman billing record
         $salesmanBillBook = SalesmanBilling::where('salesman_id', $salesManId)
@@ -85,7 +85,7 @@ class Helper
 
             do {
                 // Format the order number with prefix and zero-padding
-                $formatted_number = $prefix . '-' . str_pad($new_number, 3, '0', STR_PAD_LEFT);
+                $formatted_number =  str_pad($new_number, 3, '0', STR_PAD_LEFT);
 
                 // Check if the order number already exists
                 $existing_order = Order::where('order_number', $formatted_number)->first();

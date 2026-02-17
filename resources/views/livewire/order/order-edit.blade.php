@@ -34,12 +34,12 @@
                     {{ session('error') }}
                 </div>
                 @endif
-                @if($activeTab==1 && $salesmanBill == null)
+              {{--  @if($activeTab==1 && $salesmanBill == null)
                 <div class="badge bg-primary">
                     <a href="{{ route('salesman.index') }}"> <strong>Error:</strong> Please add a bill for this user
                         before placing the order.</a>
                 </div>
-                @endif
+                @endif  --}}
             </div>
         </div>
         <div class="card-body" id="sales_order_data">
@@ -429,8 +429,8 @@
                                         @foreach ($items[$index]['products'] as $product)
                                         <button class="dropdown-item" type="button"
                                             wire:click='selectProduct({{ $index }}, "{{ $product->name }}", {{ $product->id }})'>
-                                            {{-- <img src="{{ $product->product_image ? asset($product->product_image) : asset('assets/img/cubes.png') }}"
-                                                alt="">  --}}
+                                            <!--<img src="{{ $product->product_image ? asset($product->product_image) : asset('assets/img/cubes.png') }}"-->
+                                            <!--    alt="">-->
                                                 {{ $product->name }}({{ $product->product_code }})
                                         </button>
                                         @endforeach

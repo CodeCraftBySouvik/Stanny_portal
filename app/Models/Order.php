@@ -50,7 +50,8 @@ class Order extends Model
         'invoice_date',
         'invoice_type',
         'total_product_amount',
-        'air_mail'
+        'air_mail',
+        'physical_order_bill_book'
     ];
     public function items()
     {
@@ -187,7 +188,27 @@ class Order extends Model
         return $hasHold && $hasFullyApproved;
     }
 
-    public function hasProcessAndTLApprovedItems(){
+
+    // Check if order has at least one Process item
+    public function hasProcessItems()
+    {
+        return $this->items()->where('status', 'Process')->exists();
+    }
+    
+    // Check if order has at least one Hold item
+    public function hasHoldItems()
+    {
+        return $this->items()->where('status', 'Hold')->exists();
+    }
+    
+    // Optional: Check if order has both Process and Hold items
+    public function hasProcessAndHoldItems()
+    {
+        return $this->hasProcessItems() && $this->hasHoldItems();
+    }
+
+
+     public function hasProcessAndTLApprovedItems(){
          return $this->items()
         ->where('status', 'Process')
         ->where('tl_status', 'Approved')
@@ -197,9 +218,21 @@ class Order extends Model
         })
         ->exists();
     }
-
-
-    // Admin can approve only items that are Process + TL Approved + Admin not approved
+    
+     public function hasProcessAndTLPendingItems(){
+         return $this->items()
+        ->where('status', 'Process')
+        ->where('tl_status', 'Pending')
+        ->where(function ($q) {
+            $q->whereNull('admin_status')
+              ->orWhere('admin_status', '!=', 'Approved');
+        })
+        ->exists();
+    }
+    
+    
+    
+     // Admin can approve only items that are Process + TL Approved + Admin not approved
     public function hasProcessAndAdminApprovedItems()
     {
         return $this->items()
@@ -211,8 +244,30 @@ class Order extends Model
             })
             ->exists();
     }
-
-
+    
+    // Can Sales edit until admin approved all order items
+    // public function canSalesEdit()
+    // {
+    //     return $this->status !== 'Fully Approved By Admin';
+    // }
+    
+    public function canSalesEdit()
+    {
+        // Get all items for this order
+        $items = $this->items; // assuming $this is the Order model with items relation loaded
+    
+        // Check if all items meet the "fully approved" condition
+        $allApproved = $items->every(function ($item) {
+            return $item->admin_status === 'Approved' 
+                && $item->tl_status === 'Approved'
+                && !is_null($item->assigned_team);
+        });
+    
+        // Sales can edit if not all items are fully approved
+        return !$allApproved;
+    }
+    
+ 
 
 
 }

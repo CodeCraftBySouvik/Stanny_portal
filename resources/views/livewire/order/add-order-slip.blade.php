@@ -228,7 +228,7 @@
                                                         <x-table-td>{{ number_format($item->due_amnt, 2) }}
                                                         </x-table-td>
 
-
+                                                    
                                                     </tr>
                                                     @endforeach
                                                     {{-- show all --}}
@@ -315,7 +315,7 @@
                             {{ session('error') }}
                         </div>
                         @endif
-                        @foreach ($order->items as $key => $order_item)
+                        @foreach ($orderItemsNew as $key => $order_item)
                         <div class="row align-items-center mb-2 pb-3">
                             @php
                             $magrin = '';
@@ -325,6 +325,7 @@
                             @endphp
                             <div class="col-sm-3">
                                 <table>
+                                   
                                     <tr>
                                         <td>
                                             <span class="text-sm badge bg-primary sale_grn_sl" style="{{ $magrin }}">{{
@@ -342,8 +343,8 @@
                                                         class="form-control form-control-sm">
                                                     <input type="hidden" wire:model="order_item.{{ $key }}.id"
                                                         class="form-control form-control-sm"
-                                                        value="{{ $order_item->id }}">
-                                                    <input type="text" value="{{ $order_item->product_name }}"
+                                                        value="{{ $order_item['id'] }}">
+                                                    <input type="text" value="{{ $order_item['product_name'] }}"
                                                         class="form-control form-control-sm border border-1 customer_input"
                                                         {{ $readonly }}>
                                                 </div>
@@ -357,23 +358,23 @@
                             $user = auth()->guard('admin')->user();
                             @endphp
                             <div
-                                class="{{ ($user->designation == 1 && $order_item->status == 'Process') ? 'col-sm-2' : 'col-sm-3' }}">
+                                class="{{ ($user->designation == 1 && $order_item['status'] == 'Process') ? 'col-sm-2' : 'col-sm-3' }}">
                                 <div class="form-group mb-3">
                                     @if ($key == 0)
                                     <label>Quantity</label>
                                     @endif
                                     <input type="text" class="form-control form-control-sm"
-                                        value="{{ $order_item->quantity }}" disabled {{ $readonly }}>
+                                        value="{{ $order_item['quantity'] }}" disabled {{ $readonly }}>
                                 </div>
                             </div>
                             <div
-                                class="{{ ($user->designation == 1 && $order_item->status == 'Process') ? 'col-sm-2' : 'col-sm-3' }}">
+                                class="{{ ($user->designation == 1 && $order_item['status'] == 'Process') ? 'col-sm-2' : 'col-sm-3' }}">
                                 <div class="form-group mb-3">
                                     @if ($key == 0)
                                     <label for="">Price</label>
                                     @endif
                                     <input type="text" class="form-control form-control-sm"
-                                        value="{{ $order_item->piece_price }}" disabled>
+                                        value="{{ $order_item['piece_price'] }}" disabled>
 
                                 </div>
                             </div>
@@ -384,16 +385,16 @@
                                     @endif
                                     @php
                                     $isApprovedByTL =
-                                    $order_item->status === 'Process' &&
-                                    $order_item->tl_status === 'Approved';
+                                    $order_item['status'] === 'Process' &&
+                                    $order_item['tl_status'] === 'Approved';
                                     $isApprovedByAdmin =
-                                    $order_item->status === 'Process' &&
-                                    $order_item->admin_status === 'Approved';
+                                    $order_item['status'] === 'Process' &&
+                                    $order_item['admin_status'] === 'Approved';
                                     @endphp
                                     <input type="text"
                                         class="form-control form-control-sm text-white fw-bold rounded-pill text-center
-                                                    {{ $isApprovedByAdmin ? 'bg-primary' : ($isApprovedByTL ? 'bg-info' : ($order_item->status === 'Process' ? 'bg-success' : 'bg-danger')) }}"
-                                        value="{{ $isApprovedByAdmin ? 'Approved by SuperAdmin' : ($isApprovedByTL ? 'Approved by TL' : $order_item->status) }}"
+                                                    {{ $isApprovedByAdmin ? 'bg-primary' : ($isApprovedByTL ? 'bg-info' : ($order_item['status'] === 'Process' ? 'bg-success' : 'bg-danger')) }}"
+                                        value="{{ $isApprovedByAdmin ? 'Approved by SuperAdmin' : ($isApprovedByTL ? 'Approved by TL' : $order_item['status']) }}"
                                         disabled {{ $readonly }}>
                                 </div>
                             </div>
@@ -407,7 +408,7 @@
                                 $createdByThisAdmin = $order->created_by == $user->id;
 
                                 $isApprovedByTL =
-                                $order_item->status === 'Process' && $order_item->tl_status === 'Approved';
+                                $order_item['status'] === 'Process' && $order_item['tl_status'] === 'Approved';
                                 @endphp
 
                                 {{-- Admin checkbox when TL has approved --}}
@@ -417,7 +418,7 @@
                                     ? 'disabled checked' : '' }}>
                                 @elseif($user->designation == 4)
                                 {{-- TL checkbox for approving Process items --}}
-                                @if ($order_item->status == 'Process')
+                                @if ($order_item['status'] == 'Process')
                                 <input type="checkbox" wire:model="order_item.{{ $key }}.tl_approved"
                                      {{ $isApprovedByAdmin ? 'disabled checked'
                                     : '' }}>
@@ -428,8 +429,8 @@
                                 {{-- For others: Show tl_status as badge --}}
                                 @if (!$isApprovedByTL)
                                 <span
-                                    class="badge {{ $order_item->tl_status == 'Approved' ? 'bg-success' : ($order_item->tl_status == 'Hold' ? 'bg-danger' : 'bg-secondary') }}">
-                                    {{ $order_item->tl_status ?? 'Pending' }}
+                                    class="badge {{ $order_item['tl_status'] == 'Approved' ? 'bg-success' : ($order_item['tl_status'] == 'Hold' ? 'bg-danger' : 'bg-secondary') }}">
+                                    {{ $order_item['tl_status'] ?? 'Pending' }}
                                 </span>
                                 @endif
                                 @endif
@@ -452,7 +453,7 @@
                             @endif
                             {{-- Team Dropdown start --}}
                             {{-- Only Admin Can select the team --}}
-                            @if ($user->designation == 1 && $order_item->status == 'Process')
+                            @if ($user->designation == 1 && $order_item['status'] == 'Process')
                             <div class="col-sm-2">
                                 <div class="form-group mb-3">
                                     @if ($key == 0)
@@ -473,7 +474,7 @@
                             @endif
                             {{-- Team Dropdown end --}}
                             {{-- Start the measurement section --}}
-                            @if ($order_item->collection == 1 && !empty($order_item->measurements))
+                            @if ($order_item['collection_id'] == 1 && !empty($order_item['measurements']))
                             <div class="row mt-4 mb-4">
                                 <div class="col-md-12">
 
@@ -566,49 +567,52 @@
                                     </div>
                                     @endif
                                 </div>
-                                @php
-                                $extra = \App\Helpers\Helper::ExtraRequiredMeasurement($order_item->product_name);
-                                @endphp
+                                
                                 <div class="col-sm-3">
-                                    @if($extra === 'mens_jacket_suit')
-                                    <p><strong>Shoulder Type:</strong> {{ $order_item->shoulder_type ?? 'N/A' }}</p>
+                                  @if(in_array('mens_jacket_suit', $order_item['extra_type'] ?? []))
+                                    
+                                    <p><strong>Shoulder Type:</strong> {{ $order_item['shoulder_type'] ?? 'N/A' }}</p>
                                     <p><strong>Vents:</strong> {{ $order_item['vents'] ?? 'N/A' }}</p>
                                     @endif
-
-                                    @if($extra === 'ladies_jacket_suit')
-                                    <p><strong>Shoulder Type:</strong> {{ $order_item->shoulder_type ?? 'N/A'
+                                    
+                                   @if(in_array('ladies_jacket_suit', $order_item['extra_type'] ?? []))
+                                    <p><strong>Shoulder Type:</strong> {{ $order_item['shoulder_type'] ?? 'N/A'
                                         }}</p>
-                                    <p><strong>Vents Required:</strong> {{ $order_item->vents_required ?? 'N/A'
+                                    <p><strong>Vents Required:</strong> {{ $order_item['vents_required'] ?? 'N/A'
                                         }}</p>
-                                    <p><strong>Vents Count:</strong> {{ $order_item->vents_count ?? 'N/A' }}</p>
+                                    <p><strong>Vents Count:</strong> {{ $order_item['vents_count'] ?? 'N/A' }}</p>
                                     @endif
-
-                                    @if($extra === 'trouser')
-                                    <p><strong>Fold Cuff Required:</strong> {{ $order_item->fold_cuff_required
+                                    
+                                    @if(in_array('trouser', $order_item['extra_type'] ?? []))
+                                    <p><strong>Fold Cuff Required:</strong> {{ $order_item['fold_cuff_required']
                                         ?? 'N/A' }}</p>
-                                    <p><strong>Fold Cuff Size:</strong> {{ $order_item->fold_cuff_size ?
-                                        $order_item->fold_cuff_size . ' cm' : 'N/A'
+                                    <p><strong>Fold Cuff Size:</strong> {{ $order_item['fold_cuff_size'] ?
+                                        $order_item['fold_cuff_size'] . ' cm' : 'N/A'
                                         }}</p>
-                                    <p><strong>Pleats Required:</strong> {{ $order_item->pleats_required ??
+                                    <p><strong>Pleats Required:</strong> {{ $order_item['pleats_required'] ??
                                         'N/A' }}</p>
-                                    <p><strong>Pleats Count:</strong> {{ $order_item->pleats_count ?? 'N/A' }}
+                                    <p><strong>Pleats Count:</strong> {{ $order_item['pleats_count'] ?? 'N/A' }}
                                     </p>
                                     <p><strong>Back Pocket Required:</strong> {{
-                                        $order_item->back_pocket_required ?? 'N/A' }}</p>
-                                    <p><strong>Back Pocket Count:</strong> {{ $order_item->back_pocket_count ??
+                                        $order_item['back_pocket_required'] ?? 'N/A' }}</p>
+                                    <p><strong>Back Pocket Count:</strong> {{ $order_item['back_pocket_count'] ??
                                         'N/A' }}</p>
-                                    <p><strong>Adjustable Belt:</strong> {{ $order_item->adjustable_belt ??
+                                    <p><strong>Adjustable Belt:</strong> {{ $order_item['adjustable_belt'] ??
                                         'N/A' }}</p>
-                                    <p><strong>Suspender Button:</strong> {{ $order_item->suspender_button ??
+                                    <p><strong>Suspender Button:</strong> {{ $order_item['suspender_button'] ??
                                         'N/A' }}</p>
-                                    <p><strong>Trouser Position:</strong> {{ $order_item->trouser_position ??
+                                    <p><strong>Trouser Position:</strong> {{ $order_item['trouser_position'] ??
                                         'N/A' }}</p>
                                     @endif
-                                    @if($extra === 'ladies_jacket_suit' || $extra === 'shirt'
-                                    || $extra === 'mens_jacket_suit')
-                                    <p><strong>Client Name Required:</strong> {{ $order_item->client_name_required ??
+                                    @if(
+                                        in_array('ladies_jacket_suit', $order_item['extra_type'] ?? []) ||
+                                        in_array('trouser', $order_item['extra_type'] ?? []) ||
+                                        in_array('mens_jacket_suit', $order_item['extra_type'] ?? [])
+                                    )
+
+                                    <p><strong>Client Name Required:</strong> {{ $order_item['client_name_required'] ??
                                         'N/A' }}</p>
-                                    <p><strong>Client Name Place:</strong> {{ $order_item->client_name_place ??
+                                    <p><strong>Client Name Place:</strong> {{ $order_item['client_name_place'] ??
                                         'N/A' }}</p>
                                     @endif
                                 </div>
@@ -653,12 +657,19 @@
                         </div>
                     </div>
                 </div>
-
-                @php
-                    $hasTLPending = $order->items->contains(function($item) {
-                        return  $item->tl_status !== 'Approved';
-                    });
-                @endphp
+            {{--  @php
+                $hasAdminApproved = $order->items->contains(function($item) {
+                    return $item->admin_status === 'Approved';
+                });
+            
+                $hasTLNotApproved = $order->items->contains(function($item) {
+                    return $item->tl_status !== 'Approved';
+                });
+            
+                $hasTLApproved = $order->items->contains(function($item) {
+                    return $item->tl_status === 'Approved';
+                });
+            @endphp  --}}
 
                 <div class="row">
                     <div class="form-group text-end">
@@ -670,12 +681,8 @@
                             @endif
                         </span></span>
                         @if ($user && $user->designation == 1)
-                            @if (!$hasTLPending)
-                            <button wire:click.prevent="setTeamAndSubmit" class="btn btn-sm btn-success">Approve
-                                Order</button>
-                            @else
-                            <span class="text-danger fw-bold">Waiting for TL approval</span>
-                            @endif
+                        <button wire:click.prevent="setTeamAndSubmit" class="btn btn-sm btn-success">Approve
+                            Order</button>
                         @else
                         <button type="submit" id="submit_btn" class="btn btn-sm btn-success"><i
                                 class="material-icons text-white" style="font-size: 15px;">add</i>Confirm

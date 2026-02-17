@@ -158,8 +158,8 @@ class GenerateGrn extends Component
                         $this->fabricTotalPrice += $fabricTotalPrice;
                     }
                 }
-                $stocks->product_ids = implode(',',array_unique($productIds));    
-                $stocks->fabric_ids = implode(',',array_unique($fabricIds));    
+               $stocks->product_ids = !empty($productIds) ? json_encode(array_unique($productIds)) : json_encode([]);
+               $stocks->fabric_ids = !empty($fabricIds) ? json_encode(array_unique($fabricIds)) : json_encode([]);
                 $stocks->total_price = $this->fabricTotalPrice + $this->productTotalPrice;
                 $stocks->save();
                 $this->purchaseOrder->total_price =  $this->fabricTotalPrice + $this->productTotalPrice;

@@ -113,7 +113,7 @@
                                     class="form-control form-control-sm border border-1 p-2 {{ $errorClass['email'] ?? '' }}"
                                     placeholder="Enter Email">
                                 @if(isset($errorMessage['email']))
-                                <div class="text-danger error-message">{{ $errorMessage['email'] }}</div>
+                                <div class="text-danger">{{ $errorMessage['email'] }}</div>
                                 @endif
                             </div>
 
@@ -186,7 +186,7 @@
                                 </div>
                             </div>
 
-                            {{-- <div class="mb-2 col-md-3">
+                            <div class="mb-2 col-md-3">
                                 <label for="customer_image" class="form-label">Client Image <span
                                         class="small text-danger">*</span></label>
                                 <input type="file" wire:model="customer_image" id="customer_image"
@@ -199,7 +199,7 @@
                                     <img src="{{ asset($customer_image) }}" alt="" class="img-thumbnail" width="100">
                                 </div>
                                 @endif
-                            </div> --}}
+                            </div>
                         </div>
 
 
@@ -291,48 +291,6 @@
                         </div>
                     </div>
                     <div class="{{ $activeTab == 2 ? 'd-block' : 'd-none' }}" id="tab2">
-                        {{-- Customer Image only for garment --}}
-                        @php
-                        $hasGarment = collect($items)->contains('selected_collection', 1);
-                        @endphp
-
-                        @if($hasGarment)
-                        <div class="row mb-4 bg-light p-3 border-radius-lg border border-1 mx-1">
-                            <div class="col-12 col-md-4">
-                                <label for="customer_image" class="form-label"><strong>Client Profile Image (For
-                                        Garments)</strong> <span class="text-danger">*</span></label>
-                                <input type="file" wire:model="customer_image" id="customer_image"
-                                    class="form-control form-control-sm border border-1 p-2 @error('customer_image') border-danger @enderror">
-
-                                <div wire:loading wire:target="customer_image" class="text-info small mt-1">Uploading
-                                    image...</div>
-
-                                @error('customer_image')
-                                <div class="text-danger error-message small mt-1">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mt-2">
-                                    <p class="small mb-1 text-bold">Current / New Profile:</p>
-                                    @if ($customer_image && is_string($customer_image))
-                                    {{-- Showing existing image from database path --}}
-                                    <img src="{{ asset($customer_image) }}"
-                                        style="width: 100px; height: 100px; object-fit: cover;"
-                                        class="img-thumbnail shadow-sm">
-                                    @elseif($customer_image && !is_string($customer_image))
-                                    {{-- Showing temporary preview of new upload --}}
-                                    <img src="{{ $customer_image->temporaryUrl() }}"
-                                        style="width: 100px; height: 100px; object-fit: cover;"
-                                        class="img-thumbnail shadow-sm">
-                                    @else
-                                    <div class="text-muted small">No image uploaded</div>
-                                    @endif
-                                </div>
-                            </div>
-
-                        </div>
-                        @endif
-                        {{-- Customer Image only for garment end --}}
                         <div class="row">
                             <div class="col-12 col-md-12 mb-2">
                                 <h6 class="badge bg-danger custom_danger_badge">Product Information</h6>
@@ -675,11 +633,10 @@
                                                 @foreach($item['catalogues'] ?? [] as $cat_log)
                                                 <option value="{{ $cat_log['id'] }}">
                                                     {{ $cat_log['catalogue_title']['title'] ?? 'No Title' }}
-                                                    @if(($cat_log['catalogue_title']['title'] ?? '') !== 'No Catalogue
-                                                    Images')
-                                                    (1 - {{ $cat_log['page_number'] }})
-                                                    @endif
-
+                                                     @if(($cat_log['catalogue_title']['title'] ?? '') !== 'No Catalogue Images')
+                                                        (1 - {{ $cat_log['page_number'] }})
+                                                     @endif 
+                                                   
                                                 </option>
                                                 @endforeach
                                             </select>
@@ -697,28 +654,13 @@
                                                 class="form-control form-control-sm border border-2 @error('items.'.$index.'.page_number') border-danger @enderror"
                                                 min="1"
                                                 max="{{ isset($item['selectedCatalogue']) && isset($maxPages[$index][$item['selectedCatalogue']]) ? $maxPages[$index][$item['selectedCatalogue']] : '' }}"
-                                                @if($isDisabled) disabled @endif {{-- @if($orders->status != 'On Hold'
-                                            && isset($item['selectedCatalogue'])
-                                            && isset($item['catalogues'])
-                                            && collect($item['catalogues'])->firstWhere('id',
-                                            $item['selectedCatalogue'])['catalogue_title']['title'] === 'No Catalogue
-                                            Images')
-                                            disabled
-                                            @endif --}}
-                                            @if(
-                                            $orders->status !== 'On Hold'
-                                            && isset($item['selectedCatalogue'])
-                                            && isset($item['catalogues'])
-                                            && ($catalogue = collect($item['catalogues'])->firstWhere('id',
-                                            $item['selectedCatalogue']))
-                                            && isset($catalogue['catalogue_title'])
-                                            && isset($catalogue['catalogue_title']['title'])
-                                            && $catalogue['catalogue_title']['title'] === 'No Catalogue Images'
-                                            )
-                                            disabled
-                                            @endif
-
-                                            >
+                                                @if($isDisabled) disabled @endif
+                                                @if(isset($item['selectedCatalogue']) 
+                                                    && isset($item['catalogues']) 
+                                                    && collect($item['catalogues'])->firstWhere('id', $item['selectedCatalogue'])['catalogue_title']['title'] === 'No Catalogue Images') 
+                                                    disabled 
+                                                @endif
+                                                >
                                             @error("items.".$index.".page_number")
                                             <div class="text-danger inputerror">{{ $message }}</div>
                                             @enderror
@@ -731,18 +673,12 @@
                                             <label class="form-label"><strong>Page Item</strong></label>
                                             <select wire:model="items.{{$index}}.page_item"
                                                 class="form-control form-control-sm border border-2 @error('items.'.$index.'.page_item') border-danger @enderror"
-                                                @if($isDisabled) disabled @endif @if( $orders->status !== 'On Hold'
-                                                && isset($item['selectedCatalogue'])
-                                                && isset($item['catalogues'])
-                                                && ($catalogue = collect($item['catalogues'])->firstWhere('id',
-                                                $item['selectedCatalogue']))
-                                                && isset($catalogue['catalogue_title'])
-                                                && isset($catalogue['catalogue_title']['title'])
-                                                && $catalogue['catalogue_title']['title'] === 'No Catalogue Images'
-                                                )
-                                                disabled
+                                                @if($isDisabled) disabled @endif
+                                                @if(isset($item['selectedCatalogue']) 
+                                                    && isset($item['catalogues']) 
+                                                    && collect($item['catalogues'])->firstWhere('id', $item['selectedCatalogue'])['catalogue_title']['title'] === 'No Catalogue Images') 
+                                                    disabled 
                                                 @endif
-
                                                 >
                                                 <option value="" selected hidden>Select Page Item</option>
                                                 {{-- @if(!empty($items[$index]['pageItems'])) --}}
@@ -830,13 +766,9 @@
                                                 @enderror
                                             </div>
                                         </div>
-                                        @php
-                                            $extras = $extra_measurement[$index] ?? [];
-                                        @endphp
-                                        @if(count($extras)>0)
+                                        @if(count($extra_measurement)>0)
                                         <div class="row mb-4">
-                                        {{-- ================= MEN JACKET ================= --}}
-                                            @if(in_array('mens_jacket_suit',$extras))
+                                            @if($extra_measurement[$index] == 'mens_jacket_suit')
                                             <div class="col-md-3 tooltip-wrapper">
                                                 <label class="form-label"><strong>Vents</strong></label>
                                                 <select class="form-control form-control-sm border border-1"
@@ -872,8 +804,15 @@
                                                 <label><strong>Name</strong></label>
                                                 <input type="text" class="form-control form-control-sm border border-1"
                                                     wire:model="items.{{ $index }}.client_name_place"
-                                                    wire:keydown.enter.prevent @if($isDisabled) disabled @endif>
-                                                
+                                                    wire:keydown.enter.prevent @if($isDisabled)
+                                                    disabled @endif>
+                                                {{-- <select class="form-control form-control-sm"
+                                                    wire:model="items.{{ $index }}.client_name_place" @if($isDisabled)
+                                                    disabled @endif>
+                                                    <option value="" hidden>Select</option>
+                                                    <option value="Inside Jacket">Inside Jacket</option>
+                                                    <option value="Inside Suit">Inside Suit</option>
+                                                </select> --}}
                                                 @error("items.$index.client_name_place")
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
@@ -896,10 +835,7 @@
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
                                             </div>
-                                            @endif
-
-                                        {{-- ================= LADIES JACKET ================= --}}
-                                            @if(in_array('ladies_jacket_suit',$extras))
+                                            @elseif($extra_measurement[$index] == 'ladies_jacket_suit')
                                             <div class="col-md-3">
                                                 <label><strong>Shoulder Type</strong></label>
                                                 <select class="form-control form-control-sm"
@@ -975,17 +911,21 @@
                                                 <label><strong>Name</strong></label>
                                                 <input type="text" class="form-control form-control-sm border border-1"
                                                     wire:model="items.{{ $index }}.client_name_place"
-                                                    wire:keydown.enter.prevent @if($isDisabled) disabled @endif>
-                                               
+                                                    wire:keydown.enter.prevent @if($isDisabled)
+                                                    disabled @endif>
+                                                {{-- <select class="form-control form-control-sm"
+                                                    wire:model="items.{{ $index }}.client_name_place" @if($isDisabled)
+                                                    disabled @endif>
+                                                    <option value="" hidden>Select</option>
+                                                    <option value="Inside Jacket">Inside Jacket</option>
+                                                    <option value="Inside Suit">Inside Suit</option>
+                                                </select> --}}
                                                 @error("items.$index.client_name_place")
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
                                             </div>
                                             @endif
-                                            @endif
-                                            
-                                             {{-- ================= TROUSER ================= --}}
-                                            @if(in_array('trouser',$extras))
+                                            @elseif($extra_measurement[$index] == 'trouser')
                                             <!-- Fold Cuff -->
                                             <div class="col-md-3 tooltip-wrapper">
                                                 <label class="form-label"><strong>Fold Cuff</strong></label>
@@ -1017,7 +957,7 @@
                                                 @error("items.$index.fold_cuff_size")
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
-                                                
+                                                {{-- <span class="tooltip-text">Enter fold cuff size in cm.</span> --}}
                                             </div>
                                             @endif
 
@@ -1155,10 +1095,7 @@
                                                     trousers.</span>
                                                 --}}
                                             </div>
-                                            @endif
-
-                                          {{-- ================= SHIRT ================= --}}
-                                            @if(in_array('shirt',$extras))
+                                            @elseif($extra_measurement[$index] == 'shirt')
                                             <!-- Sleeves -->
                                             <div class="col-md-3 tooltip-wrapper">
                                                 <label class="form-label"><strong>Sleeves</strong></label>
@@ -1270,8 +1207,16 @@
                                                 <label><strong>Name</strong></label>
                                                 <input type="text" class="form-control form-control-sm border border-1"
                                                     wire:model="items.{{ $index }}.client_name_place"
-                                                    wire:keydown.enter.prevent @if($isDisabled) disabled @endif>
-                                               
+                                                    wire:keydown.enter.prevent @if($isDisabled)
+                                                    disabled @endif>
+                                                {{-- <select class="form-control form-control-sm"
+                                                    wire:model="items.{{ $index }}.client_name_place" @if($isDisabled)
+                                                    disabled @endif>
+                                                    <option value="" hidden>Select</option>
+                                                    <option value="On Cuff">On Cuff</option>
+                                                    <option value="On Pocket">On Pocket</option>
+                                                    <option value="On Pocket Space">On Pocket Space</option>
+                                                </select> --}}
                                                 @error("items.$index.client_name_place")
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
@@ -1650,7 +1595,35 @@
         });
     }
 
-   
+    // function initIntlTelInput(selector, phoneModel, codeModel) {
+    //     var input = $(selector);
+    //     var codeInput = $("#" + codeModel);
+    //     var phoneInput = $("#" + phoneModel);
+    //     var selected_dial_code = codeInput.val(); // only digits
+    //     var selected_phone_number = phoneInput.val(); // only digits
+    //     var defaultCountry = loadDialCodes(selected_dial_code);
+    //     input.intlTelInput({
+    //         initialCountry: defaultCountry,  // Central African Republic by default
+    //         preferredCountries: ["us", "gb", "in", "cf"],
+    //         separateDialCode: true
+    //     });
+    //     input.val(selected_phone_number);
+    //     // On input change (number typing)
+    //     input.on("input", function () {
+    //         let number = input.val().replace(/\D/g, ''); // only digits
+    //         @this.set(phoneModel, number);
+    //     });
+
+    //     // On country change
+    //     input.on("countrychange", function () {
+    //         let code = "+" + input.intlTelInput("getSelectedCountryData").dialCode;
+    //         @this.set(codeModel, code);
+    //         @this.call('CountryCodeSet', selector, code);
+    //     });
+
+    //     @this.set(codeModel, selected_dial_code);
+    //     @this.call('CountryCodeSet', selector, selected_dial_code);
+    // }
 
     // Already existing
     window.addEventListener('update_input_max_length', function (event) {

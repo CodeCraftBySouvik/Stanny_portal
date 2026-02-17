@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
@@ -78,108 +78,201 @@ class AuthController extends Controller
         ], 200);
     }
 
-    public function userLogin(Request $request){
-       // dd('hi');
-        $validator = Validator::make($request->all(),[
-            'country_code' => 'required',
-            'mobile' => [
-            'required',
-            'numeric',
-            function ($attribute, $value, $fail) {
-                $exists = User::where('phone', $value)
-                            ->where('user_type', 1)
-                            ->exists();
+    // public function userLogin(Request $request){
+    //    // dd('hi');
+    //     $validator = Validator::make($request->all(),[
+    //         'country_code' => 'required',
+    //         'mobile' => [
+    //         'required',
+    //         function ($attribute, $value, $fail) {
+    //             $exists = User::where('phone', $value)
+    //                         ->where('user_type', 0)
+    //                         ->exists();
 
-                if (! $exists) {
-                    $fail('The selected mobile number is invalid or does not belong to a valid user.');
-                }
-            },
-        ],
-            'device_id' => 'required'
-        ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => $validator->errors()->first(), // Returns only the first error message
-            ], 422);
-        }
+    //             if (! $exists) {
+    //                 $fail('The selected mobile number is invalid or does not belong to a valid user.');
+    //             }
+    //         },
+    //     ],
+    //         'device_id' => 'required'
+    //     ]);
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => $validator->errors()->first(), // Returns only the first error message
+    //         ], 422);
+    //     }
 
-        // Check if the user already exists in user_logins
-        $userLogin = UserLogin::where('country_code', $request->country_code)
-         ->where('mobile', $request->mobile)
-         ->first();
-         $user = User::where('country_code_phone', $request->country_code)
-         ->where('phone', $request->mobile)
-         ->first();
+    //     // Check if the user already exists in user_logins
+    //     $userLogin = UserLogin::where('country_code', $request->country_code)
+    //      ->where('mobile', $request->mobile)
+    //      ->first();
+    //      $user = User::where('country_code_phone', $request->country_code)
+    //      ->where('phone', $request->mobile)
+    //      ->first();
 
-        if ($userLogin && $userLogin->is_verified) {
-            return response()->json([
-                'message' => 'User already verified, use MPIN to login',
-                'show_mpin' => true
-            ], 200);
-        }
+    //     if ($userLogin && $userLogin->is_verified) {
+    //         return response()->json([
+    //             'message' => 'User already verified, use MPIN to login',
+    //             'show_mpin' => true
+    //         ], 200);
+    //     }
 
-        // Generate and store OTP
-        // $otp = rand(1000, 9999);
-        $otp = 1234;
-        UserLogin::updateOrCreate(
-            ['user_id'=>$user->id,'country_code' => $request->country_code, 'mobile' => $request->mobile],
-            ['otp' => $otp, 'device_id' => $request->device_id]
-        );
+    //     // Generate and store OTP
+    //     // $otp = rand(1000, 9999);
+    //     $otp = 1234;
+    //     UserLogin::updateOrCreate(
+    //         ['user_id'=>$user->id,'country_code' => $request->country_code, 'mobile' => $request->mobile],
+    //         ['otp' => $otp, 'device_id' => $request->device_id]
+    //     );
 
-        // Send OTP (Replace with SMS API)
-        return response()->json([
-            'status' => true,
-            'message' => 'OTP sent successfully',
-            'otp' => $otp // Remove in production
-        ], 200);
-    }
+    //     // Send OTP (Replace with SMS API)
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => 'OTP sent successfully',
+    //         'otp' => $otp // Remove in production
+    //     ], 200);
+    // }
 
-    public function verifyOtp(Request $request){
+    // Step 1:
+    public function userLogin(Request $request)
+    {
         $validator = Validator::make($request->all(), [
-            'country_code' => 'required',
-            'mobile' => 'required|exists:users,phone',
-            'otp' => 'required|digits:4',
-            'device_id' => 'required'
+            'email'     => 'required|email',
+            'password'  => 'required|min:6',
+            'device_id' => 'required',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'status' => false,
+                'status'  => false,
                 'message' => $validator->errors()->first(),
             ], 422);
         }
-        
-        $userLogin = UserLogin::where('country_code', $request->country_code)
-            ->where('mobile', $request->mobile)
-            ->where('otp', $request->otp)
-            ->first();
 
-        if (!$userLogin) {
+        $user = User::where('email', $request->email)
+                    ->where('user_type', 0)
+                    ->first();
+
+        if (! $user || ! Hash::check($request->password, $user->password)) {
             return response()->json([
-                'status'=>false,
-                'message' => 'Invalid OTP'
+                'status'  => false,
+                'message' => 'Invalid email or password',
             ], 401);
         }
 
-        $userLogin->is_verified = true;
-        $userLogin->otp = null;
-        $userLogin->device_id = $request->device_id;
-        $userLogin->save();
+        // Generate OTP
+        // $otp = rand(1000, 9999); // use random in prod
+        $otp = 1234; // testing only
+
+        UserLogin::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'email'      => $user->email,
+                'otp'        => $otp,
+                'device_id'  => $request->device_id,
+                'is_verified'=> false,
+            ]
+        );
+
+        // TODO: Send OTP via email
+        // Mail::to($user->email)->send(new LoginOtpMail($otp));
 
         return response()->json([
-            'status'=>true,
-            'message' => 'OTP verified successfully. Please set MPIN.',
+            'status' => true,
+            'message' => 'OTP sent to your email',
+            'otp' => $otp, 
         ], 200);
     }
 
+
+    // public function verifyOtp(Request $request){
+    //     $validator = Validator::make($request->all(), [
+    //         'country_code' => 'required',
+    //         'mobile' => 'required|exists:users,phone',
+    //         'otp' => 'required|digits:4',
+    //         'device_id' => 'required'
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => $validator->errors()->first(),
+    //         ], 422);
+    //     }
+        
+    //     $userLogin = UserLogin::where('country_code', $request->country_code)
+    //         ->where('mobile', $request->mobile)
+    //         ->where('otp', $request->otp)
+    //         ->first();
+
+    //     if (!$userLogin) {
+    //         return response()->json([
+    //             'status'=>false,
+    //             'message' => 'Invalid OTP'
+    //         ], 401);
+    //     }
+
+    //     $userLogin->is_verified = true;
+    //     $userLogin->otp = null;
+    //     $userLogin->device_id = $request->device_id;
+    //     $userLogin->save();
+
+    //     return response()->json([
+    //         'status'=>true,
+    //         'message' => 'OTP verified successfully. Please set MPIN.',
+    //     ], 200);
+    // }
+
+    // public function verifyOtp(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'email' => 'required|email',
+    //         'otp'   => 'required',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => $validator->errors()->first(),
+    //         ], 422);
+    //     }
+
+    //     $login = UserLogin::where('email', $request->email)
+    //                     ->where('otp', $request->otp)
+    //                     ->first();
+
+    //     if (! $login) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Invalid OTP',
+    //         ], 401);
+    //     }
+
+    //     $login->is_verified = true;
+    //     $login->otp = null;
+    //     $login->save();
+
+    //     $user = User::find($login->user_id);
+
+    //     // Optional token
+    //     // $token = $user->createToken('auth_token')->plainTextToken;
+
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => 'Login successful',
+    //         'user' => $user,
+    //         // 'token' => $token,
+    //     ], 200);
+    // }
+
     /**
-     * Step 4: Set MPIN
+     * Step 5: Set MPIN
      */
     public function setMpin(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'mobile' => 'required|exists:user_logins,mobile',
+            'email' => 'required|exists:user_logins,email',
             'mpin' => 'required|digits:4',
             'device_id' => 'required'
         ]);
@@ -191,7 +284,7 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $userLogin = UserLogin::where('mobile', $request->mobile)->first();
+        $userLogin = UserLogin::where('email', $request->email)->first();
         if (!$userLogin) {
             return response()->json([
                 'status'=>false,
@@ -238,11 +331,11 @@ class AuthController extends Controller
     }
 
      /**
-     * Step 5: Login with MPIN and Device ID
+     * Step 6: Login with MPIN and Device ID
      */
     public function mpinLogin(Request $request){
         $validator = Validator::make($request->all(), [
-            'mobile' => 'required|exists:user_logins,mobile',
+            'email' => 'required|exists:user_logins,email',
             'mpin' => 'required|digits:4',
             'device_id' => 'required'
         ]);
@@ -254,7 +347,7 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $userLogin = UserLogin::where('mobile', $request->mobile)
+        $userLogin = UserLogin::where('email', $request->email)
             ->first();
 
         if (!$userLogin || !Hash::check($request->mpin, $userLogin->mpin)) {
@@ -287,48 +380,97 @@ class AuthController extends Controller
         ], 200);
     }
 
-    public function logout(Request $request){
+   public function logout(Request $request)
+        {
         $validator = Validator::make($request->all(), [
-            'mobile' => 'required|exists:user_logins,mobile',
-            'device_id' => 'required'
+            'user_id' => 'required|exists:users,id',
         ]);
-
+         
         if ($validator->fails()) {
             return response()->json([
-                'status' => false,
-                'message' => $validator->errors()->first(),
+            'status' => false,
+            'message' => $validator->errors()->first(),
             ], 422);
         }
-
-        $userLogin = UserLogin::where('mobile', $request->mobile)
-            ->where('device_id', $request->device_id)
-            ->first();
+         
+        $userLogin = UserLogin::where('user_id', $request->user_id)
+        ->first();
+        
         if (!$userLogin) {
-            return response()->json(['message' => 'User not found or already logged out'], 404);
+        return response()->json(['message' => 'User not found or already logged out'], 404);
         }
-
+         
         // Remove device ID to require OTP on next login
         $userLogin->device_id = null;
+        
         // $userLogin->mpin = null; // Optional: Remove MPIN if required
         $userLogin->save();
-
+         
         // Delete API tokens if the user is authenticated
         if (Auth::check()) {
-            Auth::user()->tokens()->delete(); // Logs out by deleting all tokens
+           Auth::user()->tokens()->delete(); // Logs out by deleting all tokens
         }
         return response()->json([
-            'message' => 'Logout successful. Next login will require OTP.'
+        'message' => 'Logout successfull.'
         ], 200);
-    }
+        }
+        
+        public function forgotPassword(Request $request)
+        {
+            $validator = Validator::make($request->all(), [
+            'email' => 'nullable|email|exists:users,email',
+            'user_id' => 'nullable|exists:users,id',
+            'password' => 'required',
+            ]);
+         
+            if ($validator->fails()) {
+            return response()->json([
+            'status' => false,
+            'message' => $validator->errors()->first(),
+            ], 422);
+            }
+         
+        // Ensure either email or user_id is provided
+            if (! $request->email && ! $request->user_id) {
+            return response()->json([
+            'status' => false,
+            'message' => 'Email or User ID is required',
+            ], 422);
+            }
+         
+            // Fetch user
+            $user = User::when($request->email, function ($q) use ($request) {
+            $q->where('email', $request->email);
+            })
+            ->when($request->user_id, function ($q) use ($request) {
+            $q->where('id', $request->user_id);
+            })
+            ->first();
+         
+            if (! $user) {
+            return response()->json([
+            'status' => false,
+            'message' => 'User not found',
+            ], 404);
+            }
+         
+            // Update password
+            $user->password = Hash::make($request->password);
+            $user->save();
+         
+            return response()->json([
+            'status' => true,
+            'message' => 'Password updated successfully',
+            ], 200);
+        }
 
     /**
-     * Step 1: Send OTP for Forgot MPIN
+     * Step 2: Send OTP for Forgot MPIN
      */
     public function forgotMpin(Request $request){
 
         $validator = Validator::make($request->all(), [
-            'country_code' => 'required',
-            'mobile' => 'required|exists:user_logins,mobile',
+            'email' => 'required|email|exists:user_logins,email',
         ]);
 
         if ($validator->fails()) {
@@ -343,8 +485,7 @@ class AuthController extends Controller
         $otp = 1234;
 
         // Update OTP in the database
-        $userLogin = UserLogin::where('mobile', $request->mobile)
-        ->where('country_code', $request->country_code)
+        $userLogin = UserLogin::where('email', $request->email)
         ->first();
         if ($userLogin) {
             $userLogin->otp = $otp;
@@ -354,7 +495,7 @@ class AuthController extends Controller
 
             return response()->json([
                 'status' => true,
-                'message' => 'OTP sent to your mobile.'
+                'message' => 'OTP sent to your email.'
             ], 200);
         }
 
@@ -365,13 +506,12 @@ class AuthController extends Controller
     }
 
      /**
-     * Step 2: Verify OTP for Forgot MPIN
+     * Step 3: Verify OTP for Forgot MPIN
      */
     public function verifyOtpMpin(Request $request){
         $validator = Validator::make($request->all(), [
-            'country_code' => 'required',
-            'mobile' => 'required|exists:user_logins,mobile',
-            'otp' => 'required|digits:4',
+            'email' => 'required|email|exists:user_logins,email',
+            'otp'   => 'required|digits:4',
         ]);
 
         if ($validator->fails()) {
@@ -381,21 +521,21 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $userLogin = UserLogin::where('mobile', $request->mobile)
-            ->where('country_code', $request->country_code)
+        $userLogin = UserLogin::where('email', $request->email)
             ->where('otp', $request->otp)
             ->first();
-
-        if (!$userLogin) {
+        
+        if (! $userLogin) {
             return response()->json([
-                'status' => false, 
-                'message' => 'Invalid OTP.'
+                'status' => false,
+                'message' => 'Invalid OTP.',
             ], 400);
         }
 
         // OTP verified successfully, clear OTP and allow reset MPIN
-        $userLogin->otp = null;
-        $userLogin->save();
+        $userLogin->update([
+            'otp' => null,
+        ]);
 
         return response()->json([
             'status' => true, 
@@ -404,13 +544,12 @@ class AuthController extends Controller
     }
 
      /**
-     * Step 3: Reset MPIN After OTP Verification
+     * Step 4: Reset MPIN After OTP Verification
      */
     public function resetMpin(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'country_code' => 'required',
-            'mobile' => 'required|exists:user_logins,mobile',
+            'email' => 'required|email|exists:user_logins,email',
             'new_mpin' => 'required|digits:4',
         ]);
 
@@ -421,8 +560,7 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $userLogin = UserLogin::where('mobile', $request->mobile)
-            ->where('country_code', $request->country_code)
+        $userLogin = UserLogin::where('email', $request->email)
             ->first();
 
         if (!$userLogin) {
@@ -516,6 +654,7 @@ class AuthController extends Controller
             'customers' => $customers
         ], 200);
     }
+    
     public function customer_details($id){
         $user = $this->getAuthenticatedUser();
         if ($user instanceof \Illuminate\Http\JsonResponse) {
@@ -625,15 +764,21 @@ class AuthController extends Controller
         $alternative_phone_1_code_length = $request->alternative_phone_1_code_length;
         $alternative_phone_2_code_length = $request->alternative_phone_2_code_length;
         $rules = [
-            'prefix' => 'required|string|max:255',
-            'name' => 'required|string|max:255',
-            'email' => 'nullable|email|unique:users,email',
-            'phone_code' => 'required|string|max:255',
-            'phone' => [
-                'required',
-                'regex:/^\d{'. $phone_code_length .'}$/',
+            'prefix' => 'nullable|string|max:255',
+            'name' => 'nullable|string|max:255',
+            'email' => [
+                'nullable',
+                'email',
+                Rule::unique('users', 'email')->whereNull('deleted_at'),
             ],
-            
+            'phone_code' => 'nullable|string|max:255',
+            'phone' => [
+                'nullable',
+                    Rule::when($phone_code_length, [
+                        'regex:/^\d{'. $phone_code_length .'}$/'
+                    ]),
+                    Rule::unique('users', 'phone')->whereNull('deleted_at'),
+                ],
             'country_code_alt_1' => 'nullable|string|max:255',
             'alternative_phone_number_1' => [
                 'nullable',
@@ -645,23 +790,24 @@ class AuthController extends Controller
                 'nullable',
                 'regex:/^\d{'. $alternative_phone_2_code_length .'}$/',
             ],
-            
             'dob' => 'nullable|date',
             'company_name' => 'nullable|string|max:255',
             'employee_rank' => 'nullable|string|max:255',
-           
-            'billing_address' => 'required|string',
+            // 'gst_number' => 'nullable|string|max:15',
+            'credit_limit' => 'nullable|numeric',
+            'credit_days' => 'nullable|integer',
+            'billing_address' => 'nullable|string',
             'billing_landmark' => 'nullable|string|max:255',
-            'billing_city' => 'required|string|max:255',
-            'billing_country' => 'required|string|max:255',
+            'billing_city' => 'nullable|string|max:255',
+            'billing_state' => 'nullable|string',
+            'billing_country' => 'nullable|string|max:255',
             'billing_pin' => 'nullable|string|max:10',
             'profile_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'verified_video' => 'nullable|file|mimes:mp4,avi,mkv|max:10240',
+            // 'verified_video' => 'nullable|file|mimes:mp4,avi,mkv|max:10240',
+            'customer_badge_type' => 'nullable|in:general,premium',
         ];
-
         // Validate the request
         $validator = Validator::make($request->all(), $rules);
-
         // Return error response if validation fails
         if ($validator->fails()) {
             return response()->json([
@@ -669,17 +815,15 @@ class AuthController extends Controller
                 'message' => $validator->errors()->first(),
             ], 422);
         }
-        
         DB::beginTransaction();
 
         try {
             $profileImagePath = $request->hasFile('profile_image')
                 ? 'storage/' . $request->file('profile_image')->store('profile_images', 'public')
                 : null;
-
-            $verifiedVideoPath = $request->hasFile('verified_video')
-                ? 'storage/' . $request->file('verified_video')->store('verified_videos', 'public')
-                : null;
+            // $verifiedVideoPath = $request->hasFile('verified_video')
+            //     ? 'storage/' . $request->file('verified_video')->store('verified_videos', 'public')
+            //     : null;
             // Create the user
             $user = User::create([
                 'prefix' => $request->prefix,
@@ -689,17 +833,18 @@ class AuthController extends Controller
                 'phone' => $request->phone,
                 'country_code_whatsapp' => $request->whatsapp_code,
                 'whatsapp_no' => $request->whatsapp_no,
-                'country_code_alt_1' => $request->country_code_alternative_1,
+                'country_code_alt_1' => $request->country_code_alt_1,
                 'alternative_phone_number_1' => $request->alternative_phone_number_1,
-                'country_code_alt_2' => $request->country_code_alternative_2,
+                'country_code_alt_2' => $request->country_code_alt_2,
                 'alternative_phone_number_2'  => $request->alternative_phone_number_2,
                 'dob' => $request->dob,
                 'company_name' => $request->company_name,
                 'employee_rank' => $request->employee_rank,
                 'profile_image' => $profileImagePath,
                 'user_type' => 1,
+                'customer_badge' => $request->customer_badge_type,
                 'created_by' => $authUser->id,
-                'verified_video' => $verifiedVideoPath,
+                // 'verified_video' => $verifiedVideoPath,
             ]);
             // Save billing address
             UserAddress::create([
@@ -708,6 +853,7 @@ class AuthController extends Controller
                 'address' => $request->billing_address,
                 'landmark' => $request->billing_landmark,
                 'city' => $request->billing_city,
+                'state' => $request->billing_state,
                 'country' => $request->billing_country,
                 'zip_code' => $request->billing_pin,
             ]);
@@ -720,7 +866,6 @@ class AuthController extends Controller
                 'user' => $user->load('userAddress'),
             ]);
         } catch (\Exception $e) {
-            // Log error and return response
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
@@ -820,9 +965,9 @@ class AuthController extends Controller
                 'phone' => $request->phone,
                 'country_code_whatsapp' => $request->whatsapp_code,
                 'whatsapp_no' => $request->whatsapp_no,
-                'country_code_alt_1' => $request->country_code_alternative_1,
+                'country_code_alt_1' => $request->country_code_alt_1,
                 'alternative_phone_number_1' => $request->alternative_phone_number_1,
-                'country_code_alt_2' => $request->country_code_alternative_2,
+                'country_code_alt_2' => $request->country_code_alt_2,
                 'alternative_phone_number_2'  => $request->alternative_phone_number_2,
                 'dob' => $request->dob,
                 'company_name' => $request->company_name,

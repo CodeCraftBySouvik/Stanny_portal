@@ -218,6 +218,10 @@ class AddOrderSlip extends Component
          ------------------------------ */
         if (!empty($itemData['team'])) {
             $item->assigned_team = $itemData['team'];
+              // if item data go to production then set received at 
+           if ($itemData['team'] === 'production') {
+                $item->received_at = now();
+            }
         }
 
        
@@ -732,11 +736,15 @@ class AddOrderSlip extends Component
                     ->count();
 
                 // Check if any remaining Hold or TL-approved but not Admin-approved
-                 $hasPending = $allRelevantItems->contains(function ($item) {
+                // $hasPending = $allRelevantItems->where(function($item){
+                //     return $item->status == 'Hold' || ($item->tl_status == 'Approved' && $item->admin_status != 'Approved') || is_null($item->assigned_team);
+                // })->count();
+                
+                $hasPending = $allRelevantItems->contains(function ($item) {
                     return $item->admin_status !== 'Approved';
                 });
-                // dd($adminApprovedCount,$totalItems,$hasPending);
                 
+
                 if ($adminApprovedCount == 0) {
                     $status = "Approval Pending from TL";
                 } elseif ($hasPending > 0) {
@@ -745,8 +753,6 @@ class AddOrderSlip extends Component
                     $status = "Fully Approved By Admin";
                 }
             }
-
-
             else {
                 $status = "Approval Pending from TL";
             }
@@ -955,6 +961,8 @@ class AddOrderSlip extends Component
         //echo "<pre>";print_r($order->toArray());exit;
          $orderItems = $order->items->map(function ($item) use($order) {
          $product = \App\Models\Product::find($item->product_id);
+        $extra = \App\Helpers\Helper::ExtraRequiredMeasurement($item->product_name);
+
             $measurements = Measurement::where('product_id', $item->product_id)
                 ->orderBy('position','ASC')
                 ->get()
@@ -967,6 +975,7 @@ class AddOrderSlip extends Component
                     ];
                 });
             return [
+                 'id' => $item->id,
                 'product_name' => $item->product_name ?? $product->name,
                 'collection_id' => $item->collection,
                 'collection_title' => $item->collectionType ?  $item->collectionType->title : "",
@@ -976,7 +985,7 @@ class AddOrderSlip extends Component
                 'catalogue_id' => $item->catalogue_id,
                 'cat_page_number' => $item->cat_page_number,
                 'cat_page_item' => $item->cat_page_item,
-                'price' => $item->piece_price,
+                'piece_price' => $item->piece_price,
                 // 'deliveries' => !empty($item->deliveries)?
                 //     $item->deliveries:"",
                 'deliveries' => !empty($item->deliveries)
@@ -1002,8 +1011,27 @@ class AddOrderSlip extends Component
                 'expected_delivery_date' => $item->expected_delivery_date,
                 'fittings' => $item->fittings,
                 'priority' => $item->priority_level,
+                'status'  => $item->status,
+                'tl_status'  => $item->tl_status,
+                'admin_status'  => $item->admin_status,
 
-                
+                // Extra fields packed here
+                'extra_type' => $extra,
+                 'shoulder_type' => $item->shoulder_type,
+                'vents' => $item->vents,
+                'vents_required' => $item->vents_required,
+                'vents_count' => $item->vents_count,
+                'fold_cuff_required' => $item->fold_cuff_required,
+                'fold_cuff_size' => $item->fold_cuff_size,
+                'pleats_required' => $item->pleats_required,
+                'pleats_count' => $item->pleats_count,
+                'back_pocket_required' => $item->back_pocket_required,
+                'back_pocket_count' => $item->back_pocket_count,
+                'adjustable_belt' => $item->adjustable_belt,
+                'suspender_button' => $item->suspender_button,
+                'trouser_position' => $item->trouser_position,
+                'client_name_required' => $item->client_name_required,
+                'client_name_place' => $item->client_name_place,
             ];
         });
 

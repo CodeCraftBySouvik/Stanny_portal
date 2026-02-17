@@ -174,7 +174,15 @@
                             <div class="text-danger">{{ $message }}</div>
                             @enderror
                         </div>
-                       
+                        {{-- <div class="mb-3 col-md-4">
+                            <label for="verified_video" class="form-label">Verified Video</label>
+                            <input type="file" wire:model="verified_video" id="verified_video"
+                                class="form-control form-control-sm border border-1 p-2">
+
+                            @error('verified_video')
+                            <div class="text-danger">{{ $message }}</div>
+                            @enderror
+                        </div> --}}
                     </div>
 
                     <div class="col-12 col-md-6 mb-3">
@@ -235,7 +243,116 @@
                             @enderror
                         </div>
                     </div>
-                 
+                    {{-- <div class=" d-flex justify-content-between mt-4">
+                        <h6 class="badge bg-danger custom_danger_badge mb-3">Shipping Address</h6>
+                        <div class="d-flex align-item-center">
+                            <input type="checkbox" wire:change="toggleShippingAddress"
+                                wire:model="is_billing_shipping_same" id="isBillingShippingSame"
+                                class="form-check-input border border-1" @if ($is_billing_shipping_same) checked @endif>
+                            <label for="isBillingShippingSame" class="form-check-label"><span
+                                    class="badge bg-secondary">Shipping Address Same As Billing</span></label>
+                        </div>
+                    </div> --}}
+
+                    <!-- Shipping Address -->
+                    {{-- <div class="row mb-4">
+                        <div class="mb-3 col-md-4">
+                            <label for="shipping_address" class="form-label">Street Address <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" wire:model="shipping_address" id="shipping_address"
+                                class="form-control form-control-sm border border-1 p-2"
+                                placeholder="Enter Shipping Address" @if($is_billing_shipping_same) disabled @endif>
+                            @error('shipping_address')
+                            <div class="text-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="mb-3 col-md-4">
+                            <label for="shipping_landmark" class="form-label"> Landmark </label>
+                            <input type="text" wire:model="shipping_landmark" id="shipping_landmark"
+                                class="form-control form-control-sm border border-1 p-2" placeholder="Enter Landmark"
+                                @if($is_billing_shipping_same) disabled @endif>
+                            @error('shipping_landmark')
+                            <div class="text-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="mb-3 col-md-4">
+                            <label for="shipping_city" class="form-label"> City <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" wire:model="shipping_city" id="shipping_city"
+                                class="form-control form-control-sm border border-1 p-2" placeholder="Enter City"
+                                @if($is_billing_shipping_same) disabled @endif>
+                            @error('shipping_city')
+                            <div class="text-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="mb-3 col-md-4">
+                            <label for="shipping_state" class="form-label"> State </label>
+                            <input type="text" wire:model="shipping_state" id="shipping_state"
+                                class="form-control form-control-sm border border-1 p-2" placeholder="Enter State"
+                                @if($is_billing_shipping_same) disabled @endif>
+                            @error('shipping_state')
+                            <div class="text-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="mb-3 col-md-4">
+                            <label for="shipping_country" class="form-label"> Country <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" wire:model="shipping_country" id="shipping_country"
+                                class="form-control form-control-sm border border-1 p-2" placeholder="Enter Country"
+                                @if($is_billing_shipping_same) disabled @endif>
+                            @error('shipping_country')
+                            <div class="text-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="mb-3 col-md-4">
+                            <label for="shipping_pin" class="form-label"> Zip Code</label>
+                            <input type="text" wire:model="shipping_pin" id="shipping_pin"
+                                class="form-control form-control-sm border border-1 p-2" placeholder="Enter Zip Code"
+                                @if($is_billing_shipping_same) disabled @endif>
+                            @error('shipping_pin')
+                            <div class="text-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div> --}}
+
+                    {{-- <h6 class="badge bg-danger custom_danger_badge mb-3">Account Information</h6>
+                    <div class="row">
+                        <div class="mb-3 col-md-6">
+                            <label for="gst_number" class="form-label">GST Number</label>
+                            <input type="text" wire:model="gst_number" id="gst_number"
+                                class="form-control form-control-sm border border-1 p-2" placeholder="Enter Gst Number">
+                            @error('gst_number')
+                            <div class="text-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="mb-3 col-md-6">
+                            <label for="gst_certificate_image" class="form-label">GST Certificate Image</label>
+                            <input type="file" wire:model="gst_certificate_image" id="gst_certificate_image"
+                                class="form-control form-control-sm border border-1 p-2">
+                            @error('gst_certificate_image')
+                            <div class="text-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="mb-3 col-md-6">
+                            <label for="credit_limit" class="form-label">Credit Limit</label>
+                            <input type="number" wire:model="credit_limit" id="credit_limit"
+                                class="form-control form-control-sm border border-1 p-2"
+                                placeholder="Enter Credit Limit">
+                            @error('credit_limit')
+                            <div class="text-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3 col-md-6">
+                            <label for="credit_days" class="form-label">Credit Days</label>
+                            <input type="number" wire:model="credit_days" id="credit_days"
+                                class="form-control form-control-sm border border-1 p-2"
+                                placeholder="Enter Credit Days">
+                            @error('credit_days')
+                            <div class="text-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div> --}}
                     <button type="submit" class="btn btn-sm btn-success"><i class="material-icons text-white"
                             style="font-size: 15px;">add</i>Add</button>
                 </form>

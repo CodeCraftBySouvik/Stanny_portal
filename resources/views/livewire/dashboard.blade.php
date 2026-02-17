@@ -713,7 +713,7 @@
         @php
             $productionTeam = auth()->guard('admin')->user();
         @endphp
-        @if ($productionTeam->designation != 13)
+       @if (!in_array($productionTeam->designation, [13, 2, 4]))
         <div>
             <div class="card mt-3">
                 <div

@@ -153,8 +153,8 @@ class PurchaseOrderCreate extends Component
             }
 
               // Save product_ids and fabric_ids as comma-separated strings in purchase_order table
-            $purchaseOrder->product_ids = implode(',', $productIds);
-            $purchaseOrder->fabric_ids = implode(',', $fabricIds);
+             $purchaseOrder->product_ids = !empty($productIds) ? json_encode($productIds) : json_encode([]);
+            $purchaseOrder->fabric_ids = !empty($fabricIds) ? json_encode($fabricIds) : json_encode([]);
             $purchaseOrder->save();
             // Commit transaction
             DB::commit();

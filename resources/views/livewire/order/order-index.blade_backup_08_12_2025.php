@@ -17,22 +17,12 @@
                             <input type="date" wire:model="end_date" wire:change="AddEndDate($event.target.value)"
                                 class="form-control select-md bg-white" placeholder="End Date">
                         </div>
-                        @php
-                           $auth = Auth::guard('admin')->user();
-                        @endphp
                         <div class="col-auto" style="margin-top: -27px;">
                             <label for="" class="date_lable">Status</label>
-                            @if ($auth->is_super_admin)
                             <select class="form-control select-md bg-white"
                                 wire:change="setStatus($event.target.value)">
-                                <option value="all_orders" {{ $status == 'all_orders' ? 'selected' : '' }}>All Orders</option>''
-                                <option value="approval_pending_from_admin" {{ $status == 'approval_pending_from_admin' ? 'selected' : '' }}>Approval Pending from Admin</option>
-                            </select>
-                            @else
-                            <select class="form-control select-md bg-white" wire:model="status"
-                                wire:change="setStatus($event.target.value)">
                                 <option value="">Status</option>
-                                <option value="Approval Pending from TL">Approval Pending from TL</option>
+                                <option value="Approval Pending">Approval Pending</option>
                                 <option value="Approved">Approved</option>
                                 <option value="Ready for Delivery">Ready for Delivery</option>
                                 <option value="Partial Delivered By Production">Partial Delivered By Production</option>
@@ -42,8 +32,9 @@
                                 <option value="Delivered to Customer">Delivered to Customer</option>
                                 <option value="Partial Delivered to Customer">Partial Delivered to Customer</option>
                                 <option value="Approved By TL">Approved By TL</option>
+
+
                             </select>
-                            @endif
                         </div>
                         <div class="col-md-auto mt-3">
                             <a href="{{route('admin.order.new')}}" class="btn btn-outline-success select-md">Place New
@@ -65,7 +56,6 @@
                                 style="width: 350px;" wire:keyup="FindCustomer($event.target.value)">
                         </div>
                         <div class="col-auto mt-0">
-                            @if ($auth->is_super_admin)
                             <select wire:model="created_by" class="form-control select-md bg-white"
                                 wire:change="CollectedBy($event.target.value)">
                                 <option value="" hidden="" selected="">Placed By</option>
@@ -75,13 +65,10 @@
                                 @endif
                                 @endforeach
                             </select>
-                            @endif
                         </div>
                         <div class="col-auto mt-3">
-                             @if ($auth->is_super_admin)
                             <button type="button" wire:click="resetForm"
                                 class="btn btn-outline-danger select-md">Clear</button>
-                            @endif
                         </div>
                         <div class="col-auto">
                             <a href="javscript:void(0)" wire:click="export" class="btn btn-outline-success select-md"><i
@@ -173,13 +160,11 @@
                                 @if($order->status!="Cancelled")
 
                                 {{-- New Code By Souvik --}}
-                                @if($userDesignationId == 1 && ($order->status == 'Partial Approved By TL' || $order->status == 'Fully Approved By TL' || $order->status == 'Partial Approved By Admin' || $order->status == 'On Hold'))
-                                @if ($order->status != 'On Hold')
+                                @if($userDesignationId == 1 && ($order->status == 'Partial Approved By TL' || $order->status == 'Fully Approved By TL' || $order->status == 'Partial Approved By Admin'))
                                 <a href="{{ route('admin.order.add_order_slip', $order->id) }}"
                                     class="btn btn-outline-success select-md btn_outline">
                                     Approve Order
                                 </a>
-                                @endif
                                 <a href="{{ route('admin.order.edit', $order->id) }}"
                                     class="btn btn-outline-success select-md btn_outline">
                                     Edit
@@ -191,19 +176,16 @@
                                 @endif
 
                                 {{-- (Optional) TL Approve button --}}
-                                @if(($userDesignationId == 4 && in_array($order->status, ['Approval Pending from TL', 'Partial Approved By TL','On Hold']) && $order->created_by != $userId) && ($order->hasProcessAndHoldItems() || $order->canTLApprove()))
+                                @if($userDesignationId == 4 && in_array($order->status, ['Approval Pending', 'Partial Approved By TL']) && $order->created_by != $userId)
                                 <a href="{{ route('admin.order.add_order_slip', $order->id) }}"
                                     class="btn btn-outline-success select-md btn_outline">
                                     Approve Order
                                 </a>
-                                @endif
-                                 @if($userDesignationId == 4 && in_array($order->status, ['Approval Pending from TL', 'Partial Approved By TL','On Hold']))
                                 <a href="{{ route('admin.order.edit', $order->id) }}"
                                     class="btn btn-outline-success select-md btn_outline">
                                     Edit
                                 </a>
-                                @endif
-                                 @if($userDesignationId == 4 && in_array($order->status, ['Approval Pending from TL', 'Partial Approved By TL','On Hold']) && $order->created_by != $userId)
+
                                 <button wire:click="confirmCancelOrder({{ $order->id }})"
                                     class="btn btn-outline-danger select-md btn_outline">
                                     Cancel Order
@@ -212,7 +194,7 @@
 
                                 {{-- Designation 2(Sales Person): Show only Edit and Cancel if status is Approval
                                 Pending --}}
-                                @if($userDesignationId == 2 && ($order->status == 'Approval Pending from TL' || $order->status == 'On Hold'))
+                                @if($userDesignationId == 2 && $order->status == 'Approval Pending')
                                 <a href="{{ route('admin.order.edit', $order->id) }}"
                                     class="btn btn-outline-success select-md btn_outline">
                                     Edit
@@ -225,9 +207,9 @@
                                 {{-- New Code end By Souvik --}}
                                 @endif
                                 @else
-                                {{-- Admin override: Show Approve/Edit/Cancel even if slip exists and status is
+                                {{-- ✅ Admin override: Show Approve/Edit/Cancel even if slip exists and status is
                                 Approved By TL --}}
-                                @if($userDesignationId == 1 && ($order->status == 'Partial Approved By TL' || $order->status == 'Fully Approved By TL' || $order->status == 'Partial Approved By Admin') && $order->hasProcessAndAdminApprovedItems())
+                                @if($userDesignationId == 1 && ($order->status == 'Partial Approved By TL' || $order->status == 'Fully Approved By TL' || $order->status == 'Partial Approved By Admin'))
                                 <a href="{{ route('admin.order.add_order_slip', $order->id) }}"
                                     class="btn btn-outline-success select-md btn_outline">
                                     Approve Order
@@ -242,8 +224,7 @@
                                 </button>
 
                                 @else
-                              {{--  @if ($userDesignationId == 2 && $order->hasHoldItemsWithApprovedTLStatus())  --}}
-                              @if ($userDesignationId == 2 && $order->canSalesEdit())
+                                @if ($userDesignationId == 2 && $order->hasHoldItemsWithApprovedTLStatus())
                                 <a href="{{ route('admin.order.edit', $order->id) }}"
                                     class="btn btn-outline-success select-md btn_outline">
                                     Edit
@@ -255,21 +236,7 @@
                                     Approve Order
                                 </a>
                                 @endif
-                              {{--  @if($userDesignationId != 2 && (($userDesignationId == 4 && $order->canTLApprove()) || $order->status == 'Partial Approved By Admin') && $order->hasProcessAndTLApprovedItems() || $order->hasProcessAndTLPendingItems()) --}}
-                              @if(
-                                    $userDesignationId != 2 &&
-                                    (
-                                        (
-                                            ($userDesignationId == 4 && $order->canTLApprove())
-                                            || $order->status == 'Partial Approved By Admin'
-                                        )
-                                        &&
-                                        (
-                                            $order->hasProcessAndTLApprovedItems()
-                                            || $order->hasProcessAndTLPendingItems()
-                                        )
-                                    )
-                                )
+                                @if($userDesignationId == 4 && $order->canTLApprove())
                                 <a href="{{ route('admin.order.add_order_slip', $order->id) }}"
                                     class="btn btn-outline-success select-md btn_outline">
                                     Approve Order
@@ -277,7 +244,7 @@
 
                                 @endif
 
-                                @if($userDesignationId == 4 && ($order->hasHoldItemsWithApprovedTLStatus() || $order->hasProcessAndTLPendingItems()))
+                                @if($userDesignationId == 4 && $order->hasHoldItemsWithApprovedTLStatus())
                                 <a href="{{ route('admin.order.edit', $order->id) }}"
                                     class="btn btn-outline-success select-md btn_outline">
                                     Edit

@@ -228,7 +228,7 @@
                                     </button>
                                     @else
                                     <button class="btn btn-outline-success select-md"
-                                        wire:click="openStockModal({{$loop->index}},true)">
+                                        wire:click="openStockModal({{ $item['id'] }})">
                                         @if ($item['has_stock_entry'])
                                         Update Stock
                                         @else
@@ -238,7 +238,7 @@
                                     @if ($item['has_stock_entry'])
                                     <button id="delivery-btn-{{ $loop->index }}"
                                         class="btn btn-outline-success select-md"
-                                        wire:click="openGarmentDeliveryModal({{ $loop->index }})">
+                                        wire:click="openGarmentDeliveryModal({{ $item['id'] }})">
                                         Delivery
                                     </button>
                                     @endif
@@ -346,19 +346,20 @@
                                             @endif
                                         </div>
                                         <div class="col-md-3">
-                                            @if($item['extra_type'] === 'mens_jacket_suit')
+                                            @if(in_array('mens_jacket_suit', $item['extra_type'] ?? []))
                                             <p><strong>Shoulder Type:</strong> {{ $item['shoulder_type'] ?? 'N/A' }}</p>
                                             <p><strong>Vents:</strong> {{ $item['vents'] ?? 'N/A' }}</p>
                                             @endif
 
-                                            @if($item['extra_type'] === 'ladies_jacket_suit')
+                                             @if(in_array('ladies_jacket_suit', $item['extra_type'] ?? []))
                                             <p><strong>Shoulder Type:</strong> {{ $item['shoulder_type'] ?? 'N/A' }}</p>
                                             <p><strong>Vents Required:</strong> {{ $item['vents_required'] ?? 'N/A'
                                                 }}</p>
                                             <p><strong>Vents Count:</strong> {{ $item['vents_count'] ?? 'N/A' }}</p>
                                             @endif
 
-                                            @if($item['extra_type'] === 'trouser')
+
+                                              @if(in_array('trouser', $item['extra_type'] ?? []))
                                             <p><strong>Fold Cuff Required:</strong> {{ $item['fold_cuff_required']
                                                 ?? 'N/A' }}</p>
                                             <p><strong>Fold Cuff Size:</strong> {{ $item['fold_cuff_size'] ?
@@ -379,8 +380,12 @@
                                             <p><strong>Trouser Position:</strong> {{ $item['trouser_position'] ??
                                                 'N/A' }}</p>
                                             @endif
-                                            @if($item['extra_type'] === 'ladies_jacket_suit' || $item['extra_type'] ===
-                                            'shirt' || $item['extra_type'] === 'mens_jacket_suit')
+                                            
+                                             @if(
+                                                in_array('ladies_jacket_suit', $item['extra_type'] ?? []) ||
+                                                in_array('shirt', $item['extra_type'] ?? []) ||
+                                                in_array('mens_jacket_suit', $item['extra_type'] ?? [])
+                                            )
                                             <p><strong>Client Name Required:</strong> {{ $item['client_name_required']
                                                 ??
                                                 'N/A' }}</p>
@@ -523,13 +528,13 @@
                                             </div>
 
                                             <div class="col-md-1 mt-4">
-                                                {{-- <button class="btn btn-outline-success select-md" wire:click="updateStock({{ $selectedItem['index'] }},
+                                                {{-- <button class="btn btn-outline-success select-md" wire:click="updateStock({{ $selectedItem['item_id'] }},
                                                             '{{ $selectedItem['input_name'] }}')">
                                                     Update
                                                 </button> --}}
                                                 @if($selectedItem['has_stock_entry'])
                                                 <button class="btn btn-outline-danger select-md" wire:click="$dispatch('confirm-revert-back', {
-                                                    index: {{ $selectedItem['index'] }},
+                                                    itemId: {{ $selectedItem['item_id'] }},
                                                     inputName: '{{ $selectedItem['input_name'] }}',
                                                     entryId: {{ $entry['id'] ?? 'null' }}
                                                 })">
@@ -557,7 +562,7 @@
                                             {{-- Update All --}}
                                             <div class="mb-3">
                                                 <button class="btn btn-outline-success select-md"
-                                                    wire:click="updateStock({{ $selectedItem['index'] }})">
+                                                    wire:click="updateStock({{ $selectedItem['item_id'] }})">
                                                     Update All
                                                 </button>
                                             </div>
@@ -779,7 +784,7 @@
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     window.addEventListener('confirm-revert-back', event => {
-        const { index, inputName,entryId  } = event.detail;
+        const { itemId, inputName,entryId  } = event.detail;
 
         Swal.fire({
             title: 'Are you sure?',
@@ -792,7 +797,7 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 // use @this.call to run the Livewire method
-                @this.call('revertBackStock', index, inputName,entryId );
+                @this.call('revertBackStock', itemId, inputName,entryId );
             }
         });
     });

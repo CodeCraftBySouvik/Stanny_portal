@@ -15,6 +15,7 @@ class OrderStockEntry extends Model
         'quantity', 
         'extra_meter',
         'unit', 
+        'previous_quantity',
         'created_by'        
     ];
 }

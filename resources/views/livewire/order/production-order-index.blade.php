@@ -119,12 +119,23 @@
                             </td>
                             @php
                                 // Check if there are any items assigned to production and not yet received
-                                $hasPendingProductionItems = $order->items()
-                                    ->where('assigned_team', 'production')
-                                    ->where(function($q) {
-                                        $q->whereNull('received_at')->orWhere('received_at', '');
-                                    })
-                                    ->exists();
+                                  //      $hasPendingProductionItems = $order->items()
+                                  //  ->where('assigned_team', 'production')
+                                     //->where(function($q) {
+                                    //        $q->whereNotNull('received_at');
+                                    //    })
+                                  //  ->exists(); --}}
+                                    $hasPendingProductionItems = false;
+
+                                   if (in_array($order->status, ['Partial Approved By Admin', 'Fully Approved By Admin'])) {
+
+                                        $hasPendingProductionItems = $order->items()
+                                            ->where('assigned_team', 'production')
+                                            ->whereNotNull('received_at')
+                                            ->exists();
+                                    }
+
+
                             @endphp
                             <td class="text-center">
                                 @if ($hasPendingProductionItems)
@@ -133,19 +144,14 @@
                                     Received
                                 </button>
                                 @elseif(in_array($order->status,['Received at Production','Partial
-                                Delivered By Production','Fully Delivered By Production','Partial Delivered to Customer','Partial Approved By Admin']))
-                                @if (!in_array($order->id, $has_order_entry))
-                                <a href="{{route('production.order.details',$order->id)}}"
-                                    class="btn btn-outline-success select-md btn_action btn_outline">Stock Entry</a>
-                                @elseif(in_array($order->id, $has_order_entry) && $order->status != 'Fully Delivered By
-                                Production')
-                                <a href="{{route('production.order.details',$order->id)}}"
-                                    class="btn btn-outline-success select-md btn_action btn_outline">Delivery</a>
-                                @elseif($order->status == 'Fully Delivered By Production' || $order->status == 'Partial
-                                Delivered to Customer')
-                                <button class="btn btn-outline-success select-md btn_action btn_outline"
-                                    disabled>Delivered</button>
-                                @endif
+                                Delivered By Production','Fully Delivered By Production','Partial Approved By Admin']))
+                                    @if ($order->status != 'Fully Delivered By Production')
+                                    <a href="{{route('production.order.details',$order->id)}}"
+                                        class="btn btn-outline-success select-md btn_action btn_outline">Stock Entry</a>
+                                    @elseif($order->status == 'Fully Delivered By Production')
+                                    <button class="btn btn-outline-success select-md btn_action btn_outline"
+                                        disabled>Delivered</button>
+                                    @endif
                                 @endif
                                 @if (!in_array($order->status, [
                                     'Fully Approved By Admin',

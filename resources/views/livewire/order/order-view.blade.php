@@ -225,7 +225,7 @@
                                 <td>{{$item['collection_title']}}</td>
                                 <td class="">
                                     <div class="d-flex justify-content-start align-items-center product-name">
-                                        <div class="me-3">
+                                       {{-- <div class="me-3">
                                             @if (!empty($item['product_image']))
                                             <div class="avatar avatar-sm rounded-2 bg-label-secondary">
                                                 <img src="{{ asset('storage/' . $item['product_image']) }}"
@@ -237,7 +237,7 @@
                                                     class="rounded-2">
                                             </div>
                                             @endif
-                                        </div>
+                                        </div>  --}}
                                         <div class="d-flex flex-column">
                                             <span
                                                 class="text-nowrap text-heading fw-medium">{{$item['product_name']}}</span>
@@ -445,14 +445,16 @@
                                                 </div>
                                                 @endif
                                             </div>
+                                          
                                             <div class="col-lg-3">
-                                                @if($item['extra_type'] === 'mens_jacket_suit')
+                                              @if(in_array('mens_jacket_suit', $item['extra_type'] ?? []))
                                                 <p><strong>Shoulder Type:</strong> {{ $item['shoulder_type'] ?? 'N/A' }}
                                                 </p>
                                                 <p><strong>Vents:</strong> {{ $item['vents'] ?? 'N/A' }}</p>
                                                 @endif
 
-                                                @if($item['extra_type'] === 'ladies_jacket_suit')
+                                                
+                                                @if(in_array('ladies_jacket_suit', $item['extra_type'] ?? []))
                                                 <p><strong>Shoulder Type:</strong> {{ $item['shoulder_type'] ?? 'N/A'
                                                     }}</p>
                                                 <p><strong>Vents Required:</strong> {{ $item['vents_required'] ?? 'N/A'
@@ -460,7 +462,7 @@
                                                 <p><strong>Vents Count:</strong> {{ $item['vents_count'] ?? 'N/A' }}</p>
                                                 @endif
 
-                                                @if($item['extra_type'] === 'trouser')
+                                                @if(in_array('trouser', $item['extra_type'] ?? []))
                                                 <p><strong>Fold Cuff Required:</strong> {{ $item['fold_cuff_required']
                                                     ?? 'N/A' }}</p>
                                                 <p><strong>Fold Cuff Size:</strong> {{ !empty($item['fold_cuff_size']) ? $item['fold_cuff_size']. ' cm' : 'N/A'
@@ -480,7 +482,13 @@
                                                 <p><strong>Trouser Position:</strong> {{ $item['trouser_position'] ??
                                                     'N/A' }}</p>
                                                 @endif
-                                                @if($item['extra_type'] === 'ladies_jacket_suit' || $item['extra_type'] === 'shirt' || $item['extra_type'] === 'mens_jacket_suit')
+                                                
+                                                @if(
+                                                    in_array('ladies_jacket_suit', $item['extra_type'] ?? []) ||
+                                                    in_array('shirt', $item['extra_type'] ?? []) ||
+                                                    in_array('mens_jacket_suit', $item['extra_type'] ?? [])
+                                                )
+
                                                     <p><strong>Client Name Required:</strong> {{ $item['client_name_required'] ??
                                                     'N/A' }}</p>
                                                     <p><strong>Client Name Place:</strong> {{ $item['client_name_place'] ??

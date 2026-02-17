@@ -630,9 +630,9 @@
                                         @foreach ($items[$index]['products'] as $product)
                                         <button class="dropdown-item" type="button"
                                             wire:click='selectProduct({{ $index }}, "{{ $product->name }}", {{ $product->id }})'>
-                                            {{-- <img src="{{ $product->product_image ? asset("
-                                                storage/".$product->product_image) : asset('assets/img/cubes.png') }}"
-                                            alt="">  --}}
+                                            <!--<img src="{{ $product->product_image ? asset("-->
+                                            <!--    storage/".$product->product_image) : asset('assets/img/cubes.png') }}"-->
+                                            <!--alt=""> -->
                                             {{ $product->name }}({{ $product->product_code }})
                                         </button>
                                         @endforeach
@@ -671,6 +671,7 @@
                                         wire:keyup="searchFabrics({{ $index }})" class="form-control form-control-sm"
                                         placeholder="Search by fabric name" id="searchFabric_{{ $index }}"
                                         autocomplete="off" wire:keydown.enter.prevent>
+                                        
                                     @error("items.". $index .".searchTerm")
                                     <div class="text-danger error-message">{{ $message }}</div>
                                     @enderror
@@ -695,11 +696,11 @@
                                         <div>
                                             <label class="form-label"><strong>Price</strong></label>
                                             <input type="text"
-                                                wire:keyup="checkproductPrice($event.target.value, {{ $index }})"
-                                                wire:model="items.{{ $index }}.price" class="form-control form-control-sm border border-1 customer_input
+                                                wire:blur="checkproductPrice({{ $index }})"
+                                                wire:model.defer="items.{{ $index }}.price" class="form-control form-control-sm border border-1 customer_input
                                             @if(session()->has('errorPrice.' . $index)) border-danger @endif
                                             @error('items.' . $index . '.price') border-danger  @enderror"
-                                                placeholder="Enter Price" wire:keydown.enter.prevent>
+                                                placeholder="Enter Price" wire:keydown.enter.stop>
                                         </div>
 
                                         <div>
@@ -710,7 +711,6 @@
                                             </button>
                                         </div>
                                     </div>
-                                    {{-- <div>hi</div> --}}
 
                                     <!-- Error Messages -->
                                     @if(session()->has('errorPrice.' . $index))
@@ -725,18 +725,18 @@
 
                                 {{-- --}}
                                 @else
-                                {{--Garment item Price --}}
+                                {{--Accessories item Price --}}
                                 <div class="col-md-3 col-12 mb-3">
                                     <div class="d-flex align-items-end gap-2">
                                         <div>
                                             <!-- Price Input -->
                                             <label class="form-label"><strong>Price</strong></label>
                                             <input type="text"
-                                                wire:keyup="checkproductPrice($event.target.value, {{ $index }})"
+                                                 wire:blur="checkproductPrice({{ $index }})"
                                                 wire:model="items.{{ $index }}.price" class="form-control form-control-sm border border-1 customer_input
                                                         @if(session()->has('errorPrice.' . $index)) border-danger @endif
                                                         @error('items.' . $index . '.price') border-danger  @enderror"
-                                                placeholder="Enter Price" wire:keydown.enter.prevent>
+                                                placeholder="Enter Price" wire:keydown.enter.stop>
                                         </div>
                                         <div>
                                             <!-- Delete Button -->

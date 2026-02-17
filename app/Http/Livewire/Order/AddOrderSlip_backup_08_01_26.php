@@ -519,7 +519,7 @@ class AddOrderSlip extends Component
                 })->count();
 
                 if ($adminApprovedCount == 0) {
-                    $status = "Approval Pending from TL";
+                    $status = "Approval Pending";
                 } elseif ($hasPending > 0) {
                     $status = "Partial Approved By Admin";
                 } elseif ($adminApprovedCount == $totalItems) {
@@ -529,7 +529,7 @@ class AddOrderSlip extends Component
 
 
             else {
-                $status = "Approval Pending from TL";
+                $status = "Approval Pending";
             }
 
             $order->update([

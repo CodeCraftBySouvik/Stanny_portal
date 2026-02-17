@@ -424,7 +424,8 @@ class OrderEdit extends Component
             // 'items.*.selectedCatalogue' => 'required_if:items.*.selected_collection,1',
             // 'items.*.page_number' => 'required_if:items.*.selected_collection,1',
             'items.*.quantity' => 'required|numeric|min:1',
-            // 'items.*.fitting' => 'required_if:items.*.selected_collection,1',
+            'items.*.fitting' => 'required_if:items.*.selected_collection,1',
+            //  'items.*.fitting' => 'required',
             // 'items.*.priority' => 'required',
             'items.*.expected_delivery_date' => 'required',
             'items.*.item_status' => 'required',
@@ -435,24 +436,40 @@ class OrderEdit extends Component
                     : 'required')
                 : 'nullable',
         ];
-            foreach ($this->items as $index => $item) {
+            // foreach ($this->items as $index => $item) {
 
-                if (($item['selected_collection'] ?? null) == 1) {
+            //     if (($item['selected_collection'] ?? null) == 1) {
         
-                    // Detect "No Catalogue Images"
-                    $noImages =
-                        isset($item['selectedCatalogue']) &&
-                        isset($this->catalogues[$index][$item['selectedCatalogue']]) &&
-                        $this->catalogues[$index][$item['selectedCatalogue']] === 'No Catalogue Images';
+            //         // Detect "No Catalogue Images"
+            //         $noImages =
+            //             isset($item['selectedCatalogue']) &&
+            //             isset($this->catalogues[$index][$item['selectedCatalogue']]) &&
+            //             $this->catalogues[$index][$item['selectedCatalogue']] === 'No Catalogue Images';
+            
+            //         if (!$noImages) {
+            //             $rules["items.$index.selectedCatalogue"] = 'required';
+            //             $rules["items.$index.page_number"] = 'required|integer|min:1';
+            //         }
         
-                    if (!$noImages) {
-                        $rules["items.$index.selectedCatalogue"] = 'required';
-                        $rules["items.$index.page_number"] = 'required|integer|min:1';
-                    }
-        
-                    $rules["items.$index.fitting"] = 'required';
-                }
+            //         $rules["items.$index.fitting"] = 'required';
+            //     }
+            // }
+            
+             foreach ($this->items as $index => $item) {
+            if (isset($item['selectedCatalogue']) &&
+                isset($this->catalogues[$index][$item['selectedCatalogue']]) &&
+                $this->catalogues[$index][$item['selectedCatalogue']] === 'No Catalogue Images') {
+
+                // Make selectedCatalogue,page_number optional
+                $rules["items.$index.selectedCatalogue"] = 'nullable';
+                $rules["items.$index.page_number"] = 'nullable';
+            } else {
+                // Otherwise required if collection = 1
+                $rules["items.$index.selectedCatalogue"] = 'required_if:items.*.collection,1';
+                $rules["items.$index.page_number"] = 'required_if:items.*.collection,1';
             }
+            //  $rules["items.$index.fitting"] = 'required';
+        }
         //  Add dynamic rules based on extra measurement per index
         foreach ($this->items as $index => $item) {
             $extra = $this->extra_measurement[$index] ?? [];
@@ -1411,23 +1428,28 @@ protected function resetMeasurements($index)
                     $orderItem->cat_page_number  = $item['page_number'] ?? null;
                     $orderItem->cat_page_item  = $item['page_item'] ?? null;
                     $loggedInAdmin = auth()->guard('admin')->user();
-                    $orderItem->priority_level  = in_array($loggedInAdmin->designation, [1, 4]) 
-                    ? ($item['priority'] ?? null) 
-                    : null;
+                    // $orderItem->priority_level  = in_array($loggedInAdmin->designation, [1, 4]) 
+                    // ? ($item['priority'] ?? null) 
+                    // : null;
+                    if (in_array($loggedInAdmin->designation, [1, 4])) {
+                        if (isset($item['priority']) && !empty($item['priority'])) {
+                            $orderItem->priority_level = $item['priority'];
+                        }
+                    }
                     
 
                     // ------------------------------------------------------------------
                     $previousStatus = $orderItem->getOriginal('status');   // null if new row
                     $newStatus      = $item['item_status'] ?? null;
-                    // $statusChanged  = $previousStatus !== $newStatus;
+                    $statusChanged  = $previousStatus !== $newStatus;
 
                     $orderItem->status = $newStatus;
                 //    dd($orderItem);
-                // New 8-10-2025
-                // if ($statusChanged) {
-                        // dd($newStatus."hi");
+
+                    // New 8-10-2025
+                    if ($statusChanged) {
+
                         if ($newStatus === 'Process') {
-                            // dd('hello');
 
                             // ── Case 1: Brand-new item (previousStatus == null)
                             if (is_null($previousStatus)) {
@@ -1437,7 +1459,7 @@ protected function resetMeasurements($index)
                                     $orderItem->tl_status    = 'Approved';
                                     $orderItem->admin_status = 'Approved';
                                     $orderItem->assigned_team = 'production';
-                                }  else {
+                                } else {
                                     // Non-admin create → no auto approve
                                     $orderItem->tl_status    = 'Pending';
                                     $orderItem->admin_status = 'Pending';
@@ -1446,27 +1468,26 @@ protected function resetMeasurements($index)
 
                             // ── Case 2: Existing item changed from Hold → Process
                             } else {
+
                                 if (in_array($loggedInAdmin->designation, [1, 12])  && $order->created_by == 1) {
                                     // Admin re-activates item → approve and assign production
                                     $orderItem->tl_status    = 'Approved';
                                     $orderItem->admin_status = 'Approved';
                                     $orderItem->assigned_team = 'production';
-                                }
-                                //  TL auto approve if TL created order
-                                elseif ($loggedInAdmin->designation == 4 && $order->created_by == $loggedInAdmin->id) {
-                                    $orderItem->tl_status    = 'Approved';
-                                    $orderItem->admin_status = 'Pending';
-                                    $orderItem->assigned_team = null;
-
+                                } else if ($loggedInAdmin->designation == 4) { // TL
+                                    // If TL is editing and changes Hold -> Process
+                                    $orderItem->tl_status    = 'Approved';  // Auto approve
+                                    $orderItem->admin_status = 'Pending';   // Admin still needs to check
+                                    $orderItem->assigned_team = 'production';
                                 } else {
-                                    // Non-admin (e.g. TL/staff) just updates it → not auto approved
+                                    // Other non-admin staff
                                     $orderItem->tl_status    = 'Pending';
                                     $orderItem->admin_status = 'Pending';
                                     $orderItem->assigned_team = null;
                                 }
 
                                 // Let system know order still needs admin review
-                                // $order->status = 'Approval Pending from TL';
+                                $order->status = 'Approval Pending from TL';
                             }
 
                         } else {
@@ -1483,44 +1504,72 @@ protected function resetMeasurements($index)
                                 
                             }
                         }
-                    // }
+                    }
                     // dd($order);
 
 
-                    
-                       
-
                         if (in_array($loggedInAdmin->designation, [1, 12])) {
 
-                            $totalItems = $order->items()->count();
-
-                            $allProcessItems = $order->items()
-                                ->where('status', 'Process')
-                                ->whereNotNull('assigned_team')
-                                ->count();
-
-                            $unassignedCount = $order->items()->whereNull('assigned_team')->count();
-
-                            // ✅ Check if all assigned teams are production
+                            $totalItems = $order->items()->count(); // 2
+                        
+                            // ✅ Count all items with Process status
+                            $allProcessItems = $order->items()->where('status', 'Process')->count(); // 2
+                        
+                            // ✅ Check if all assigned teams are production or NULL
                             $allProductionTeam = $order->items()
                                 ->whereNotNull('assigned_team')
                                 ->where('assigned_team', '!=', 'production')
-                                ->count() == 0;
-                            // dd($totalItems,$allProcessItems,$unassignedCount,$allProductionTeam);
-                            // ✅ Fully approved only if all items are Process + assigned + all production
-                            if (
-                                $totalItems > 0 &&
-                                $allProcessItems == $totalItems &&
-                                $unassignedCount == 0 &&
-                                $allProductionTeam
-                            ) {
+                                ->count() == 0; // true
+                            
+                            if ($totalItems > 0 && $allProcessItems == $totalItems && $allProductionTeam) {
                                 $order->status = 'Fully Approved By Admin';
                             } else {
+                               
                                 $order->status = 'Partial Approved By Admin';
                             }
-
+                        
                             $order->save();
                         }
+
+                       
+                        
+                        // if (in_array($loggedInAdmin->designation, [1, 12])) {
+
+                        //     $totalItems = $order->items()->count(); //2
+
+                        //     $allProcessItems = $order->items()
+                        //         ->where('status', 'Process')
+                        //         ->whereNotNull('assigned_team')
+                        //         ->count(); //2
+
+                        //     $unassignedCount = $order->items()->whereNull('assigned_team')->count(); //0
+
+                        //     // ✅ Check if all assigned teams are production
+                        //     $allProductionTeam = $order->items()
+                        //         ->whereNotNull('assigned_team')
+                        //         ->where('assigned_team', '!=', 'production')
+                        //         ->count() == 0; //true
+                                
+                        //     // dd($totalItems,$allProcessItems,$unassignedCount,$allProductionTeam);
+                            
+                        //     // ✅ Fully approved only if all items are Process + assigned + all production
+                        //     if (
+                        //         $totalItems > 0 &&
+                        //         $allProcessItems == $totalItems &&
+                        //         $unassignedCount == 0 &&
+                        //         $allProductionTeam
+                        //     ) {
+                        //         dd('hu');
+                        //         $order->status = 'Fully Approved By Admin';
+                        //     } else {
+                        //         dd('bu');
+                        //         $order->status = 'Partial Approved By Admin';
+                        //     }
+
+                        //     $order->save();
+                        // }
+                        
+                        
 
 
                     // ------------------------------------------------------------------
@@ -1588,8 +1637,8 @@ protected function resetMeasurements($index)
                         }
                     }
 
-                    $orderItem->save();
                     // dd($orderItem);
+                    $orderItem->save();
 
 
                     if ($orderItem) {
@@ -1675,10 +1724,9 @@ protected function resetMeasurements($index)
 
                     // Count total Process items
                     $totalProcessCount = $items->where('status', 'Process')->count();
-
+                
                     // Count Hold items
                     $holdCount = $items->where('status', 'Hold')->count();
-            
                     // dd($processApprovedCount,$totalProcessCount,$holdCount);
                     // Determine order status based on TL designation
                     $loggedInAdmin = auth()->guard('admin')->user();
@@ -1689,7 +1737,6 @@ protected function resetMeasurements($index)
                             $order->status = 'Fully Approved By TL';
                         } elseif ($holdCount == $totalProcessCount) {
                             $order->status = 'Approval Pending from TL';
-                            
                         }
                     }
 
@@ -1733,14 +1780,15 @@ protected function resetMeasurements($index)
             UserWhatsapp::where('user_id', $customerId)
                 ->whereNotIn('whatsapp_number', $updatedNumbers)
                 ->delete();
-
+                
             // Maintain Log
-            $loggedInUserId = auth()->guard('admin')->user()->id ?? null;
-             // Auto Approve for Admin And Store Person
-                 $staff = User::find($loggedInUserId);
-                if ($staff && (in_array($staff->designation,[1,12]) && $order->created_by == 1)) {
-                    $orderRepo->approveOrder($order->id, $staff->id);
-                }
+           $loggedInUserId = auth()->guard('admin')->user()->id ?? null;
+            // Auto Approve for Admin And Store Person
+            $staff = User::find($loggedInUserId);
+            if ($staff && in_array($staff->designation, [1, 12])) {
+                $orderRepo->approveOrder($order->id, $staff->id);
+            }
+
 
             DB::commit();
             session()->flash('success', 'Order has been updated successfully.');

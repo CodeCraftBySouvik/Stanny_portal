@@ -65,10 +65,10 @@ class ProductionOrderIndex extends Component
     // Find items assigned to production that are not yet received
     $newProductionItems = $order->items()
         ->where('assigned_team', 'production')
-        ->where(function($q) {
-            $q->whereNull('received_at')
-              ->orWhere('received_at', '');
-        })
+        // ->where(function($q) {
+        //     $q->whereNull('received_at')
+        //       ->orWhere('received_at', '');
+        // })
         ->get();
 
     if ($newProductionItems->isEmpty()) {
@@ -140,7 +140,11 @@ class ProductionOrderIndex extends Component
        ->where('id','<',$orderid)
        ->orderBy('id','desc')
        ->first();
-       $orderItems = $order->items->map(function ($item) use($order) {
+       $orderItems = $order->items
+            ->filter(function($item) {
+                return $item->admin_status === 'Approved' && $item->assigned_team === 'production';
+            })
+            ->map(function ($item) use($order) {
             $extra = \App\Helpers\Helper::ExtraRequiredMeasurement($item->product_name);
 
             $product = Product::find($item->product_id);
@@ -160,7 +164,9 @@ class ProductionOrderIndex extends Component
                 'catlogue_image' => $item->catlogue_image,
                 'voice_remark' => $item->voice_remark,
                 'expected_delivery_date' => $item->expected_delivery_date,
-
+                'fittings' => $item->fittings,
+                'priority' => $item->priority_level,
+                
                  // Extra fields packed here
                 'extra_type'           => $extra,
                 'shoulder_type'        => $item->shoulder_type,
